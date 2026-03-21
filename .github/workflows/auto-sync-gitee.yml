@@ -11,7 +11,7 @@ jobs:
         uses: Yikun/hub-mirror-action@master
         with:
           src: github/vlouboos
-          dst: gitee/vlouboos
+          dst: gitee/FloatDev
           dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
           dst_token:  ${{ secrets.GITEE_TOKEN }}
           account_type: user
