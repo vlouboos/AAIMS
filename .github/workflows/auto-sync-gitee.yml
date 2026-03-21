@@ -1,0 +1,22 @@
+name: auto-sync-gitee.yml
+on:
+  push:
+
+jobs:
+  build:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync Github Repos To Gitee
+        uses: Yikun/hub-mirror-action@master
+        with:
+          src: github/vlouboos
+          dst: gitee/FloatingPoint-MC
+          dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+          dst_token:  ${{ secrets.GITEE_TOKEN }}
+          account_type: user
+          clone_style: "https"
+          debug: true
+          force_update: true
+          white_list: "AAIMS"
+          timeout: '600s'
