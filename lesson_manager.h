@@ -2,8 +2,8 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_LESSON_MANAGER_H
-#define ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_LESSON_MANAGER_H
+#ifndef AAIMS_LESSON_MANAGER_H
+#define AAIMS_LESSON_MANAGER_H
 
 #include "data_structures.h"
 #include "file_manager.h"
@@ -43,4 +43,4 @@ namespace lesson_manager {
         return std::nullopt;
     }
 }
-#endif // ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_LESSON_MANAGER_H
+#endif // AAIMS_LESSON_MANAGER_H

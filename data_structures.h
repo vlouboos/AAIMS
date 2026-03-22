@@ -2,21 +2,14 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_DATA_STRUCTURES_H
-#define ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_DATA_STRUCTURES_H
+#ifndef AAIMS_DATA_STRUCTURES_H
+#define AAIMS_DATA_STRUCTURES_H
 
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
 
 namespace aaims::model {
-    struct ServerConfig {
-        std::string host = "0.0.0.0";
-        int port = 4399;
-    };
-
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ServerConfig, host, port)
-
     struct LessonStatus {
         std::string uuid;
         bool retake = false;
@@ -68,4 +61,4 @@ namespace aaims::model {
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(StudentRating, student_id, ratings)
 }
-#endif // ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_DATA_STRUCTURES_H
+#endif // AAIMS_DATA_STRUCTURES_H

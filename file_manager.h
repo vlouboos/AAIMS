@@ -2,8 +2,8 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_FILE_MANAGER_H
-#define ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_FILE_MANAGER_H
+#ifndef AAIMS_FILE_MANAGER_H
+#define AAIMS_FILE_MANAGER_H
 
 #include <string>
 #include <fstream>
@@ -38,4 +38,4 @@ namespace file_manager {
         } catch (...) { return false; }
     }
 }
-#endif // ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_FILE_MANAGER_H
+#endif // AAIMS_FILE_MANAGER_H

@@ -3,15 +3,11 @@
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
 #include <iostream>
-#include <memory>
 
 #include "account_manager.h"
-#include "config_manager.h"
-#include "network_manager.h"
 
 int main() {
-    std::cout << "Reading config..." << std::endl;
-    config_manager::init();
+    std::cout << "Loading accounts..." << std::endl;
     account_manager::init();
-    network_manager::start();
+    int a = 10;
 }

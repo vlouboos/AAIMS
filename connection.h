@@ -2,8 +2,8 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_CONNECTION_H
-#define ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_CONNECTION_H
+#ifndef AAIMS_CONNECTION_H
+#define AAIMS_CONNECTION_H
 #include "account_manager.h"
 
 struct connection {
@@ -46,4 +46,4 @@ inline std::ostream &operator<<(std::ostream &os, const connection &conn) {
     return os;
 }
 
-#endif //ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_CONNECTION_H
+#endif //AAIMS_CONNECTION_H
