@@ -5,15 +5,14 @@
 #ifndef AAIMS_ASYNCJSONIO_H
 #define AAIMS_ASYNCJSONIO_H
 
-#include <QtConcurrent>
+#include <QtConcurrentRun>
 #include <QJsonDocument>
-#include <QJsonArray>
 #include <QJsonObject>
-#include <QFile>
+#include <QDir>
 #include <QSaveFile>
 
 namespace aaims::io {
-    static QFuture<void> loadAsync(const QString &filePath, std::function<void(const QJsonObject &)> consumer) {
+    static QFuture<void> loadAsync(const QString &filePath, const std::function<void(const QJsonObject &)> &consumer) {
         return QtConcurrent::run([filePath, consumer] {
             QFile file(filePath);
             if (!file.open(QIODevice::ReadOnly)) return;
@@ -24,15 +23,13 @@ namespace aaims::io {
         });
     }
 
-    template<typename MapType, typename Serializer>
-    static QFuture<bool> saveAsync(const QString &filePath, MapType map, Serializer serializeFunc) {
-        return QtConcurrent::run([filePath, map, serializeFunc]() -> bool {
-            const QJsonArray arr = serializeFunc(map);
-
-            const QJsonDocument doc(arr);
-
+    static QFuture<bool> saveAsync(const QString &filePath, const QJsonObject &data) {
+        return QtConcurrent::run([filePath, data]() -> bool {
+            if (!QFileInfo::exists(filePath) && !QDir().mkpath(QFileInfo(filePath).absolutePath())) return false;
+            const QJsonDocument doc(data);
+            const QByteArray bytes = doc.toJson();
             if (QSaveFile file(filePath); file.open(QIODevice::WriteOnly)) {
-                file.write(doc.toJson());
+                file.write(bytes);
                 return file.commit();
             }
             return false;

@@ -44,6 +44,22 @@ namespace aaims::model {
         [[nodiscard]] bool is_graduated() const { return (status & GRADUATED) != 0; }
 
         [[nodiscard]] bool is_master() const { return (status & MASTER) != 0; }
+
+        [[nodiscard]] QJsonObject toJson() const {
+            QJsonArray lessonData;
+            for (const auto &x: lessons) {
+                const QJsonObject &lesson = {{"uuid", x.uuid.toString()}, {"retake", x.retake}};
+                lessonData.append(lesson);
+            }
+            return {
+                {"username", username},
+                {"name", name},
+                {"password", password},
+                {"female", female},
+                {"status", status},
+                {"lessons", lessonData}
+            };
+        }
     };
 
     struct Lesson {
@@ -56,7 +72,7 @@ namespace aaims::model {
                 return {json.value("day").toInt(), json.value("start").toInt(), json.value("duration").toInt()};
             }
 
-            QJsonObject toJson() const {
+            [[nodiscard]] QJsonObject toJson() const {
                 return {
                     {"day", dayOfWeek},
                     {"start", startSection},

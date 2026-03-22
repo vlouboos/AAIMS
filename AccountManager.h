@@ -7,6 +7,7 @@
 
 #include "DataStructures.h"
 #include <QApplication>
+#include <QFuture>
 
 using namespace aaims::model;
 
@@ -28,11 +29,13 @@ namespace aaims::manager::account {
 
     void init();
 
+    QFuture<bool> save();
+
     bool isEmpty();
 
     Account *tryLogin(const QString &username, const QString &password);
 
-    void onLoaded(std::function<void()> callback);
+    void onLoaded(const std::function<void()> &callback);
 
     Account *findByUUID(const QUuid &uuid);
 
@@ -41,6 +44,8 @@ namespace aaims::manager::account {
     Account *findByName(const QString &name);
 
     void add(const Account &account);
+
+    bool isLoading();
 }
 
 #endif // AAIMS_ACCOUNT_MANAGER_H

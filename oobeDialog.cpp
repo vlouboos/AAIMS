@@ -3,12 +3,16 @@
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
 #include "oobeDialog.h"
+
+#include <QFutureWatcher>
+
 #include "Sha256Util.h"
 #include <QGraphicsDropShadowEffect>
+#include <QProgressDialog>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QStyle>
 
-#include "AccountLoginDialog.h"
 #include "AccountManager.h"
 
 oobeDialog::oobeDialog(QWidget *parent) : StyledDialog(parent) {
@@ -205,6 +209,32 @@ void oobeDialog::registerClicked() {
         return;
     }
     qInfo() << "Creating root account" << userEdit->text();
-    aaims::manager::account::add({QUuid::createUuid(), userEdit->text(), "主管理员", Sha256Util::hash(passEdit->text()), false, 0b1000, QList<LessonStatus>()});
-    this->accept();
+    const auto loading = new QProgressDialog("正在创建主管理员账户...", nullptr, 0, 0, this); // NOLINT
+    loading->setWindowModality(Qt::WindowModal);
+    loading->setCancelButton(nullptr);
+    loading->setRange(0, 0);
+    loading->show();
+    QUuid uuid = QUuid::createUuid();
+    aaims::manager::account::add({
+        uuid, userEdit->text(), "主管理员", Sha256Util::hash(passEdit->text()), false, 0b1000,
+        QList<LessonStatus>()
+    });
+    const auto future = aaims::manager::account::save();
+
+    auto *watcher = new QFutureWatcher<bool>(this); // NOLINT
+    connect(watcher, &QFutureWatcher<bool>::finished, [this, loading, watcher, uuid] {
+        loading->close();
+        loading->deleteLater();
+        watcher->deleteLater();
+
+        if (watcher->result()) {
+            QMessageBox::information(this, "成功", "已成功创建主管理员账号。");
+            aaims::manager::account::logged = aaims::manager::account::findByUUID(uuid);
+            this->accept();
+        } else {
+            QMessageBox::critical(this, "错误", "无法保存账号数据，请检查磁盘权限。");
+        }
+    });
+
+    watcher->setFuture(future);
 }

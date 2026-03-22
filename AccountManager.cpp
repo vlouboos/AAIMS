@@ -2,6 +2,8 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
+#include <QFutureWatcher>
+
 #include "AccountManager.h"
 #include "AsyncJsonIO.h"
 
@@ -12,6 +14,7 @@ namespace {
     QHash<QUuid, Account> accounts;
     QHash<QString, QUuid> accounts_by_username;
     QHash<QString, QUuid> accounts_by_name;
+    bool loading = true;
 }
 
 namespace aaims::manager::account {
@@ -47,9 +50,27 @@ namespace aaims::manager::account {
             qDebug() << "Loaded" << accounts.size() << "accounts.";
             emit InternalManager::instance()->loaded();
             watcher->deleteLater();
+            loading = false;
         });
 
         watcher->setFuture(future);
+    }
+
+    QFuture<bool> save() {
+        const QString path = QCoreApplication::applicationDirPath() + "/data/accounts.json";
+        QJsonObject root;
+        for (auto it = accounts.begin(); it != accounts.end(); ++it) {
+            root.insert(it.key().toString(), it->toJson());
+        }
+        const auto &future = saveAsync(path, root);
+        auto *watcher = new QFutureWatcher<void>(InternalManager::instance()); // NOLINT
+        QObject::connect(watcher, &QFutureWatcher<void>::finished, [watcher] {
+            qDebug() << "Loaded" << accounts.size() << "accounts.";
+            emit InternalManager::instance()->loaded();
+            watcher->deleteLater();
+        });
+        watcher->setFuture(future);
+        return future;
     }
 
     void add(const Account &account) {
@@ -68,7 +89,7 @@ namespace aaims::manager::account {
         return accounts.isEmpty();
     }
 
-    void onLoaded(std::function<void()> callback) {
+    void onLoaded(const std::function<void()> &callback) {
         QObject::connect(InternalManager::instance(), &InternalManager::loaded, callback);
     }
 
@@ -91,5 +112,9 @@ namespace aaims::manager::account {
             return findByUUID(accounts_by_name[name]);
         }
         return nullptr;
+    }
+
+    bool isLoading() {
+        return loading;
     }
 }
