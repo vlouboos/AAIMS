@@ -24,6 +24,7 @@ namespace aaims::model {
 
         std::string id;
         std::string username;
+        std::string name;
         std::string password;
         uint8_t status = 0;
         std::vector<LessonStatus> lessons;

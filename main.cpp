@@ -2,12 +2,19 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
+#include <QApplication>
 #include <iostream>
 
-#include "account_manager.h"
+#include "AccountLoginDialog.h"
+#include "AccountManager.h"
 
-int main() {
-    std::cout << "Loading accounts..." << std::endl;
-    account_manager::init();
-    int a = 10;
+int main(int argc, char *argv[]) {
+    qInfo() << "Loading accounts..." << Qt::endl;
+    aaims::manager::account::init();
+    QApplication a(argc, argv);
+
+    if (AccountLoginDialog loginDlg; loginDlg.exec() == QDialog::Accepted) {
+        qInfo() << "Logged in as " << AccountManager::logged->name;
+    }
+    return 0;
 }

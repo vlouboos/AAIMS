@@ -7,8 +7,12 @@ project(AAIMS C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 
 find_package(Threads REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
 
 include(FetchContent)
 
@@ -21,20 +25,26 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(json)
 
 add_executable(AAIMS main.cpp
-        ${US_SOURCES}
-        file_manager.h
-        account_manager.h
-        data_structures.h
-        lesson_manager.h
-        rating_manager.h
-        connection.h
+        FileManager.h
+        AccountManager.h
+        DataStructures.h
+        LessonManager.h
+        RatingManager.h
+        AccountLoginDialog.cpp
+        AccountLoginDialog.h
+        resources.qrc
+        sha256util.h
+        AccountManager.cpp
 )
 
 target_link_libraries(AAIMS
         PRIVATE
         Threads::Threads
         nlohmann_json::nlohmann_json
-        ${SYSTEM_LIBS}
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
+        Qt::Svg
 )
 
 target_compile_definitions(AAIMS
@@ -52,3 +62,24 @@ if (NOT MSVC)
         )
     endif ()
 endif ()
+
+if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    get_target_property(_qt_core_path Qt6::Core LOCATION)
+    get_filename_component(_qt_bin_dir "${_qt_core_path}" DIRECTORY)
+    find_program(QT_DEPLOY_TOOL NAMES windeployqt windeployqt.exe HINTS "${_qt_bin_dir}")
+
+    # 2. 执行自动化部署
+    if (QT_DEPLOY_TOOL)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${QT_DEPLOY_TOOL} --no-translations --compiler-runtime "$<TARGET_FILE:${PROJECT_NAME}>"
+                COMMENT "Running windeployqt to copy all dependencies..."
+        )
+    else()
+        message(WARNING "windeployqt not found, deployment skipped!")
+    endif()
+endif()
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${QT_DEPLOY_TOOL} --no-translations --compiler-runtime "$<TARGET_FILE:${PROJECT_NAME}>"
+        COMMENT "Deploying Qt dependencies for distribution..."
+)

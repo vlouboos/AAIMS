@@ -1,0 +1,11 @@
+<!-- This file is part of AAIMS.
+You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
+See https://spdx.org/licenses/BSD-3-Clause.html -->
+<!DOCTYPE RCC>
+<RCC>
+    <qresource prefix="/">
+        <file>assets/style.qss</file>
+        <file>assets/hide.svg</file>
+        <file>assets/show.svg</file>
+    </qresource>
+</RCC>

@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
-namespace file_manager {
+namespace aaims::manager::file {
     namespace fs = std::filesystem;
 
     template<typename T>

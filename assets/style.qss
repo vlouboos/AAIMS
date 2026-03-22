@@ -1,0 +1,95 @@
+QFrame#Card {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+}
+QLabel#Logo {
+    font-size: 48px;
+    background-color: #F1F5F9;
+    border-radius: 40px; /* 圆形背景 */
+    padding: 10px;
+}
+QLabel#Title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0F172A;
+    margin-top: 10px;
+}
+QLabel#Subtitle {
+    font-size: 14px;
+    color: #64748B;
+}
+QLabel#FieldLabel {
+    font-size: 14px;
+    font-weight: 500;
+    color: #0F172A;
+}
+QLabel#RedFieldLabel {
+    font-size: 14px;
+    font-weight: 500;
+    color: #FF5555;
+}
+QLineEdit, QFrame#PassWrapper, QLineEdit#PassEdit {
+    background: transparent;
+    border: 2px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 0px;
+    font-size: 14px;
+    color: #0F172A;
+}
+QLineEdit {
+    padding-left: 10px;
+    min-height: 24px;
+}
+QLineEdit#PassEdit {
+    padding-left: 10px;
+    min-height: 24px;
+    border: 0;
+}
+QFrame#PassWrapper[focused="true"], QLineEdit:focus {
+    border: 2px solid #0F172A;
+}
+QPushButton#ToggleBtn {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+
+    icon-size: 20px 20px;
+}
+
+QPushButton#ToggleBtn:hover {
+    background-color: #f1f5f9;
+}
+
+QPushButton#ToggleBtn {
+    icon: url(":/assets/hide.svg");
+}
+
+QPushButton#ToggleBtn[passwordVisible="true"] {
+    icon: url(":/assets/show.svg");
+}
+QPushButton#LoginBtn {
+    background-color: #F1F5F9;
+    color: #0F172A;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 500;
+}
+QPushButton#LoginBtn[isReady="false"] {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+}
+QPushButton#LoginBtn[isReady="true"]:hover {
+    background-color: #E2E8F0;
+}
+QPushButton#LinkBtn {
+    background: transparent;
+    border: none;
+    color: #64748B;
+    font-size: 14px;
+}
+QPushButton#LinkBtn:hover {
+    color: #0F172A;
+}

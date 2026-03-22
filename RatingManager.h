@@ -5,16 +5,16 @@
 #ifndef AAIMS_RATING_MANAGER_H
 #define AAIMS_RATING_MANAGER_H
 
-#include "data_structures.h"
-#include "file_manager.h"
+#include "DataStructures.h"
+#include "FileManager.h"
 #include <map>
 #include <vector>
 #include <shared_mutex>
 #include <filesystem>
 #include <mutex>
 
-namespace rating_manager {
-    inline std::map<std::string, std::vector<aaims::model::StudentRating> > registry;
+namespace aaims::manager::rating {
+    inline std::map<std::string, std::vector<model::StudentRating> > registry;
     inline std::shared_mutex mtx;
     inline std::string base_dir = "data/ratings/";
 
@@ -31,7 +31,7 @@ namespace rating_manager {
         for (const auto &entry: fs::directory_iterator(base_dir)) {
             if (entry.path().extension() == ".json") {
                 std::string name = entry.path().stem().string();
-                if (std::vector<aaims::model::StudentRating> data; file_manager::load(entry.path().string(), data)) {
+                if (std::vector<model::StudentRating> data; file::load(entry.path().string(), data)) {
                     registry[name] = std::move(data);
                 }
             }
@@ -41,10 +41,10 @@ namespace rating_manager {
     inline bool save_by_name(const std::string &name) {
         std::shared_lock lock(mtx);
         if (!registry.contains(name)) return false;
-        return file_manager::save(base_dir + name + ".json", registry[name]);
+        return file::save(base_dir + name + ".json", registry[name]);
     }
 
-    inline bool add_record(const std::string &rating_name, const aaims::model::StudentRating &record) {
+    inline bool add_record(const std::string &rating_name, const model::StudentRating &record) {
         std::unique_lock lock(mtx);
         registry[rating_name].push_back(record);
         return true;
