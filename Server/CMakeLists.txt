@@ -44,13 +44,16 @@ file(GLOB US_SOURCES
 )
 
 add_executable(AcademicAffairsInformationManagementSystemServer main.cpp
+        ${US_SOURCES}
         file_manager.h
         account_manager.h
         data_structures.h
         config_manager.h
         lesson_manager.h
         rating_manager.h
-        ${US_SOURCES}
+        network_manager.cpp
+        network_manager.h
+        connection.h
 )
 
 target_include_directories(AcademicAffairsInformationManagementSystemServer
@@ -59,14 +62,21 @@ target_include_directories(AcademicAffairsInformationManagementSystemServer
         ${CMAKE_BINARY_DIR}/_deps/uwebsockets-src/uSockets/src
 )
 
+set(SYSTEM_LIBS "")
+
+if (WIN32)
+    list(APPEND SYSTEM_LIBS ws2_32 iphlpapi)
+else()
+    list(APPEND SYSTEM_LIBS pthread)
+endif()
+
 target_link_libraries(AcademicAffairsInformationManagementSystemServer
         PRIVATE
         Threads::Threads
         nlohmann_json::nlohmann_json
-        ws2_32
-        iphlpapi
         uv_a
         z
+        ${SYSTEM_LIBS}
 )
 
 target_compile_definitions(AcademicAffairsInformationManagementSystemServer
@@ -76,9 +86,11 @@ target_compile_definitions(AcademicAffairsInformationManagementSystemServer
 
 if (NOT MSVC)
     target_compile_options(AcademicAffairsInformationManagementSystemServer PRIVATE -Wall -Wextra -O3)
-    target_link_options(AcademicAffairsInformationManagementSystemServer PRIVATE
-            -static-libgcc
-            -static-libstdc++
-            -static
-    )
+    if (WIN32)
+        target_link_options(AcademicAffairsInformationManagementSystemServer PRIVATE
+                -static-libgcc
+                -static-libstdc++
+                -static
+        )
+    endif ()
 endif ()

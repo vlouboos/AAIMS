@@ -25,11 +25,21 @@ namespace aaims::model {
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(LessonStatus, uuid, retake)
 
     struct Account {
+        constexpr static int ADMIN = 0b1;
+        constexpr static int TEACHER = 0b10;
+        constexpr static int GRADUATED = 0b100;
+
         std::string id;
         std::string username;
         std::string password;
-        uint32_t status = 0;
+        uint8_t status = 0;
         std::vector<LessonStatus> lessons;
+
+        [[nodiscard]] bool is_admin() const { return (status & ADMIN) != 0; }
+
+        [[nodiscard]] bool is_teacher() const { return (status & TEACHER) != 0; }
+
+        [[nodiscard]] bool is_graduated() const { return (status & GRADUATED) != 0; }
     };
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Account, id, username, password, status, lessons)

@@ -43,7 +43,7 @@ AAIMS is a robust, high-performance C++ solution designed for academic administr
 
 ### Compiling from Source
 ```bash
-git clone [https://github.com/vlouboos/AAIMS.git](https://github.com/vlouboos/AAIMS.git)
+git clone https://github.com/vlouboos/AAIMS.git
 cd AAIMS
 cmake -B build -DCMAKE_CXX_STANDARD=23
 cmake --build build

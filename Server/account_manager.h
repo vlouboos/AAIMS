@@ -10,37 +10,38 @@
 #include <map>
 #include <mutex>
 #include <shared_mutex>
-#include <optional>
 
 namespace account_manager {
-    inline std::map<std::string, aaims::model::Account> accounts;
-    inline std::shared_mutex mtx;
-    inline std::string current_path = "data/accounts.json";
+    static inline std::map<std::string, aaims::model::Account> accounts;
+    static inline std::shared_mutex mtx;
+    static inline std::string current_path = "data/accounts.json";
 
-    inline bool init(const std::string &path = "data/accounts.json") {
+    static bool init(const std::string &path = "data/accounts.json") {
         std::unique_lock lock(mtx);
         current_path = path;
         return file_manager::load(current_path, accounts);
     }
 
-    inline bool save() {
+    static bool save() {
         std::shared_lock lock(mtx);
         return file_manager::save(current_path, accounts);
     }
 
-    inline bool add(const aaims::model::Account &acc) {
+    static bool add(const aaims::model::Account &acc) {
         std::unique_lock lock(mtx);
         if (accounts.contains(acc.id)) return false;
         accounts[acc.id] = acc;
         return true;
     }
 
-    inline std::optional<aaims::model::Account> find(const std::string &id) {
+    static aaims::model::Account* find(std::string id) {
+        std::ranges::transform(id, id.begin(),
+                               [](const unsigned char c) { return std::tolower(c); });
         std::shared_lock lock(mtx);
         if (const auto it = accounts.find(id); it != accounts.end()) {
-            return it->second;
+            return std::addressof(it->second);
         }
-        return std::nullopt;
+        return nullptr;
     }
 }
 #endif // ACADEMICAFFAIRSINFORMATIONMANAGEMENTSYSTEM_ACCOUNT_MANAGER_H

@@ -45,7 +45,7 @@ AAIMS (Academic Affairs Information Management System) 是一个高效、结构�
 
 ### 编译步骤
 ```bash
-git clone [https://github.com/vlouboos/AAIMS.git](https://github.com/vlouboos/AAIMS.git)
+git clone https://github.com/vlouboos/AAIMS.git
 cd AAIMS
 cmake -B build -DCMAKE_CXX_STANDARD=23
 cmake --build build
