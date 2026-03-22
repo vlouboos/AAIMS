@@ -2,30 +2,20 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef AAIMS_ACCOUNTLOGINDIALOG_H
-#define AAIMS_ACCOUNTLOGINDIALOG_H
+#ifndef AAIMS_OOBE_H
+#define AAIMS_OOBE_H
 
+#include <qgraphicseffect.h>
 #include <QLineEdit>
 #include <QLabel>
-#include <QFrame>
-#include <qgraphicseffect.h>
 
 #include "StyledDialog.h"
 
-class AccountLoginDialog : public StyledDialog {
+class oobeDialog : public StyledDialog {
     Q_OBJECT
 
 public:
-    explicit AccountLoginDialog(QWidget *parent = nullptr);
-
-private slots:
-    void onLoginClicked();
-
-    void onTogglePassword();
-
-    void toggleLoginButton() const;
-
-    bool eventFilter(QObject *obj, QEvent *event) override;
+    explicit oobeDialog(QWidget *parent = nullptr);
 
 private:
     QVBoxLayout *mainLayout;
@@ -45,15 +35,30 @@ private:
     QFrame *passWrapper;
     QHBoxLayout *passInnerLayout;
     QLineEdit *passEdit;
+    QVBoxLayout *confirmLayout;
+    QLabel *confirmLabel;
+    QFrame *confirmWrapper;
+    QHBoxLayout *confirmInnerLayout;
+    QLineEdit *confirmEdit;
     QPushButton *togglePassBtn;
-    QVBoxLayout *loginLayout;
+    QPushButton *toggleConfirmBtn;
+    QFrame *tipCard;
+    QHBoxLayout *tipLayout;
+    QLabel *tipIcon;
+    QVBoxLayout *tipContentLayout;
+    QLabel *tipTitle;
+    QLabel *tipContent;
+    QVBoxLayout *registerLayout;
+    QPushButton *registerBtn;
     QLabel *errorLabel;
-    QPushButton *loginBtn;
-    QHBoxLayout *footerLayout;
-    QPushButton *forgotBtn;
-    QPushButton *helpBtn;
     QPushButton *exitButton;
-    bool isPasswordVisible = false;
+    bool isPassVisible = false;
+    bool isConfirmVisible = false;
+
+    void toggleRegisterButton() const;
+
+private slots:
+    void registerClicked();
 };
 
-#endif //AAIMS_ACCOUNTLOGINDIALOG_H
+#endif

@@ -43,7 +43,7 @@ AAIMS is a robust, high-performance C++ solution designed for academic administr
 ### Prerequisites
 * **Compiler**: A C++ compiler supporting **C++23** (GCC 13+, Clang 15+, or MSVC 19.33+).
 * **Build System**: [CMake](https://cmake.org/) (Version 3.20+ recommended for C++23 features).
-* **Dependencies**: [nlohmann/json](https://github.com/nlohmann/json) [uNetworking/uWebSockets](https://github.com/uNetworking/uWebSockets) [madler/zlib](https://github.com/madler/zlib) [libuv/libuv](https://github.com/libuv/libuv) (Fetched automatically).
+* **Dependencies**: Qt6 (Fetched automatically).
 
 ### Compiling from Source
 ```bash

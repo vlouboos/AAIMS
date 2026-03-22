@@ -5,61 +5,101 @@
 #ifndef AAIMS_DATA_STRUCTURES_H
 #define AAIMS_DATA_STRUCTURES_H
 
-#include <string>
-#include <vector>
-#include <nlohmann/json.hpp>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QUuid>
+
+#include "AccountLoginDialog.h"
 
 namespace aaims::model {
     struct LessonStatus {
-        std::string uuid;
-        bool retake = false;
+        QUuid uuid;
+        int retake = 0;
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(LessonStatus, uuid, retake)
+    struct Class {
+        QUuid uuid;
+        QString name;
+        QList<QUuid> lessons;
+    };
 
     struct Account {
         constexpr static int ADMIN = 0b1;
         constexpr static int TEACHER = 0b10;
         constexpr static int GRADUATED = 0b100;
+        constexpr static int MASTER = 0b1000;
 
-        std::string id;
-        std::string username;
-        std::string name;
-        std::string password;
+        QUuid uuid;
+        QString username;
+        QString name;
+        QString password;
+        bool female;
         uint8_t status = 0;
-        std::vector<LessonStatus> lessons;
+        QList<LessonStatus> lessons;
 
         [[nodiscard]] bool is_admin() const { return (status & ADMIN) != 0; }
 
         [[nodiscard]] bool is_teacher() const { return (status & TEACHER) != 0; }
 
         [[nodiscard]] bool is_graduated() const { return (status & GRADUATED) != 0; }
-    };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Account, id, username, password, status, lessons)
+        [[nodiscard]] bool is_master() const { return (status & MASTER) != 0; }
+    };
 
     struct Lesson {
-        std::string uuid;
-        std::string name;
-        std::string teacher;
-        std::string time;
+        struct ClassTime {
+            int dayOfWeek;
+            int startSection;
+            int duration;
+
+            static ClassTime fromJson(const QJsonObject &json) {
+                return {json.value("day").toInt(), json.value("start").toInt(), json.value("duration").toInt()};
+            }
+
+            QJsonObject toJson() const {
+                return {
+                    {"day", dayOfWeek},
+                    {"start", startSection},
+                    {"duration", duration}
+                };
+            }
+        };
+
+        QUuid uuid;
+        QString name;
+        QString teacher;
+        QList<ClassTime> times;
+
+        static Lesson fromJson(const QUuid &uuid, const QJsonObject &json) {
+            const QString name = json.value("name").toString();
+            const QString teacher = json.value("teacher").toString();
+            QList<ClassTime> times;
+            for (const auto &t: json.value("times").toArray()) {
+                times.emplace_back(ClassTime::fromJson(t.toObject()));
+            }
+            return {uuid, name, teacher, times};
+        }
+
+        QJsonObject toJson() const {
+            QJsonArray t;
+            for (const auto &x: this->times) { t.append(x.toJson()); }
+            return {
+                {"name", name},
+                {"teacher", teacher},
+                {"times", t}
+            };
+        }
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Lesson, uuid, name, teacher, time)
-
     struct RatingDetail {
-        std::string lesson_uuid;
+        QUuid lesson_uuid;
         double performance = 0.0;
         double score = 0.0;
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(RatingDetail, lesson_uuid, performance, score)
-
     struct StudentRating {
-        std::string student_id;
-        std::vector<RatingDetail> ratings;
+        QUuid student_id;
+        QList<RatingDetail> ratings;
     };
-
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(StudentRating, student_id, ratings)
 }
 #endif // AAIMS_DATA_STRUCTURES_H

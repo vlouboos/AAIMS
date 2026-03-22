@@ -93,3 +93,82 @@ QPushButton#LinkBtn {
 QPushButton#LinkBtn:hover {
     color: #0F172A;
 }
+QFrame#SetupCard {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+}
+
+/* 顶部 Logo 圆圈 */
+QLabel#SetupLogo {
+    background-color: #F1F5F9;
+    border-radius: 32px; /* 64px的一半 */
+    padding: 16px;
+    font-size: 32px;
+}
+
+/* 标题与描述 */
+QLabel#SetupTitle {
+    font-size: 20px;
+    font-weight: bold;
+    color: #0F172A;
+}
+
+QLabel#SetupSubtitle {
+    font-size: 14px;
+    color: #64748B;
+}
+
+/* 输入框容器 (Wrapper) */
+QFrame#InputWrapper {
+    background-color: #F8FAFC; /* bg-muted/50 */
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    min-height: 44px;
+}
+
+QFrame#InputWrapper:focus-within {
+    border: 1px solid #0F172A;
+}
+
+/* 内部输入框 */
+QLineEdit#SetupEdit {
+    border: none;
+    background: transparent;
+    padding-left: 8px;
+    font-size: 14px;
+    color: #0F172A;
+}
+
+/* 安全提示卡片 */
+QFrame#SecurityTipCard {
+    background-color: #F8FAFC; /* bg-muted/70 */
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+QLabel#TipTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0F172A;
+}
+
+QLabel#TipContent {
+    font-size: 12px;
+    color: #64748B;
+}
+
+/* 提交按钮 */
+QPushButton#StartBtn {
+    background-color: #0F172A;
+    color: #FFFFFF;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px;
+}
+
+QPushButton#StartBtn:hover {
+    background-color: #1E293B;
+}

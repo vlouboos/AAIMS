@@ -6,15 +6,25 @@
 #include <iostream>
 
 #include "AccountLoginDialog.h"
+#include "oobeDialog.h"
 #include "AccountManager.h"
 
 int main(int argc, char *argv[]) {
-    qInfo() << "Loading accounts..." << Qt::endl;
+    const QApplication a(argc, argv);
+    qInfo() << "Loading accounts...";
+    aaims::manager::account::onLoaded([&] {
+        if (aaims::manager::account::isEmpty()) {
+            qInfo() << "No account exists!";
+            if (oobeDialog startDialog; startDialog.exec() != QDialog::Accepted) {
+                qCritical() << "No account exists and user denied to register!";
+                return a.exec();
+            }
+        }
+        if (AccountLoginDialog loginDlg; loginDlg.exec() == QDialog::Accepted) {
+            qInfo() << "Logged in as" << aaims::manager::account::logged->name;
+        }
+        return 0;
+    });
     aaims::manager::account::init();
-    QApplication a(argc, argv);
-
-    if (AccountLoginDialog loginDlg; loginDlg.exec() == QDialog::Accepted) {
-        qInfo() << "Logged in as " << AccountManager::logged->name;
-    }
-    return 0;
+    return a.exec();
 }

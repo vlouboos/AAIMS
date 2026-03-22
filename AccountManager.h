@@ -6,52 +6,41 @@
 #define AAIMS_ACCOUNT_MANAGER_H
 
 #include "DataStructures.h"
-#include "FileManager.h"
-#include <map>
-#include <mutex>
-#include <qwidget.h>
-#include <shared_mutex>
-
-namespace aaims::manager::account {
-    static inline std::map<std::string, model::Account> accounts;
-    static inline std::shared_mutex mtx;
-    static inline std::string current_path = "data/accounts.json";
-
-    static bool init() {
-        std::unique_lock lock(mtx);
-        return file::load(current_path, accounts);
-    }
-
-    static bool save() {
-        std::shared_lock lock(mtx);
-        return file::save(current_path, accounts);
-    }
-
-    static bool add(const model::Account &acc) {
-        std::unique_lock lock(mtx);
-        if (accounts.contains(acc.id)) return false;
-        accounts[acc.id] = acc;
-        return true;
-    }
-
-    static model::Account *find(std::string id) {
-        std::ranges::transform(id, id.begin(),
-                               [](const unsigned char c) { return std::tolower(c); });
-        std::shared_lock lock(mtx);
-        if (const auto it = accounts.find(id); it != accounts.end()) {
-            return std::addressof(it->second);
-        }
-        return nullptr;
-    }
-}
+#include <QApplication>
 
 using namespace aaims::model;
 
-class AccountManager {
-public:
-    inline static Account *logged = nullptr;
+namespace aaims::manager::account {
+    class InternalManager : public QObject {
+        Q_OBJECT
 
-    static Account *tryLogin(const std::string &username, const std::string &password);
-};
+    public:
+        static InternalManager *instance() {
+            static InternalManager inst;
+            return &inst;
+        }
+
+    signals:
+        void loaded();
+    };
+
+    inline Account *logged = nullptr;
+
+    void init();
+
+    bool isEmpty();
+
+    Account *tryLogin(const QString &username, const QString &password);
+
+    void onLoaded(std::function<void()> callback);
+
+    Account *findByUUID(const QUuid &uuid);
+
+    Account *findByUsername(const QString &username);
+
+    Account *findByName(const QString &name);
+
+    void add(const Account &account);
+}
 
 #endif // AAIMS_ACCOUNT_MANAGER_H

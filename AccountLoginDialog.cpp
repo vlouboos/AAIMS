@@ -7,15 +7,12 @@
 #include <qcoreevent.h>
 #include <QGraphicsDropShadowEffect>
 #include <QPushButton>
-#include <QDebug>
-#include <QFile>
 #include <QStyle>
-#include <QTextStream>
 
 #include "AccountManager.h"
 #include "sha256util.h"
 
-AccountLoginDialog::AccountLoginDialog(QWidget *parent) : QDialog(parent) {
+AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
     this->setFixedSize(450, 600);
     this->setWindowTitle("AAIMS Login");
     this->setAttribute(Qt::WA_TranslucentBackground);
@@ -43,7 +40,7 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : QDialog(parent) {
     logo->setObjectName("Logo");
     logo->setAlignment(Qt::AlignCenter);
 
-    title = new QLabel("AAIMS Secure Login", card);
+    title = new QLabel("AAIMS 登录", card);
     title->setObjectName("Title");
     title->setAlignment(Qt::AlignCenter);
 
@@ -142,7 +139,7 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : QDialog(parent) {
 
     connect(loginBtn, &QPushButton::clicked, this, &AccountLoginDialog::onLoginClicked);
     connect(togglePassBtn, &QPushButton::clicked, this, &AccountLoginDialog::onTogglePassword);
-    connect(exitButton, &QPushButton::clicked, this, &AccountLoginDialog::close);
+    connect(exitButton, &QPushButton::clicked, this, &AccountLoginDialog::reject);
     connect(userEdit, &QLineEdit::textChanged, this, &AccountLoginDialog::toggleLoginButton);
     connect(passEdit, &QLineEdit::textChanged, this, &AccountLoginDialog::toggleLoginButton);
     passEdit->installEventFilter(this);
@@ -161,18 +158,6 @@ bool AccountLoginDialog::eventFilter(QObject *obj, QEvent *event) {
         }
     }
     return QDialog::eventFilter(obj, event);
-}
-
-void AccountLoginDialog::applyStyles() {
-    QFile file(":/assets/style.qss");
-
-    if (file.open(QFile::ReadOnly | QFile::Text)) {
-        QTextStream ts(&file);
-        this->setStyleSheet(ts.readAll());
-        file.close();
-    } else {
-        qDebug() << "Failed to open QSS file!";
-    }
 }
 
 void AccountLoginDialog::onTogglePassword() {
@@ -199,10 +184,10 @@ void AccountLoginDialog::onLoginClicked() {
     if (!loginBtn->property("isReady").toBool()) return;
     const QString u = userEdit->text();
     const QString p = Sha256Util::hash(passEdit->text());
-    if (Account *a = AccountManager::tryLogin(u.toStdString(), p.toStdString()); !a) {
+    if (Account *a = aaims::manager::account::tryLogin(u, p); !a) {
         errorLabel->show();
     } else {
-        AccountManager::logged = a;
+        aaims::manager::account::logged = a;
         accept();
     }
 }
