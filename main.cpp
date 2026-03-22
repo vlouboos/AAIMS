@@ -19,13 +19,15 @@ int main(int argc, char *argv[]) {
     }
     if (aaims::manager::account::isEmpty()) {
         qInfo() << "No account exists!";
-        if (oobeDialog startDialog; startDialog.exec() != QDialog::Accepted) {
+        if (oobeDialog startDialog; startDialog.exec() == QDialog::Rejected) {
             qCritical() << "No account exists and user denied to register!";
             return 0;
         }
     }
-    if (AccountLoginDialog loginDlg; loginDlg.exec() == QDialog::Accepted) {
-        qInfo() << "Logged in as" << aaims::manager::account::logged->name;
+    if (aaims::manager::account::logged == nullptr) {
+        if (AccountLoginDialog loginDlg; loginDlg.exec() == QDialog::Accepted) {
+            qInfo() << "Logged in as" << aaims::manager::account::logged->name;
+        }
     }
     return 0;
 }

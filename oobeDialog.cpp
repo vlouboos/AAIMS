@@ -187,7 +187,25 @@ oobeDialog::oobeDialog(QWidget *parent) : StyledDialog(parent) {
     connect(userEdit, &QLineEdit::textChanged, this, &oobeDialog::toggleRegisterButton);
     connect(passEdit, &QLineEdit::textChanged, this, &oobeDialog::toggleRegisterButton);
     connect(confirmEdit, &QLineEdit::textChanged, this, &oobeDialog::toggleRegisterButton);
+    connect(togglePassBtn, &QPushButton::clicked, this, &oobeDialog::onTogglePassword);
+    connect(toggleConfirmBtn, &QPushButton::clicked, this, &oobeDialog::onToggleConfirm);
     connect(registerBtn, &QPushButton::clicked, this, &oobeDialog::registerClicked);
+}
+
+void oobeDialog::onTogglePassword() {
+    isPassVisible = !isPassVisible;
+    passEdit->setEchoMode(isPassVisible ? QLineEdit::Normal : QLineEdit::Password);
+    togglePassBtn->setProperty("passwordVisible", isPassVisible);
+    togglePassBtn->style()->unpolish(togglePassBtn);
+    togglePassBtn->style()->polish(togglePassBtn);
+}
+
+void oobeDialog::onToggleConfirm() {
+    isConfirmVisible = !isConfirmVisible;
+    confirmEdit->setEchoMode(isConfirmVisible ? QLineEdit::Normal : QLineEdit::Password);
+    toggleConfirmBtn->setProperty("passwordVisible", isConfirmVisible);
+    toggleConfirmBtn->style()->unpolish(toggleConfirmBtn);
+    toggleConfirmBtn->style()->polish(toggleConfirmBtn);
 }
 
 void oobeDialog::toggleRegisterButton() const {

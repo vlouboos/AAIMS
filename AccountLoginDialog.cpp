@@ -51,27 +51,31 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
     headerLayout->addWidget(logo);
     headerLayout->addWidget(title);
     headerLayout->addWidget(subtitle);
-    cardLayout->addLayout(headerLayout);
 
     formLayout = new QVBoxLayout();
     formLayout->setSpacing(20);
 
     userLayout = new QVBoxLayout();
     userLayout->setSpacing(8);
+
     userLabel = new QLabel("用户名", card);
     userLabel->setObjectName("FieldLabel");
+
     userEdit = new QLineEdit(card);
     userEdit->setPlaceholderText("请输入用户名");
+
     userLayout->addWidget(userLabel);
     userLayout->addWidget(userEdit);
 
     passLayout = new QVBoxLayout();
     passLayout->setSpacing(8);
+
     passLabel = new QLabel("密码", card);
     passLabel->setObjectName("FieldLabel");
 
     passWrapper = new QFrame(card);
     passWrapper->setObjectName("PassWrapper");
+
     passInnerLayout = new QHBoxLayout(passWrapper);
     passInnerLayout->setContentsMargins(0, 0, 8, 0);
     passInnerLayout->setSpacing(0);
@@ -94,33 +98,35 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
 
     loginLayout = new QVBoxLayout();
     loginLayout->setSpacing(0);
+
     errorLabel = new QLabel("用户名或密码错误", card);
     errorLabel->setObjectName("RedFieldLabel");
     errorLabel->hide();
     errorLabel->setContentsMargins(4, 0, 0, 0);
-    loginLayout->addWidget(errorLabel);
 
     loginBtn = new QPushButton("登录", card);
     loginBtn->setObjectName("LoginBtn");
     loginBtn->setCursor(Qt::ForbiddenCursor);
     loginBtn->setProperty("isReady", false);
     loginBtn->addAction(new QAction());
+
+    loginLayout->addWidget(errorLabel);
     loginLayout->addWidget(loginBtn);
 
     formLayout->addLayout(userLayout);
     formLayout->addLayout(passLayout);
     formLayout->addSpacing(10);
-    formLayout->addLayout(loginLayout);
-    cardLayout->addLayout(formLayout);
 
     footerLayout = new QHBoxLayout();
     footerLayout->setAlignment(Qt::AlignCenter);
     footerLayout->setSpacing(32);
 
     forgotBtn = new QPushButton("🔑 忘记密码?", card);
-    helpBtn = new QPushButton("❓ 帮助中心", card);
     forgotBtn->setObjectName("LinkBtn");
+
+    helpBtn = new QPushButton("❓ 帮助中心", card);
     helpBtn->setObjectName("LinkBtn");
+
     forgotBtn->setCursor(Qt::PointingHandCursor);
     helpBtn->setCursor(Qt::PointingHandCursor);
 
@@ -128,13 +134,17 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
     footerLayout->addWidget(helpBtn);
 
     cardLayout->addStretch();
+    cardLayout->addLayout(headerLayout);
+    cardLayout->addLayout(formLayout);
+    cardLayout->addLayout(loginLayout);
     cardLayout->addLayout(footerLayout);
+
     exitButton = new QPushButton("×", card); // 放在 card 上而不是 this
     exitButton->setObjectName("ExitButton");
     exitButton->setFixedSize(30, 30);
     exitButton->move(360, 10);
-    mainLayout->addWidget(card);
 
+    mainLayout->addWidget(card);
     applyStyles();
 
     connect(loginBtn, &QPushButton::clicked, this, &AccountLoginDialog::onLoginClicked);

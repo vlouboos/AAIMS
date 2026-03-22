@@ -59,6 +59,10 @@ private:
 
 private slots:
     void registerClicked();
+
+    void onTogglePassword();
+
+    void onToggleConfirm();
 };
 
 #endif
