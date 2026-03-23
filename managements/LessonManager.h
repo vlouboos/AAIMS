@@ -5,8 +5,7 @@
 #ifndef AAIMS_LESSON_MANAGER_H
 #define AAIMS_LESSON_MANAGER_H
 
-#include "DataStructures.h"
-#include "FileManager.h"
+#include "../utils/DataStructures.h"
 #include <map>
 #include <mutex>
 #include <shared_mutex>

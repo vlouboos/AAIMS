@@ -5,7 +5,7 @@
 #ifndef AAIMS_RATING_MANAGER_H
 #define AAIMS_RATING_MANAGER_H
 
-#include "DataStructures.h"
+#include "../utils/DataStructures.h"
 #include "FileManager.h"
 #include <map>
 #include <vector>

@@ -9,8 +9,8 @@
 #include <QPushButton>
 #include <QStyle>
 
-#include "AccountManager.h"
-#include "sha256util.h"
+#include "../managements/AccountManager.h"
+#include "../utils/Sha256Util.h"
 
 AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
     this->setFixedSize(450, 600);

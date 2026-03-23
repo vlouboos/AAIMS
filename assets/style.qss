@@ -105,3 +105,32 @@ QLabel#TipContent {
     font-size: 12px;
     color: #64748B;
 }
+#Sidebar {
+    background-color: #f8fafc; /* bg-slate-50 */
+    border-right: 1px solid #e2e8f0; /* border-border */
+}
+#Header {
+    background-color: #ffffff; /* bg-card */
+    border-bottom: 1px solid #e2e8f0;
+}
+#ContentArea {
+    background-color: #ffffff;
+}
+QPushButton.category-button {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    background-color: transparent;
+    border-radius: 8px;
+    border: none;
+}
+QPushButton.category-button:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+QPushButton.category-button:checked {
+    background-color: #e2e8f0;
+    color: #0f172a;
+}

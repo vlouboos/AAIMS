@@ -5,9 +5,10 @@
 #include <QApplication>
 #include <iostream>
 
-#include "AccountLoginDialog.h"
-#include "oobeDialog.h"
-#include "AccountManager.h"
+#include "dialogs/AccountLoginDialog.h"
+#include "dialogs/oobeDialog.h"
+#include "managements/AccountManager.h"
+#include "MainWindow.h"
 
 int main(int argc, char *argv[]) {
     const QApplication a(argc, argv);
@@ -21,13 +22,20 @@ int main(int argc, char *argv[]) {
         qInfo() << "No account exists!";
         if (oobeDialog startDialog; startDialog.exec() == QDialog::Rejected) {
             qCritical() << "No account exists and user denied to register!";
-            return 0;
+            exit(0);
         }
     }
-    if (aaims::manager::account::logged == nullptr) {
-        if (AccountLoginDialog loginDlg; loginDlg.exec() == QDialog::Accepted) {
+    while (aaims::restart) {
+        if (aaims::manager::account::logged == nullptr) {
+            if (AccountLoginDialog loginDlg; loginDlg.exec() == QDialog::Rejected) {
+                exit(0);
+            }
             qInfo() << "Logged in as" << aaims::manager::account::logged->name;
         }
+        MainWindow main_window;
+        main_window.show();
+        QApplication::exec();
     }
+    QThreadPool::globalInstance()->waitForDone();
     return 0;
 }

@@ -2,10 +2,11 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
+#include <QApplication>
 #include <QFutureWatcher>
 
 #include "AccountManager.h"
-#include "AsyncJsonIO.h"
+#include "../utils/AsyncJsonIO.h"
 
 using namespace aaims::io;
 using namespace aaims::model;

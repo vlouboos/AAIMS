@@ -6,14 +6,14 @@
 
 #include <QFutureWatcher>
 
-#include "Sha256Util.h"
+#include "../utils/Sha256Util.h"
 #include <QGraphicsDropShadowEffect>
 #include <QProgressDialog>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QStyle>
 
-#include "AccountManager.h"
+#include "../managements/AccountManager.h"
 
 oobeDialog::oobeDialog(QWidget *parent) : StyledDialog(parent) {
     this->setFixedSize(450, 780);

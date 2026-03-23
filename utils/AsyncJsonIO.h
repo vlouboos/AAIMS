@@ -6,7 +6,6 @@
 #define AAIMS_ASYNCJSONIO_H
 
 #include <QtConcurrentRun>
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QDir>
 #include <QSaveFile>

@@ -5,8 +5,7 @@
 #ifndef AAIMS_ACCOUNT_MANAGER_H
 #define AAIMS_ACCOUNT_MANAGER_H
 
-#include "DataStructures.h"
-#include <QApplication>
+#include "../utils/DataStructures.h"
 #include <QFuture>
 
 using namespace aaims::model;

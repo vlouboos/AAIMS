@@ -18,20 +18,25 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg Concurrent)
 include(FetchContent)
 
 add_executable(AAIMS main.cpp
-        AccountManager.h
-        DataStructures.h
-        LessonManager.h
-        RatingManager.h
-        AccountLoginDialog.cpp
-        AccountLoginDialog.h
         resources.qrc
-        sha256util.h
-        AccountManager.cpp
-        oobeDialog.cpp
-        oobeDialog.h
-        StyledDialog.h
-        StyledDialog.cpp
-        AsyncJsonIO.h
+        file_info.rc
+        managements/AccountManager.h
+        utils/DataStructures.h
+        managements/LessonManager.h
+        managements/RatingManager.h
+        dialogs/AccountLoginDialog.cpp
+        dialogs/AccountLoginDialog.h
+        utils/sha256util.h
+        managements/AccountManager.cpp
+        dialogs/oobeDialog.cpp
+        dialogs/oobeDialog.h
+        dialogs/StyledDialog.h
+        dialogs/StyledDialog.cpp
+        utils/AsyncJsonIO.h
+        MainWindow.cpp
+        MainWindow.h
+        pages/StudentPage.cpp
+        pages/StudentPage.h
 )
 
 target_link_libraries(AAIMS
