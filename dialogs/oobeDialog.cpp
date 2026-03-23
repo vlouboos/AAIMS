@@ -16,10 +16,10 @@
 #include "../managements/AccountManager.h"
 
 oobeDialog::oobeDialog(QWidget *parent) : StyledDialog(parent) {
-    this->setFixedSize(450, 780);
-    this->setWindowTitle("AAIMS Initialization");
-    this->setAttribute(Qt::WA_TranslucentBackground);
-    this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    setFixedSize(450, 780);
+    setWindowTitle("AAIMS Initialization");
+    setAttribute(Qt::WA_TranslucentBackground);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
 
     mainLayout = new QVBoxLayout(this);
     mainLayout->setAlignment(Qt::AlignCenter);
@@ -233,11 +233,15 @@ void oobeDialog::registerClicked() {
     loading->setRange(0, 0);
     loading->show();
     QUuid uuid = QUuid::createUuid();
-    aaims::manager::account::add({
-        uuid, userEdit->text(), "主管理员", Sha256Util::hash(passEdit->text()), false, 0b1000,
-        QList<LessonStatus>()
-    });
-    const auto future = aaims::manager::account::save();
+    const auto masterAccount = std::make_shared<Account>();
+    masterAccount->uuid = uuid;
+    masterAccount->username = userEdit->text();
+    masterAccount->name = "主管理员";
+    masterAccount->password = passEdit->text();
+    masterAccount->female = false;
+    masterAccount->status = Account::MASTER;
+    aaims::manager::account::add(masterAccount);
+    const auto future = aaims::manager::account::saveAsync();
 
     auto *watcher = new QFutureWatcher<bool>(this); // NOLINT
     connect(watcher, &QFutureWatcher<bool>::finished, [this, loading, watcher, uuid] {

@@ -6,15 +6,21 @@
 #include <QFutureWatcher>
 
 #include "AccountManager.h"
+
 #include "../utils/AsyncJsonIO.h"
 
 using namespace aaims::io;
 using namespace aaims::model;
 
 namespace {
-    QHash<QUuid, Account> accounts;
+    QHash<QUuid, std::shared_ptr<Account> > accounts;
     QHash<QString, QUuid> accounts_by_username;
     QHash<QString, QUuid> accounts_by_name;
+    QUuid master;
+    QList<QUuid> admins;
+    QHash<QUuid, TeacherAccount *> teachers;
+    QHash<QUuid, StudentAccount *> workingStudents;
+    QHash<QUuid, StudentAccount *> graduatedStudents;
     bool loading = true;
 }
 
@@ -33,17 +39,29 @@ namespace aaims::manager::account {
                                              lessonJson.value("retake").toInt());
                     }
                 }
-                Account account(uuid,
-                                accountData.value("username").toString(),
-                                accountData.value("name").toString(),
-                                accountData.value("password").toString(),
-                                accountData.value("female").toBool(),
-                                accountData.value("status").toInt(),
-                                lessons
-                );
-                accounts[uuid] = account;
-                accounts_by_username[account.username.toLower()] = uuid;
-                accounts_by_name[account.name] = uuid;
+                const int status = accountData.value("status").toInt();
+                std::shared_ptr<Account> acc;
+                if (status & Account::ADMIN || status & Account::MASTER) {
+                    acc = std::make_shared<Account>(Account::fromJson(uuid, accountData));
+                } else if (status & Account::TEACHER) {
+                    const auto teacher = std::make_shared<TeacherAccount>(TeacherAccount::fromJson(uuid, accountData));
+                    acc = teacher;
+                    teachers[uuid] = teacher.get();
+                } else {
+                    const auto student = std::make_shared<StudentAccount>(StudentAccount::fromJson(uuid, accountData));
+                    acc = student;
+                    if (student->is_graduated()) graduatedStudents[uuid] = student.get();
+                    else workingStudents[uuid] = student.get();
+                }
+                accounts[uuid] = acc;
+                accounts_by_username[acc->username.toLower()] = uuid;
+                accounts_by_name[acc->name] = uuid;
+                if (acc->is_master()) {
+                    master = uuid;
+                }
+                if (acc->is_admin()) {
+                    admins.append(uuid);
+                }
             }
         });
         auto *watcher = new QFutureWatcher<void>(InternalManager::instance()); // NOLINT
@@ -57,16 +75,16 @@ namespace aaims::manager::account {
         watcher->setFuture(future);
     }
 
-    QFuture<bool> save() {
+    [[nodiscard]] QFuture<bool> saveAsync() {
         const QString path = QCoreApplication::applicationDirPath() + "/data/accounts.json";
         QJsonObject root;
         for (auto it = accounts.begin(); it != accounts.end(); ++it) {
-            root.insert(it.key().toString(), it->toJson());
+            root.insert(it.key().toString(), it.value()->toJson());
         }
-        const auto &future = saveAsync(path, root);
+        const auto &future = io::saveAsync(path, root);
         auto *watcher = new QFutureWatcher<void>(InternalManager::instance()); // NOLINT
         QObject::connect(watcher, &QFutureWatcher<void>::finished, [watcher] {
-            qDebug() << "Loaded" << accounts.size() << "accounts.";
+            qDebug() << "Saved" << accounts.size() << "accounts.";
             emit InternalManager::instance()->loaded();
             watcher->deleteLater();
         });
@@ -74,10 +92,30 @@ namespace aaims::manager::account {
         return future;
     }
 
-    void add(const Account &account) {
-        accounts[account.uuid] = account;
-        accounts_by_username[account.username.toLower()] = account.uuid;
-        accounts_by_name[account.name] = account.uuid;
+    bool save() {
+        const QString path = QCoreApplication::applicationDirPath() + "/data/accounts.json";
+        QJsonObject root;
+        for (auto it = accounts.begin(); it != accounts.end(); ++it) {
+            root.insert(it.key().toString(), it.value()->toJson());
+        }
+        return io::save(path, root);
+    }
+
+    void add(const std::shared_ptr<Account> &account) {
+        if (!account) return;
+        const QUuid &uuid = account->uuid;
+
+        if (account->is_master()) {
+            master = uuid;
+        } else if (account->is_admin()) {
+            admins.append(uuid);
+        } else if (account->is_teacher()) {
+            teachers[uuid] = static_cast<TeacherAccount *>(account.get());
+        }
+
+        accounts[uuid] = account;
+        accounts_by_username[account->username.toLower()] = uuid;
+        accounts_by_name[account->name] = uuid;
     }
 
     Account *tryLogin(const QString &username, const QString &password) {
@@ -96,7 +134,7 @@ namespace aaims::manager::account {
 
     Account *findByUUID(const QUuid &uuid) {
         if (accounts.contains(uuid)) {
-            return std::addressof(accounts[uuid]);
+            return accounts[uuid].get();
         }
         return nullptr;
     }
@@ -115,7 +153,36 @@ namespace aaims::manager::account {
         return nullptr;
     }
 
+    QHash<QUuid, std::shared_ptr<Account> > all() {
+        return accounts;
+    }
+
+    QList<QUuid> get_admins() {
+        return admins;
+    }
+
+    QHash<QUuid, TeacherAccount *> get_teachers() {
+        return teachers;
+    }
+
+    QHash<QUuid, StudentAccount *> get_working_students() {
+        return workingStudents;
+    }
+
+    QHash<QUuid, StudentAccount *> get_graduated_students() {
+        return graduatedStudents;
+    }
+
     bool isLoading() {
         return loading;
+    }
+
+    QList<Account *> get_all_ptrs() {
+        QList<Account *> ptrs;
+        ptrs.reserve(accounts.size());
+        for (auto it = accounts.begin(); it != accounts.end(); ++it) {
+            ptrs.append(it.value().get());
+        }
+        return ptrs;
     }
 }

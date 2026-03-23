@@ -7,5 +7,10 @@ See https://spdx.org/licenses/BSD-3-Clause.html -->
         <file>assets/style.qss</file>
         <file>assets/hide.svg</file>
         <file>assets/show.svg</file>
+        <file>assets/users.svg</file>
+        <file>assets/shield.svg</file>
+        <file>assets/briefcase.svg</file>
+        <file>assets/graduation-cap.svg</file>
+        <file>assets/classes.svg</file>
     </qresource>
 </RCC>

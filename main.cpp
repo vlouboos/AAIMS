@@ -28,13 +28,14 @@ int main(int argc, char *argv[]) {
     while (aaims::restart) {
         if (aaims::manager::account::logged == nullptr) {
             if (AccountLoginDialog loginDlg; loginDlg.exec() == QDialog::Rejected) {
+                QThreadPool::globalInstance()->waitForDone();
                 exit(0);
             }
             qInfo() << "Logged in as" << aaims::manager::account::logged->name;
         }
         MainWindow main_window;
         main_window.show();
-        QApplication::exec();
+        qInfo() << "Exited with code" << QApplication::exec();
     }
     QThreadPool::globalInstance()->waitForDone();
     return 0;

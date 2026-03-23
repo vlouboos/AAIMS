@@ -28,7 +28,9 @@ namespace aaims::manager::account {
 
     void init();
 
-    QFuture<bool> save();
+    QFuture<bool> saveAsync();
+
+    bool save();
 
     bool isEmpty();
 
@@ -42,9 +44,21 @@ namespace aaims::manager::account {
 
     Account *findByName(const QString &name);
 
-    void add(const Account &account);
+    QHash<QUuid, std::shared_ptr<Account> > all();
+
+    QList<QUuid> get_admins();
+
+    QHash<QUuid, TeacherAccount *> get_teachers();
+
+    QHash<QUuid, StudentAccount *> get_working_students();
+
+    QHash<QUuid, StudentAccount *> get_graduated_students();
+
+    void add(const std::shared_ptr<Account> &account);
 
     bool isLoading();
+
+    QList<Account *> get_all_ptrs();
 }
 
 #endif // AAIMS_ACCOUNT_MANAGER_H

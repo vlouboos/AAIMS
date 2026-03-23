@@ -37,6 +37,22 @@ add_executable(AAIMS main.cpp
         MainWindow.h
         pages/StudentPage.cpp
         pages/StudentPage.h
+        managements/ClassManager.cpp
+        managements/ClassManager.h
+        pages/components/StatCard.cpp
+        pages/components/StatCard.h
+        pages/AdminDashboardPage.cpp
+        pages/AdminDashboardPage.h
+        pages/components/DistributionRing.cpp
+        pages/components/DistributionRing.h
+        pages/model/StudentTableModel.h
+        pages/delegate/StatusBadgeDelegate.cpp
+        pages/delegate/StatusBadgeDelegate.h
+        pages/TeacherPage.cpp
+        pages/TeacherPage.h
+        pages/model/TeacherTableModel.h
+        dialogs/AddTeacherDialog.cpp
+        dialogs/AddTeacherDialog.h
 )
 
 target_link_libraries(AAIMS

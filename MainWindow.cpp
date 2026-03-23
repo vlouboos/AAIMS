@@ -5,16 +5,17 @@
 #include "MainWindow.h"
 
 #include <QFile>
-#include <QVBoxLayout>
 #include <QLabel>
 #include <QMessageBox>
 #include <qthreadpool.h>
 
 #include "managements/AccountManager.h"
-#include "pages/StudentPage.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
+    const Account *loggedAccount = aaims::manager::account::logged;
+    assert(loggedAccount);
     resize(1200, 800);
+    setMinimumSize(1200, 800);
     setWindowTitle("AAIMS - 教务信息管理系统");
     centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
@@ -38,14 +39,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     btnDashboard->setProperty("class", "category-button");
     btnDashboard->setCheckable(true);
     btnDashboard->setChecked(true);
+    if (loggedAccount->is_master() || loggedAccount->is_admin()) {
+        btnTeachers = new QPushButton("教师", sidebarWidget);
+        btnTeachers->setProperty("class", "category-button");
+        btnTeachers->setCheckable(true);
 
-    btnStudents = new QPushButton("学生", sidebarWidget);
-    btnStudents->setProperty("class", "category-button");
-    btnStudents->setCheckable(true);
+        btnStudents = new QPushButton("学生", sidebarWidget);
+        btnStudents->setProperty("class", "category-button");
+        btnStudents->setCheckable(true);
+    }
 
     sidebarLayout->addWidget(logoLabel);
     sidebarLayout->addWidget(btnDashboard);
-    sidebarLayout->addWidget(btnStudents);
+    if (loggedAccount->is_master() || loggedAccount->is_admin()) {
+        sidebarLayout->addWidget(btnTeachers);
+        sidebarLayout->addWidget(btnStudents);
+    }
     sidebarLayout->addStretch();
 
     rightContainer = new QWidget(centralWidget);
@@ -73,8 +82,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     menu->addAction(logoutAction);
 
     userMenuBtn = new QPushButton(headerWidget);
-    const Account *loggedAccount = aaims::manager::account::logged;
-    assert(loggedAccount);
     userMenuBtn->setText(loggedAccount->name + '(' + loggedAccount->username + ')');
     if (loggedAccount->is_master()) {
         userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #AA0000;");
@@ -87,7 +94,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     } else {
         userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #000000;");
     }
-    userMenuBtn->setObjectName("userMenuBtn");
     userMenuBtn->setMenu(menu);
 
     headerLayout->addWidget(pageTitleLabel);
@@ -98,10 +104,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     contentStack->setObjectName("ContentArea");
     contentStack->setCurrentIndex(0);
 
-    dashboardPage = new StudentsPage(contentStack);
+    adminDashboardPage = new AdminDashboardPage(contentStack);
+    teacherPage = new TeacherPage(contentStack);
     studentPage = new StudentsPage(contentStack);
 
-    contentStack->addWidget(dashboardPage);
+    contentStack->addWidget(adminDashboardPage);
+    contentStack->addWidget(teacherPage);
     contentStack->addWidget(studentPage);
 
     rightLayout->addWidget(headerWidget);
@@ -118,12 +126,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         contentStack->setCurrentIndex(0);
         pageTitleLabel->setText("仪表盘");
         btnDashboard->setChecked(true);
+        btnTeachers->setChecked(false);
+        btnStudents->setChecked(false);
+    });
+    connect(btnTeachers, &QPushButton::clicked, [this] {
+        contentStack->setCurrentIndex(1);
+        pageTitleLabel->setText("教师");
+        btnDashboard->setChecked(false);
+        btnTeachers->setChecked(true);
         btnStudents->setChecked(false);
     });
     connect(btnStudents, &QPushButton::clicked, [this] {
-        contentStack->setCurrentIndex(1);
+        contentStack->setCurrentIndex(2);
         pageTitleLabel->setText("学生");
         btnDashboard->setChecked(false);
+        btnTeachers->setChecked(false);
         btnStudents->setChecked(true);
     });
     connect(logoutAction, &QAction::triggered, [this] {

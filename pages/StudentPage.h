@@ -5,8 +5,14 @@
 #ifndef AAIMS_STUDENTPAGE_H
 #define AAIMS_STUDENTPAGE_H
 
-#include <QWidget>
+#include <QLabel>
 #include <QVBoxLayout>
+#include <QTableView>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QHeaderView>
+
+#include "model/StudentTableModel.h"
 
 class StudentsPage : public QWidget {
     Q_OBJECT
@@ -15,7 +21,15 @@ public:
     explicit StudentsPage(QWidget *parent = nullptr);
 
 private:
-    QVBoxLayout *layout;
+    QVBoxLayout *mainLayout;
+    QHBoxLayout *headerLayout;
+    QVBoxLayout *titleContainer;
+    QTableView *tableView;
+    QLabel *titleLabel;
+    QLabel *subtitleLabel;
+    QLineEdit *searchEdit;
+    QPushButton *btnAdd;
+    StudentTableModel *model;
 };
 
 #endif //AAIMS_STUDENTPAGE_H

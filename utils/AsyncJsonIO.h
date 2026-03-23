@@ -34,6 +34,17 @@ namespace aaims::io {
             return false;
         });
     }
+
+    static bool save(const QString &filePath, const QJsonObject &data) {
+        if (!QFileInfo::exists(filePath) && !QDir().mkpath(QFileInfo(filePath).absolutePath())) return false;
+        const QJsonDocument doc(data);
+        const QByteArray bytes = doc.toJson();
+        if (QSaveFile file(filePath); file.open(QIODevice::WriteOnly)) {
+            file.write(bytes);
+            return file.commit();
+        }
+        return false;
+    }
 }
 
 #endif //AAIMS_ASYNCJSONIO_H

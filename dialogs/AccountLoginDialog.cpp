@@ -13,10 +13,10 @@
 #include "../utils/Sha256Util.h"
 
 AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
-    this->setFixedSize(450, 600);
-    this->setWindowTitle("AAIMS Login");
-    this->setAttribute(Qt::WA_TranslucentBackground);
-    this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    setFixedSize(450, 600);
+    setWindowTitle("AAIMS Login");
+    setAttribute(Qt::WA_TranslucentBackground);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
 
     mainLayout = new QVBoxLayout(this);
     mainLayout->setAlignment(Qt::AlignCenter);

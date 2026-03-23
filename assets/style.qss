@@ -134,3 +134,118 @@ QPushButton.category-button:checked {
     background-color: #e2e8f0;
     color: #0f172a;
 }
+QMenuBar {
+    background-color: #f0f0f0;
+    spacing: 3px;
+    font-size: 10pt;
+}
+
+QMenuBar::item {
+    padding: 4px 10px;
+    background: transparent;
+    border-radius: 4px;
+}
+
+QMenuBar::item:selected {
+    background: #dadada;
+}
+
+QMenu {
+    background-color: white;
+    border: 1px solid #dcdcdc;
+    font-size: 10pt;
+}
+
+QMenu::item {
+    padding: 6px 25px 6px 20px;
+    border: 1px solid transparent;
+}
+
+QMenu::item:selected {
+    border-color: #70c0ff;
+    background: rgba(100, 180, 255, 0.2);
+    color: black;
+}
+
+QMenu::separator {
+    height: 1px;
+    background: #dcdcdc;
+    margin: 4px 5px;
+}
+StatCard {
+    background-color: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+}
+StatCard:hover {
+    border-color: #e2e8f0;
+}
+StatCard #cardTitle {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+}
+StatCard #cardValue {
+    color: #0f172a;
+    font-size: 24px;
+    font-weight: 700;
+}
+QToolTip {
+    background-color: #1e293b; /* slate-800 */
+    color: #f1f5f9;            /* slate-100 */
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+}
+QTableView {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    gridline-color: #f1f5f9;
+}
+QHeaderView::section {
+    background-color: #f8fafc;
+    padding: 12px;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    color: #64748b;
+    font-weight: 600;
+    text-align: center;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+QHeaderView::section:last {
+    border-right: none;
+}
+QHeaderView::section:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+QTableView::item {
+    padding: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+QTableView::item:selected {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+QPushButton#AddElement {
+    background-color: #2563eb;
+    color: white;
+    padding: 8px 16px;
+    font-weight: 600;
+    border-radius: 6px;
+}
+QPushButton#AddElement:hover {
+    background-color: #6b95f1;
+}
+QLineEdit#SearchEdit {
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: white;
+}
+QLineEdit#SearchEdit:focus {
+    border: 1px solid #2563eb;
+}

@@ -4,15 +4,14 @@
 
 #pragma once
 
-#include <QCloseEvent>
 #include <QMainWindow>
 #include <QMenu>
-#include <QPushButton>
 #include <QStackedWidget>
-#include <qboxlayout.h>
 #include <qlabel.h>
 
+#include "pages/AdminDashboardPage.h"
 #include "pages/StudentPage.h"
+#include "pages/TeacherPage.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -32,6 +31,7 @@ private:
     QVBoxLayout *sidebarLayout;
     QLabel *logoLabel;
     QPushButton *btnDashboard;
+    QPushButton *btnTeachers;
     QPushButton *btnStudents;
     QWidget *rightContainer;
     QVBoxLayout *rightLayout;
@@ -43,8 +43,9 @@ private:
     QAction *logoutAction;
     QPushButton *userMenuBtn;
     QStackedWidget *contentStack;
-    StudentsPage * dashboardPage;
-    StudentsPage * studentPage;
+    AdminDashboardPage *adminDashboardPage;
+    TeacherPage *teacherPage;
+    StudentsPage *studentPage;
     // 未来这里还可以加 btnCourses, btnSettings 等
     CloseReason closeReason = CloseReason::Exit;
 
