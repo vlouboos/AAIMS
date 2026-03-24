@@ -26,7 +26,7 @@ add_executable(AAIMS main.cpp
         managements/RatingManager.h
         dialogs/AccountLoginDialog.cpp
         dialogs/AccountLoginDialog.h
-        utils/sha256util.h
+        utils/Sha256Util.h
         managements/AccountManager.cpp
         dialogs/oobeDialog.cpp
         dialogs/oobeDialog.h

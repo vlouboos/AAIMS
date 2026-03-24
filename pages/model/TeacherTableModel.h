@@ -9,7 +9,7 @@
 #include <QColor>
 #include <QVector>
 
-#include <../../../utils/DataStructures.h>
+#include "../../utils/DataStructures.h"
 
 class TeacherTableModel : public QAbstractTableModel {
     Q_OBJECT

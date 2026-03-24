@@ -8,14 +8,23 @@
 #include "../managements/AccountManager.h"
 
 TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
+    tableModel = new TeacherTableModel(this);
     mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(30, 30, 30, 30);
     mainLayout->setSpacing(20);
 
     headerLayout = new QHBoxLayout();
 
+    titleContainer = new QVBoxLayout();
+
     titleLabel = new QLabel("教师管理", this);
     titleLabel->setStyleSheet("font-size: 24px; font-weight: bold; color: #0f172a;");
+
+    subtitleLabel = new QLabel("加载中", this);
+    subtitleLabel->setStyleSheet("font-size: 14px; color: #64748b;");
+
+    titleContainer->addWidget(titleLabel);
+    titleContainer->addWidget(subtitleLabel);
 
     searchEdit = new QLineEdit(this);
     searchEdit->setPlaceholderText("搜索教师姓名、院系...");
@@ -26,14 +35,12 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
     btnAddTeacher->setCursor(Qt::PointingHandCursor);
     btnAddTeacher->setObjectName("AddElement");
 
-    headerLayout->addWidget(titleLabel);
+    headerLayout->addLayout(titleContainer);
     headerLayout->addStretch();
     headerLayout->addWidget(searchEdit);
     headerLayout->addWidget(btnAddTeacher);
 
     mainLayout->addLayout(headerLayout);
-
-    tableModel = new TeacherTableModel(this);
 
     tableView = new QTableView(this);
     tableView->setModel(tableModel);
@@ -81,4 +88,5 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
 
 void TeacherPage::reloadData() const {
     tableModel->setTeachers(aaims::manager::account::get_teachers().values());
+    subtitleLabel->setText(QString("管理系统内共 %1 名教师").arg(tableModel->rowCount()));
 }

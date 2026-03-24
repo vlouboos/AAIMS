@@ -82,7 +82,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     menu->addAction(logoutAction);
 
     userMenuBtn = new QPushButton(headerWidget);
-    userMenuBtn->setText(loggedAccount->name + '(' + loggedAccount->username + ')');
+    userMenuBtn->setText(loggedAccount->name + '(' + loggedAccount->username + ") "); // Add a space to prevent something strange from happening.
     if (loggedAccount->is_master()) {
         userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #AA0000;");
     } else if (loggedAccount->is_admin()) {

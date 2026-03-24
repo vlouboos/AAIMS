@@ -18,26 +18,24 @@
 
 class TeacherPage : public QWidget {
     Q_OBJECT
+
 public:
     explicit TeacherPage(QWidget *parent = nullptr);
+
     ~TeacherPage() override = default;
 
     void reloadData() const;
 
 private:
-    // --- UI Fields ---
     QVBoxLayout *mainLayout;
     QHBoxLayout *headerLayout;
-
+    QVBoxLayout *titleContainer;
     QLabel *titleLabel;
+    QLabel *subtitleLabel;
     QLineEdit *searchEdit;
     QPushButton *btnAddTeacher;
-
     QTableView *tableView;
     TeacherTableModel *tableModel;
-
-    // --- Layout Containers (如果以后需要 QFrame 包裹) ---
-    // QFrame *tableContainer;
 };
 
 #endif //AAIMS_TEACHERPAGE_H

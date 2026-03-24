@@ -237,7 +237,7 @@ void oobeDialog::registerClicked() {
     masterAccount->uuid = uuid;
     masterAccount->username = userEdit->text();
     masterAccount->name = "主管理员";
-    masterAccount->password = passEdit->text();
+    masterAccount->password = Sha256Util::hash(passEdit->text());
     masterAccount->female = false;
     masterAccount->status = Account::MASTER;
     aaims::manager::account::add(masterAccount);
