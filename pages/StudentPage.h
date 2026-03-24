@@ -5,31 +5,38 @@
 #ifndef AAIMS_STUDENTPAGE_H
 #define AAIMS_STUDENTPAGE_H
 
-#include <QLabel>
-#include <QVBoxLayout>
 #include <QTableView>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QLabel>
+#include <QHBoxLayout>
 #include <QHeaderView>
+#include <QSortFilterProxyModel>
 
 #include "model/StudentTableModel.h"
+#include "model/TeacherTableModel.h"
 
-class StudentsPage : public QWidget {
+class StudentPage : public QWidget {
     Q_OBJECT
 
 public:
-    explicit StudentsPage(QWidget *parent = nullptr);
+    explicit StudentPage(QWidget *parent = nullptr);
+
+    ~StudentPage() override = default;
+
+    void reloadData() const;
 
 private:
     QVBoxLayout *mainLayout;
     QHBoxLayout *headerLayout;
     QVBoxLayout *titleContainer;
-    QTableView *tableView;
     QLabel *titleLabel;
     QLabel *subtitleLabel;
     QLineEdit *searchEdit;
-    QPushButton *btnAdd;
-    StudentTableModel *model;
+    QPushButton *btnAddStudent;
+    QTableView *tableView;
+    StudentTableModel *tableModel;
+    QSortFilterProxyModel *proxyModel;
 };
 
 #endif //AAIMS_STUDENTPAGE_H

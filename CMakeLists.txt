@@ -46,17 +46,16 @@ add_executable(AAIMS main.cpp
         pages/components/DistributionRing.cpp
         pages/components/DistributionRing.h
         pages/model/StudentTableModel.h
-        pages/delegate/StatusBadgeDelegate.cpp
-        pages/delegate/StatusBadgeDelegate.h
         pages/TeacherPage.cpp
         pages/TeacherPage.h
         pages/model/TeacherTableModel.h
         dialogs/AddTeacherDialog.cpp
         dialogs/AddTeacherDialog.h
-        pages/delegate/TeacherOperationDelegate.cpp
-        pages/delegate/TeacherOperationDelegate.h
+        pages/delegate/OperationDelegate.cpp
+        pages/delegate/OperationDelegate.h
         dialogs/TeacherDetailDialog.cpp
         dialogs/TeacherDetailDialog.h
+        pages/model/FilterProxyModel.h
 )
 
 target_link_libraries(AAIMS

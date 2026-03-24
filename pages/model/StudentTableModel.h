@@ -2,73 +2,89 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef AAIMS_ACCOUNTTABLEMODEL_H
-#define AAIMS_ACCOUNTTABLEMODEL_H
+#ifndef AAIMS_STUDENTTABLEMODEL_H
+#define AAIMS_STUDENTTABLEMODEL_H
 
 #include <QAbstractTableModel>
+#include <QColor>
 #include <QVector>
-#include "../../utils/DataStructures.h"
+#include <QPointer>
+
 #include "../../managements/AccountManager.h"
+#include "../../utils/DataStructures.h"
 
 class StudentTableModel : public QAbstractTableModel {
     Q_OBJECT
 
 public:
     enum Column {
-        Avatar = 0,
-        Actions,
-        Name,
-        ID,
+        Name = 0,
+        Department,
+        Lessons,
         Status,
+        Actions,
+        ColumnCount
     };
 
-    int rowCount([[maybe_unused]] const QModelIndex &parent = QModelIndex()) const override {
-        return accounts.size();
+    explicit StudentTableModel(QObject *parent = nullptr) : QAbstractTableModel(parent) {
     }
 
-    int columnCount([[maybe_unused]] const QModelIndex &parent = QModelIndex()) const override {
-        return 4;
+    void setStudents(const QList<QUuid> &newData) {
+        beginResetModel();
+        students = newData;
+        endResetModel();
     }
 
-    QVariant data(const QModelIndex &index, const int role) const override {
-        if (!index.isValid() || index.row() >= accounts.size())
-            return QVariant();
+    [[nodiscard]] int rowCount([[maybe_unused]] const QModelIndex &parent) const override {
+        return students.size(); // NOLINT
+    }
 
-        auto *acc = accounts[index.row()];
+    [[nodiscard]] int columnCount([[maybe_unused]] const QModelIndex &parent) const override {
+        return ColumnCount;
+    }
+
+    [[nodiscard]] QVariant data(const QModelIndex &index, const int role) const override {
+        if (!index.isValid() || index.row() >= students.size()) return {};
+
+        StudentAccount *t = aaims::manager::account::get_students()[students[index.row()]];
+
+        if (!t) return {};
 
         if (role == Qt::DisplayRole) {
             switch (index.column()) {
-                case 1: return acc->name;
-                case 2: return acc->username;
-                case 3: return acc->is_admin() ? "管理员" : (acc->is_teacher() ? "教师" : "学生");
-                case 4: return acc->is_graduated() ? "Inactive" : "Active";
-                default: return QVariant();
+                case Name: return t->name;
+                case Department: return t->department;
+                case Status: return t->is_graduated() ? "已毕业" : t->is_suspended() ? "休学" : "在校";
+                default: return {};
             }
+        }
+
+        if (role == Qt::ForegroundRole && index.column() == Status) {
+            return t->is_graduated() || t->is_suspended() ? QColor(0x2563eb) : QColor(0x64748b);
         }
 
         if (role == Qt::TextAlignmentRole) {
             return static_cast<QVariant>(Qt::AlignVCenter | Qt::AlignLeft);
         }
 
-        return QVariant();
+        return {};
     }
 
-    QVariant headerData(const int section, const Qt::Orientation orientation, const int role) const override {
+    [[nodiscard]] QVariant
+    headerData(const int section, const Qt::Orientation orientation, const int role) const override {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-            QStringList headers = {"操作", "姓名", "学号", "状态"};
+            static const QStringList headers = {"姓名", "院系", "授课情况", "状态", "操作"};
             return headers[section];
         }
-        return QVariant();
+        return {};
     }
 
-    void refresh() {
-        beginResetModel();
-        accounts = aaims::manager::account::get_all_ptrs();
-        endResetModel();
+    QUuid getAccount(const QModelIndex &index) {
+        return students[index.row()];
     }
 
 private:
-    QVector<Account *> accounts;
+    QList<QUuid> students;
 };
 
-#endif //AAIMS_ACCOUNTTABLEMODEL_H
+#endif //AAIMS_STUDENTTABLEMODEL_H

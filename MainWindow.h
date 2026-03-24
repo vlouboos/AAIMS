@@ -45,8 +45,7 @@ private:
     QStackedWidget *contentStack;
     AdminDashboardPage *adminDashboardPage;
     TeacherPage *teacherPage;
-    StudentsPage *studentPage;
-    // 未来这里还可以加 btnCourses, btnSettings 等
+    StudentPage *studentPage;
     CloseReason closeReason = CloseReason::Exit;
 
 protected:

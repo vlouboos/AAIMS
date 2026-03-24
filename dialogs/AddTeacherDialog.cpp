@@ -118,7 +118,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : QDialog(parent) {
                     return;
                 }
                 static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
-                if (!phoneRegex.match(phoneNumberEdit->text().trimmed()).isValid()) {
+                if (phoneNumberEdit->text().trimmed().length() != 11 || !phoneRegex.match(phoneNumberEdit->text().trimmed()).isValid()) {
                     QMessageBox::warning(this, "输入错误", "无效的中国大陆手机号！");
                     return;
                 }
@@ -135,7 +135,12 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : QDialog(parent) {
                 teacher->status = Account::TEACHER;
                 teacher->department = deptEdit->text().trimmed();
                 teacher->phoneNumber = phoneNumberEdit->text().trimmed();
-                aaims::manager::account::add(teacher);
+                if (const QString result = aaims::manager::account::add(teacher); !result.isEmpty()) {
+                    pd->close();
+                    pd->deleteLater();
+                    QMessageBox::critical(this, "错误", result);
+                    return;
+                }
                 const auto future = aaims::manager::account::saveAsync();;
 
                 auto *watcher = new QFutureWatcher<void>(this); // NOLINT

@@ -19,8 +19,10 @@ namespace {
     QUuid master;
     QHash<QUuid, Account *> admins;
     QHash<QUuid, TeacherAccount *> teachers;
+    QHash<QUuid, StudentAccount *> students;
     QHash<QUuid, StudentAccount *> workingStudents;
     QHash<QUuid, StudentAccount *> graduatedStudents;
+    QHash<QUuid, StudentAccount *> suspendedStudents;
     bool loading = true;
 }
 
@@ -51,7 +53,9 @@ namespace aaims::manager::account {
                     const auto student = std::make_shared<StudentAccount>(StudentAccount::fromJson(uuid, accountData));
                     acc = student;
                     if (student->is_graduated()) graduatedStudents[uuid] = student.get();
+                    else if (student->is_suspended()) suspendedStudents[uuid] = student.get();
                     else workingStudents[uuid] = student.get();
+                    students[uuid] = student.get();
                 }
                 accounts[uuid] = acc;
                 accounts_by_username[acc->username.toLower()] = uuid;
@@ -101,25 +105,40 @@ namespace aaims::manager::account {
         return io::save(path, root);
     }
 
-    void add(const std::shared_ptr<Account> &account) {
-        if (!account) return;
+    QString add(const std::shared_ptr<Account> &account) {
+        if (!account) return "内部错误";
         const QUuid &uuid = account->uuid;
 
         if (account->is_master()) {
             master = uuid;
         } else if (account->is_admin()) {
+            if (std::ranges::any_of(admins.values(), [account](const Account *a) {
+                return account->username.toLower() == a->username.toLower();
+            }))
+                return "工号已存在！";
             admins[uuid] = account.get();
         } else if (account->is_teacher()) {
+            if (std::ranges::any_of(teachers.values(), [account](const TeacherAccount *a) {
+                return account->username.toLower() == a->username.toLower();
+            }))
+                return "工号已存在！";
             teachers[uuid] = dynamic_cast<TeacherAccount *>(account.get());
-        } else if (account->is_graduated()) {
-            graduatedStudents[uuid] = dynamic_cast<StudentAccount *>(account.get());
         } else {
-            workingStudents[uuid] = dynamic_cast<StudentAccount *>(account.get());
+            if (std::ranges::any_of(students.values(), [account](const StudentAccount *a) {
+                return account->username.toLower() == a->username.toLower();
+            }))
+                return "学号已存在！";
+            if (account->is_graduated()) {
+                graduatedStudents[uuid] = dynamic_cast<StudentAccount *>(account.get());
+            } else {
+                workingStudents[uuid] = dynamic_cast<StudentAccount *>(account.get());
+            }
         }
 
         accounts[uuid] = account;
         accounts_by_username[account->username.toLower()] = uuid;
         accounts_by_name[account->name] = uuid;
+        return "";
     }
 
     Account *tryLogin(const QString &username, const QString &password) {
@@ -169,12 +188,20 @@ namespace aaims::manager::account {
         return teachers;
     }
 
+    QHash<QUuid, StudentAccount *> get_students() {
+        return students;
+    }
+
     QHash<QUuid, StudentAccount *> get_working_students() {
         return workingStudents;
     }
 
     QHash<QUuid, StudentAccount *> get_graduated_students() {
         return graduatedStudents;
+    }
+
+    QHash<QUuid, StudentAccount *> get_suspended_students() {
+        return suspendedStudents;
     }
 
     bool isLoading() {

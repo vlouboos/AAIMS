@@ -9,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QProgressDialog>
+#include <qvalidator.h>
 
 #include "../managements/AccountManager.h"
 
@@ -64,6 +65,7 @@ TeacherDetailDialog::TeacherDetailDialog(TeacherAccount *account,
 
     editPhoneNumber = new QLineEdit(this);
     editPhoneNumber->setText(account->phoneNumber);
+    editPhoneNumber->setValidator(new QRegularExpressionValidator(QRegularExpression("^1[3-9]\\d{9}$"), this));
 
     phoneNumberLayout->addWidget(phoneNumberLabel);
     phoneNumberLayout->addWidget(editPhoneNumber);
@@ -106,7 +108,7 @@ void TeacherDetailDialog::onSaveButtonClicked() {
         return;
     }
     static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
-    if (!phoneRegex.match(editPhoneNumber->text().trimmed()).isValid()) {
+    if (editPhoneNumber->text().trimmed().length() != 11 || !phoneRegex.match(editPhoneNumber->text().trimmed()).isValid()) {
         QMessageBox::warning(this, "输入错误", "无效的中国大陆手机号！");
         return;
     }
@@ -120,6 +122,7 @@ void TeacherDetailDialog::onSaveButtonClicked() {
     auto watcher = new QFutureWatcher<bool>(this); // NOLINT
     connect(watcher, &QFutureWatcherBase::finished, [this, pd, watcher] {
         pd->close();
+        pd->deleteLater();
         watcher->deleteLater();
         QMessageBox::information(this, "保存完成", QString("保存教师成功！"));
         accept();

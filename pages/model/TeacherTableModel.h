@@ -7,8 +7,6 @@
 
 #include <QAbstractTableModel>
 #include <QColor>
-#include <QVector>
-#include <QPointer>
 
 #include "../../managements/AccountManager.h"
 #include "../../utils/DataStructures.h"
@@ -18,12 +16,12 @@ class TeacherTableModel : public QAbstractTableModel {
 
 public:
     enum Column {
-        Name = 0,
+        Username,
+        Name,
         Department,
         Lessons,
         Status,
-        Actions,
-        ColumnCount
+        Actions
     };
 
     explicit TeacherTableModel(QObject *parent = nullptr) : QAbstractTableModel(parent) {
@@ -40,7 +38,7 @@ public:
     }
 
     [[nodiscard]] int columnCount([[maybe_unused]] const QModelIndex &parent) const override {
-        return ColumnCount;
+        return 6;
     }
 
     [[nodiscard]] QVariant data(const QModelIndex &index, const int role) const override {
@@ -52,6 +50,7 @@ public:
 
         if (role == Qt::DisplayRole) {
             switch (index.column()) {
+                case Username: return t->username;
                 case Name: return t->name;
                 case Department: return t->department;
                 case Lessons: return t->teachingClasses.isEmpty()
@@ -77,7 +76,7 @@ public:
     [[nodiscard]] QVariant
     headerData(const int section, const Qt::Orientation orientation, const int role) const override {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-            static const QStringList headers = {"姓名", "院系", "授课情况", "状态", "操作"};
+            static const QStringList headers = {"工号", "姓名", "院系", "授课情况", "状态", "操作"};
             return headers[section];
         }
         return {};

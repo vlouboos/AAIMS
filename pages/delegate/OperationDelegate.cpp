@@ -2,17 +2,17 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#include "TeacherOperationDelegate.h"
+#include "OperationDelegate.h"
 
 #include "../../dialogs/TeacherDetailDialog.h"
 #include "../model/TeacherTableModel.h"
 
-TeacherOperationDelegate::TeacherOperationDelegate(QObject *parent) : QStyledItemDelegate(parent) {
+OperationDelegate::OperationDelegate(QObject *parent) : QStyledItemDelegate(parent) {
     renderers[0] = new QSvgRenderer(QString(":/assets/edit.svg"), this);
     renderers[1] = new QSvgRenderer(QString(":/assets/delete.svg"), this);
 }
 
-void TeacherOperationDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
+void OperationDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
                                      const QModelIndex &index) const {
     QStyledItemDelegate::paint(painter, option, index);
     const int x = option.rect.x() + (option.rect.width() - 60) / 2;
@@ -22,7 +22,7 @@ void TeacherOperationDelegate::paint(QPainter *painter, const QStyleOptionViewIt
     drawIconContainer(painter, QRect(x + 36, y, 24, 24), QColor(0x7c1010), renderers[1]);
 }
 
-void TeacherOperationDelegate::drawIconContainer(QPainter *painter, const QRect &rect, const QColor &color,
+void OperationDelegate::drawIconContainer(QPainter *painter, const QRect &rect, const QColor &color,
                                                  QSvgRenderer *renderer) {
     painter->save();
     painter->setRenderHint(QPainter::Antialiasing);
@@ -44,7 +44,7 @@ void TeacherOperationDelegate::drawIconContainer(QPainter *painter, const QRect 
     painter->restore();
 }
 
-bool TeacherOperationDelegate::editorEvent(QEvent *event, [[maybe_unused]] QAbstractItemModel *model,
+bool OperationDelegate::editorEvent(QEvent *event, [[maybe_unused]] QAbstractItemModel *model,
                                            const QStyleOptionViewItem &option, const QModelIndex &index) {
     if (event->type() == QEvent::MouseButtonPress) {
         const int x = option.rect.x() + (option.rect.width() - 60) / 2;
@@ -54,6 +54,7 @@ bool TeacherOperationDelegate::editorEvent(QEvent *event, [[maybe_unused]] QAbst
         } else if (QRect(x + 36, y, 24, 24).contains(me->pos())) {
             emit confirmDelete(index);
         }
+        prevIndex = index;
         return true;
     }
     return false;

@@ -82,7 +82,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     menu->addAction(logoutAction);
 
     userMenuBtn = new QPushButton(headerWidget);
-    userMenuBtn->setText(loggedAccount->name + '(' + loggedAccount->username + ") "); // Add a space to prevent something strange from happening.
+    userMenuBtn->setText(loggedAccount->name + '(' + loggedAccount->username + ") ");
+    // Add a space to prevent something strange from happening.
     if (loggedAccount->is_master()) {
         userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #AA0000;");
     } else if (loggedAccount->is_admin()) {
@@ -104,9 +105,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     contentStack->setObjectName("ContentArea");
     contentStack->setCurrentIndex(0);
 
-    adminDashboardPage = new AdminDashboardPage(contentStack);
-    teacherPage = new TeacherPage(contentStack);
-    studentPage = new StudentsPage(contentStack);
+    if (loggedAccount->is_master() || loggedAccount->is_admin()) {
+        adminDashboardPage = new AdminDashboardPage(contentStack);
+        teacherPage = new TeacherPage(contentStack);
+        studentPage = new StudentPage(contentStack);
+    }
 
     contentStack->addWidget(adminDashboardPage);
     contentStack->addWidget(teacherPage);
@@ -129,20 +132,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         btnTeachers->setChecked(false);
         btnStudents->setChecked(false);
     });
-    connect(btnTeachers, &QPushButton::clicked, [this] {
-        contentStack->setCurrentIndex(1);
-        pageTitleLabel->setText("教师");
-        btnDashboard->setChecked(false);
-        btnTeachers->setChecked(true);
-        btnStudents->setChecked(false);
-    });
-    connect(btnStudents, &QPushButton::clicked, [this] {
-        contentStack->setCurrentIndex(2);
-        pageTitleLabel->setText("学生");
-        btnDashboard->setChecked(false);
-        btnTeachers->setChecked(false);
-        btnStudents->setChecked(true);
-    });
+    if (loggedAccount->is_master() || loggedAccount->is_admin()) {
+        connect(btnTeachers, &QPushButton::clicked, [this] {
+            contentStack->setCurrentIndex(1);
+            pageTitleLabel->setText("教师");
+            btnDashboard->setChecked(false);
+            btnTeachers->setChecked(true);
+            btnStudents->setChecked(false);
+        });
+        connect(btnStudents, &QPushButton::clicked, [this] {
+            contentStack->setCurrentIndex(2);
+            pageTitleLabel->setText("学生");
+            btnDashboard->setChecked(false);
+            btnTeachers->setChecked(false);
+            btnStudents->setChecked(true);
+        });
+    }
     connect(logoutAction, &QAction::triggered, [this] {
         menu->hide();
         const auto result = QMessageBox::question(this, "退出登录", "确定要退出登录吗？",

@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QSortFilterProxyModel>
 
 #include "model/TeacherTableModel.h"
 
@@ -34,6 +35,7 @@ private:
     QPushButton *btnAddTeacher;
     QTableView *tableView;
     TeacherTableModel *tableModel;
+    QSortFilterProxyModel *proxyModel;
 };
 
 #endif //AAIMS_TEACHERPAGE_H

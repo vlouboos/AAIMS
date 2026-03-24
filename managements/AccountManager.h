@@ -50,11 +50,15 @@ namespace aaims::manager::account {
 
     QHash<QUuid, TeacherAccount *> get_teachers();
 
+    QHash<QUuid, StudentAccount *> get_students();
+
     QHash<QUuid, StudentAccount *> get_working_students();
 
     QHash<QUuid, StudentAccount *> get_graduated_students();
 
-    void add(const std::shared_ptr<Account> &account);
+    QHash<QUuid, StudentAccount *> get_suspended_students();
+
+    QString add(const std::shared_ptr<Account> &account);
 
     bool isLoading();
 
