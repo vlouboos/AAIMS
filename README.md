@@ -43,7 +43,19 @@ AAIMS is a robust, high-performance C++ solution designed for academic administr
 ### Prerequisites
 * **Compiler**: A C++ compiler supporting **C++23** (GCC 13+, Clang 15+, or MSVC 19.33+).
 * **Build System**: [CMake](https://cmake.org/) (Version 3.20+ recommended for C++23 features).
-* **Dependencies**: Qt6 (Fetched automatically).
+* **Dependencies**: [Qt6](https://www.qt.io/development/download-qt-installer-oss).
+
+### Setup environment
+* Firstly, you're required to install [Qt6](https://www.qt.io/development/download-qt-installer-oss), and notice the Qt path.
+* If you're using CLion, it's easy for you to go **Settings→Cmake→Environment Variables**, and paste it:
+```bash
+CMAKE_PREFIX_PATH=%YOUR_QT_PATH%/%COMPILER%
+```
+or, you set it in **CMakeList.txt**:
+```cmake
+set(CMAKE_PREFIX_PATH "%YOUR_QT_PATH%/%COMPILER%")
+```
+* If you're running on Windows, you should also set **QT_DEPLOY_TOOL** to ```%YOUR_QT_PATH%/%COMPILER%"/bin/windeployqt.exe```
 
 ### Compiling from Source
 ```bash

@@ -14,8 +14,6 @@
 
 #include "model/TeacherTableModel.h"
 
-// 引入你的 Model
-
 class TeacherPage : public QWidget {
     Q_OBJECT
 

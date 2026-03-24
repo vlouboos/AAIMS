@@ -12,5 +12,7 @@ See https://spdx.org/licenses/BSD-3-Clause.html -->
         <file>assets/briefcase.svg</file>
         <file>assets/graduation-cap.svg</file>
         <file>assets/classes.svg</file>
+        <file>assets/delete.svg</file>
+        <file>assets/edit.svg</file>
     </qresource>
 </RCC>

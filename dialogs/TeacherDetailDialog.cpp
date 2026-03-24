@@ -3,61 +3,57 @@
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
 #include "TeacherDetailDialog.h"
+
 #include <QPushButton>
+#include <QHBoxLayout>
 
-TeacherDetailDialog::TeacherDetailDialog(Mode mode, aaims::model::TeacherAccount *teacher, QWidget *parent)
-    : QDialog(parent), ui(new Ui::TeacherDetailDialog), currentMode(mode), currentTeacher(teacher) {
-    ui->setupUi(this);
+TeacherDetailDialog::TeacherDetailDialog(const aaims::model::TeacherAccount *account, QWidget *parent) : QDialog(parent) {
+    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
+    setAttribute(Qt::WA_TranslucentBackground);
+    setFixedSize(450, 400);
+    mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(15, 15, 15, 15);
 
-    loadTeacherData();
-    setupUiByMode();
+    headerLabel = new QLabel("编辑教师信息", this);
+    headerLabel->setStyleSheet("font-size: 20px; font-weight: 700; color: #0f172a;");
+    mainLayout->addWidget(headerLabel);
 
-    connect(ui->btnSave, &QPushButton::clicked, this, &TeacherDetailDialog::onSaveClicked);
-    connect(ui->btnEdit, &QPushButton::clicked, this, &TeacherDetailDialog::onSwitchToEdit);
-    connect(ui->btnCancel, &QPushButton::clicked, this, &QDialog::reject);
+    btnLayout = new QHBoxLayout();
+    btnLayout->setSpacing(12);
+
+    editId = new QLineEdit("用户名", this);
+    editId->setEnabled(false);
+    editId->setText(account->username);
+
+    editName = new QLineEdit("姓名", this);
+    editName->setText(account->name);
+
+    editDept = new QLineEdit("所属院系", this);
+    editDept->setText(account->department);
+
+    editPhoneNumber = new QLineEdit("电话号码", this);
+    editPhoneNumber->setText(account->phoneNumber);
+
+    btnLayout->addWidget(editId);
+    btnLayout->addWidget(editName);
+    btnLayout->addWidget(editDept);
+    btnLayout->addLayout(btnLayout);
+
+    btnCancel = new QPushButton("取消", this);
+    btnCancel->setCursor(Qt::PointingHandCursor);
+    btnSave->setObjectName("AddElement");
+
+    btnSave = new QPushButton("保存修改", this);
+    btnSave->setCursor(Qt::PointingHandCursor);
+    btnSave->setObjectName("AddElement");
+
+    mainLayout->addLayout(btnLayout);
+
+    connect(btnSave, &QPushButton::clicked, this, &TeacherDetailDialog::onSaveButtonClicked);
+    connect(btnCancel, &QPushButton::clicked, this, &QDialog::reject);
 }
 
-TeacherDetailDialog::~TeacherDetailDialog() {
-    delete ui;
-}
-
-void TeacherDetailDialog::loadTeacherData() {
-    if (!currentTeacher) return;
-    ui->editName->setText(currentTeacher->name);
-    ui->editId->setText(currentTeacher->username);
-    ui->editDept->setText(currentTeacher->department);
-    // 暴力填充其余字段...
-}
-
-void TeacherDetailDialog::setupUiByMode() {
-    bool isEdit = (currentMode == Mode::Edit);
-
-    // 基础信息只读控制
-    ui->editName->setReadOnly(!isEdit);
-    ui->editId->setReadOnly(!isEdit);
-    ui->editDept->setReadOnly(!isEdit);
-
-    // 按钮显隐
-    ui->btnSave->setVisible(isEdit);
-    ui->btnEdit->setVisible(!isEdit);
-
-    this->setWindowTitle(isEdit ? "编辑教师信息" : "教师详细信息");
-}
-
-void TeacherDetailDialog::onSwitchToEdit() {
-    currentMode = Mode::Edit;
-    setupUiByMode();
-}
-
-void TeacherDetailDialog::onSaveClicked() {
-    if (!currentTeacher) return;
-
-    // 暴力同步 UI 数据到对象
-    currentTeacher->name = ui->editName->text();
-    currentTeacher->department = ui->editDept->text();
-
-    // 触发你之前的异步存盘
-    // aaims::manager::account::save();
-
+void TeacherDetailDialog::onSaveButtonClicked() {
+    emit saveRequested(editId->text(), editName->text(), editDept->text());
     accept();
 }

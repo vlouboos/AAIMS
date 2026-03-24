@@ -47,7 +47,7 @@ namespace aaims {
                 return {uuid, name, teacher, times};
             }
 
-            QJsonObject toJson() const {
+            [[nodiscard]] QJsonObject toJson() const {
                 QJsonArray t;
                 for (const auto &x: this->times) { t.append(x.toJson()); }
                 return {
@@ -86,12 +86,13 @@ namespace aaims {
             constexpr static int GRADUATED = 0b100;
             constexpr static int MASTER = 0b1000;
             constexpr static int SUSPENDED = 0b10000;
+            constexpr static int CLASS_MASTER = 0b100000;
 
             QUuid uuid;
             QString username;
             QString name;
             QString password;
-            bool female;
+            bool female = false;
             uint8_t status = 0;
 
             [[nodiscard]] bool is_admin() const { return (status & ADMIN) != 0; }
@@ -133,13 +134,14 @@ namespace aaims {
             QString phoneNumber;
 
         protected:
-            PersonAccount() {}
+            PersonAccount() = default;
         };
 
         struct TeacherAccount : PersonAccount {
             QList<QUuid> teachingClasses;
+            QUuid managingClass = QUuid::fromString("00000000-0000-0000-0000-000000000000");
 
-            bool is_teaching() const { return !teachingClasses.isEmpty(); }
+            [[nodiscard]] bool is_teaching() const { return !teachingClasses.isEmpty(); }
 
             [[nodiscard]] static TeacherAccount fromJson(const QUuid &uuid, const QJsonObject &json) {
                 TeacherAccount t;
@@ -151,6 +153,9 @@ namespace aaims {
                 t.status = static_cast<uint8_t>(json.value("status").toInt());
                 t.department = json.value("department").toString();
                 t.phoneNumber = json.value("phoneNumber").toString();
+                if (t.status & CLASS_MASTER) {
+                    t.managingClass = QUuid::fromString(json.value("managingClass").toString());
+                }
                 for (const QJsonArray lessons = json.value("lessons").toArray(); const auto &x: lessons) {
                     t.teachingClasses.append(QUuid::fromString(x.toString()));
                 }

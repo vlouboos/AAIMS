@@ -27,7 +27,7 @@ private:
     QLineEdit *idEdit;
     QLineEdit *nameEdit;
     QLineEdit *deptEdit;
-    QComboBox * genderCombo;
+    QComboBox *genderCombo;
     QLineEdit *phoneNumberEdit;
     QPushButton *btnConfirmSingle;
     QWidget *batchAddPage;
@@ -38,7 +38,7 @@ private:
     QPushButton *btnConfirmBatch;
     QString selectedFilePath;
 
-    QPair<unsigned long long, unsigned long long> importFromCsv() const;
+    [[nodiscard]] QPair<unsigned long long, unsigned long long> importFromCsv() const;
 };
 
 #endif // AAIMS_ADDTEACHERDIALOG_H

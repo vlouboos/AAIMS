@@ -29,7 +29,7 @@ signals:
     void deleteClicked(const QModelIndex &index);
 
 private:
-    QSvgRenderer *renderers[3] = {};
+    QSvgRenderer *renderers[2] = {};
 
     static void drawIconContainer(QPainter *painter, const QRect &rect, const QColor &color, QSvgRenderer *renderer);
 };

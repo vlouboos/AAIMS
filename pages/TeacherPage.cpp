@@ -61,12 +61,12 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
     header->setSectionResizeMode(2, QHeaderView::Stretch);
     header->setSectionResizeMode(3, QHeaderView::Fixed);
     header->setSectionResizeMode(4, QHeaderView::Fixed);
-    header->setItemDelegateForColumn(4, new TeacherOperationDelegate(this));
 
     tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     tableView->setColumnWidth(0, 120);
     tableView->setColumnWidth(3, 100);
     tableView->setColumnWidth(4, 120);
+    tableView->setItemDelegateForColumn(4, new TeacherOperationDelegate(this));
 
     mainLayout->addWidget(tableView);
 
@@ -74,7 +74,6 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
         this->setStyleSheet(file.readAll());
     }
 
-    // 这里可以写搜索逻辑
     connect(searchEdit, &QLineEdit::textChanged, [] {
         // TODO: 实时搜索
     });

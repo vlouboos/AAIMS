@@ -5,36 +5,37 @@
 #ifndef AAIMS_GUI_TEACHER_TEACHERDETAILDIALOG_H
 #define AAIMS_GUI_TEACHER_TEACHERDETAILDIALOG_H
 
+#include <QBoxLayout>
 #include <QDialog>
-#include "../utils/DataStructures.h"
+#include <QLineEdit>
+#include <QLabel>
 
-namespace Ui {
-    class TeacherDetailDialog;
-}
+#include "../utils/DataStructures.h"
 
 class TeacherDetailDialog : public QDialog {
     Q_OBJECT
 
 public:
-    enum class Mode { Detail, Edit };
+    explicit TeacherDetailDialog(const aaims::model::TeacherAccount *account, QWidget *parent = nullptr);
 
-    explicit TeacherDetailDialog(Mode mode, aaims::model::TeacherAccount *teacher = nullptr, QWidget *parent = nullptr);
+    void setTeacherData(const QString &id, const QString &name, const QString &dept);
 
-    ~TeacherDetailDialog() override;
+signals:
+    void saveRequested(const QString &id, const QString &name, const QString &dept);
 
 private slots:
-    void onSaveClicked();
-
-    void onSwitchToEdit();
+    void onSaveButtonClicked();
 
 private:
-    Ui::TeacherDetailDialog *ui;
-    Mode currentMode;
-    aaims::model::TeacherAccount *currentTeacher;
-
-    void setupUiByMode();
-
-    void loadTeacherData();
+    QVBoxLayout *mainLayout;
+    QLabel *headerLabel;
+    QLineEdit *editId;
+    QLineEdit *editName;
+    QLineEdit *editDept;
+    QLineEdit *editPhoneNumber;
+    QHBoxLayout *btnLayout;
+    QPushButton *btnSave;
+    QPushButton *btnCancel;
 };
 
 #endif // AAIMS_GUI_TEACHER_TEACHERDETAILDIALOG_H
