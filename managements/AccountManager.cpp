@@ -17,7 +17,7 @@ namespace {
     QHash<QString, QUuid> accounts_by_username;
     QHash<QString, QUuid> accounts_by_name;
     QUuid master;
-    QList<QUuid> admins;
+    QHash<QUuid, Account *> admins;
     QHash<QUuid, TeacherAccount *> teachers;
     QHash<QUuid, StudentAccount *> workingStudents;
     QHash<QUuid, StudentAccount *> graduatedStudents;
@@ -60,7 +60,7 @@ namespace aaims::manager::account {
                     master = uuid;
                 }
                 if (acc->is_admin()) {
-                    admins.append(uuid);
+                    admins[uuid] = acc.get();
                 }
             }
         });
@@ -108,9 +108,13 @@ namespace aaims::manager::account {
         if (account->is_master()) {
             master = uuid;
         } else if (account->is_admin()) {
-            admins.append(uuid);
+            admins[uuid] = account.get();
         } else if (account->is_teacher()) {
-            teachers[uuid] = static_cast<TeacherAccount *>(account.get());
+            teachers[uuid] = dynamic_cast<TeacherAccount *>(account.get());
+        } else if (account->is_graduated()) {
+            graduatedStudents[uuid] = dynamic_cast<StudentAccount *>(account.get());
+        } else {
+            workingStudents[uuid] = dynamic_cast<StudentAccount *>(account.get());
         }
 
         accounts[uuid] = account;
@@ -157,7 +161,7 @@ namespace aaims::manager::account {
         return accounts;
     }
 
-    QList<QUuid> get_admins() {
+    QHash<QUuid, Account *> get_admins() {
         return admins;
     }
 
@@ -184,5 +188,18 @@ namespace aaims::manager::account {
             ptrs.append(it.value().get());
         }
         return ptrs;
+    }
+
+    void remove(const Account *account) {
+        if (account->is_teacher()) {
+            teachers.remove(account->uuid);
+        } else if (account->is_admin()) {
+            admins.remove(account->uuid);
+        } else if (account->is_graduated()) {
+            graduatedStudents.remove(account->uuid);
+        } else {
+            workingStudents.remove(account->uuid);
+        }
+        accounts.remove(account->uuid);
     }
 }

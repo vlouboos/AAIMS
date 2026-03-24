@@ -4,6 +4,9 @@
 
 #include "TeacherPage.h"
 
+#include <qfuturewatcher.h>
+#include <QProgressDialog>
+
 #include "../dialogs/AddTeacherDialog.h"
 #include "../dialogs/TeacherDetailDialog.h"
 #include "../managements/AccountManager.h"
@@ -87,20 +90,42 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
     });
 
     connect(delegate, &TeacherOperationDelegate::openEdit, [this](const QModelIndex &index) {
-        if (TeacherAccount *account = tableModel->getAccount(index)) {
+        if (TeacherAccount *account = aaims::manager::account::get_teachers()[tableModel->getAccount(index)]) {
             if (TeacherDetailDialog dialog(account, this); dialog.exec() == QDialog::Accepted) {
                 reloadData();
             }
         }
     });
 
-    connect(delegate, &TeacherOperationDelegate::confirmDelete, [](const QModelIndex &index) {
+    connect(delegate, &TeacherOperationDelegate::confirmDelete, [this](const QModelIndex &index) {
+        if (TeacherAccount *account = aaims::manager::account::get_teachers()[tableModel->getAccount(index)]) {
+            const auto result = QMessageBox::warning(this, "危险操作",
+                                                     QString("确定要删除教师 %1 (%2) 吗？\n该操作不可撤销！").arg(
+                                                         account->name, account->username),
+                                                     QMessageBox::Yes | QMessageBox::No);
+
+            if (result == QMessageBox::Yes) {
+                auto *pd = new QProgressDialog("正在删除...", nullptr, 0, 0, this); // NOLINT
+                pd->setWindowModality(Qt::WindowModal);
+                pd->show();
+                aaims::manager::account::remove(account);
+                reloadData();
+                const auto future = aaims::manager::account::saveAsync();
+                auto watcher = new QFutureWatcher<bool>(this); // NOLINT
+                connect(watcher, &QFutureWatcherBase::finished, [this, pd, watcher] {
+                    pd->close();
+                    watcher->deleteLater();
+                    QMessageBox::information(this, "删除完成", QString("删除教师成功！"));
+                });
+                watcher->setFuture(future);
+            }
+        }
     });
 
     reloadData();
 }
 
 void TeacherPage::reloadData() const {
-    tableModel->setTeachers(aaims::manager::account::get_teachers().values());
-    subtitleLabel->setText(QString("管理系统内共 %1 名教师").arg(tableModel->rowCount()));
+    tableModel->setTeachers(aaims::manager::account::get_teachers().keys());
+    subtitleLabel->setText(QString("管理系统内共 %1 名教师").arg(tableModel->rowCount(QModelIndex())));
 }

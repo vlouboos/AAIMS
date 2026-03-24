@@ -8,7 +8,9 @@
 #include <QAbstractTableModel>
 #include <QColor>
 #include <QVector>
+#include <QPointer>
 
+#include "../../managements/AccountManager.h"
 #include "../../utils/DataStructures.h"
 
 class TeacherTableModel : public QAbstractTableModel {
@@ -27,24 +29,26 @@ public:
     explicit TeacherTableModel(QObject *parent = nullptr) : QAbstractTableModel(parent) {
     }
 
-    void setTeachers(const QList<aaims::model::TeacherAccount *> &newData) {
+    void setTeachers(const QList<QUuid> &newData) {
         beginResetModel();
         teachers = newData;
         endResetModel();
     }
 
-    int rowCount([[maybe_unused]] const QModelIndex &parent = QModelIndex()) const override {
-        return teachers.size();
+    [[nodiscard]] int rowCount([[maybe_unused]] const QModelIndex &parent) const override {
+        return teachers.size(); // NOLINT
     }
 
-    int columnCount([[maybe_unused]] const QModelIndex &parent = QModelIndex()) const override {
+    [[nodiscard]] int columnCount([[maybe_unused]] const QModelIndex &parent) const override {
         return ColumnCount;
     }
 
-    QVariant data(const QModelIndex &index, const int role = Qt::DisplayRole) const override {
+    [[nodiscard]] QVariant data(const QModelIndex &index, const int role) const override {
         if (!index.isValid() || index.row() >= teachers.size()) return {};
 
-        auto *t = teachers[index.row()];
+        TeacherAccount *t = aaims::manager::account::get_teachers()[teachers[index.row()]];
+
+        if (!t) return {};
 
         if (role == Qt::DisplayRole) {
             switch (index.column()) {
@@ -67,23 +71,24 @@ public:
             return static_cast<QVariant>(Qt::AlignVCenter | Qt::AlignLeft);
         }
 
-        return QVariant();
+        return {};
     }
 
-    QVariant headerData(const int section, const Qt::Orientation orientation, const int role) const override {
+    [[nodiscard]] QVariant
+    headerData(const int section, const Qt::Orientation orientation, const int role) const override {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
             static const QStringList headers = {"姓名", "院系", "授课情况", "状态", "操作"};
             return headers[section];
         }
-        return QVariant();
+        return {};
     }
 
-    aaims::model::TeacherAccount *getAccount(const QModelIndex &index) {
+    QUuid getAccount(const QModelIndex &index) {
         return teachers[index.row()];
     }
 
 private:
-    QList<aaims::model::TeacherAccount *> teachers;
+    QList<QUuid> teachers;
 };
 
 

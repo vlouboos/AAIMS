@@ -46,7 +46,7 @@ namespace aaims::manager::account {
 
     QHash<QUuid, std::shared_ptr<Account> > all();
 
-    QList<QUuid> get_admins();
+    QHash<QUuid, Account *> get_admins();
 
     QHash<QUuid, TeacherAccount *> get_teachers();
 
@@ -59,6 +59,8 @@ namespace aaims::manager::account {
     bool isLoading();
 
     QList<Account *> get_all_ptrs();
+
+    void remove(const Account *account);
 }
 
 #endif // AAIMS_ACCOUNT_MANAGER_H
