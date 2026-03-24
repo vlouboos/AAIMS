@@ -42,7 +42,7 @@ public:
     }
 
     QVariant data(const QModelIndex &index, const int role = Qt::DisplayRole) const override {
-        if (!index.isValid() || index.row() >= teachers.size()) return QVariant();
+        if (!index.isValid() || index.row() >= teachers.size()) return {};
 
         auto *t = teachers[index.row()];
 
@@ -54,7 +54,7 @@ public:
                                          ? "暂无授课"
                                          : QString("%1 门课程").arg(t->teachingClasses.size());
                 case Status: return t->is_teaching() ? "授课中" : "空闲";
-                default: return QVariant();
+                default: return {};
             }
         }
 
@@ -78,8 +78,12 @@ public:
         return QVariant();
     }
 
+    aaims::model::TeacherAccount *getAccount(const QModelIndex &index) {
+        return teachers[index.row()];
+    }
+
 private:
-    QVector<aaims::model::TeacherAccount *> teachers;
+    QList<aaims::model::TeacherAccount *> teachers;
 };
 
 

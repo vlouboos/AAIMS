@@ -113,6 +113,10 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : QDialog(parent) {
                     QMessageBox::warning(this, "输入错误", "姓名不能为空！");
                     return;
                 }
+                if (deptEdit->text().trimmed().isEmpty()) {
+                    QMessageBox::warning(this, "输入错误", "院系不能为空！");
+                    return;
+                }
                 static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
                 if (!phoneRegex.match(phoneNumberEdit->text().trimmed()).isValid()) {
                     QMessageBox::warning(this, "输入错误", "无效的中国大陆手机号！");
@@ -140,7 +144,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : QDialog(parent) {
                     pd->close();
                     pd->deleteLater();
                     watcher->deleteLater();
-                    QMessageBox::information(this, "添加完成", QString("添加教师成功！"));;
+                    QMessageBox::information(this, "添加完成", QString("添加教师成功！"));
                     accept();
                 });
                 watcher->setFuture(future);

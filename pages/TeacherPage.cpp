@@ -5,6 +5,7 @@
 #include "TeacherPage.h"
 
 #include "../dialogs/AddTeacherDialog.h"
+#include "../dialogs/TeacherDetailDialog.h"
 #include "../managements/AccountManager.h"
 #include "delegate/TeacherOperationDelegate.h"
 
@@ -62,11 +63,12 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
     header->setSectionResizeMode(3, QHeaderView::Fixed);
     header->setSectionResizeMode(4, QHeaderView::Fixed);
 
+    auto *delegate = new TeacherOperationDelegate(this);
     tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     tableView->setColumnWidth(0, 120);
     tableView->setColumnWidth(3, 100);
     tableView->setColumnWidth(4, 120);
-    tableView->setItemDelegateForColumn(4, new TeacherOperationDelegate(this));
+    tableView->setItemDelegateForColumn(4, delegate);
 
     mainLayout->addWidget(tableView);
 
@@ -82,6 +84,17 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
         if (AddTeacherDialog dialog(this); dialog.exec() == QDialog::Accepted) {
             reloadData();
         }
+    });
+
+    connect(delegate, &TeacherOperationDelegate::openEdit, [this](const QModelIndex &index) {
+        if (TeacherAccount *account = tableModel->getAccount(index)) {
+            if (TeacherDetailDialog dialog(account, this); dialog.exec() == QDialog::Accepted) {
+                reloadData();
+            }
+        }
+    });
+
+    connect(delegate, &TeacherOperationDelegate::confirmDelete, [](const QModelIndex &index) {
     });
 
     reloadData();

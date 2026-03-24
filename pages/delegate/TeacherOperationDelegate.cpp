@@ -4,18 +4,22 @@
 
 #include "TeacherOperationDelegate.h"
 
+#include "../../dialogs/TeacherDetailDialog.h"
+#include "../model/TeacherTableModel.h"
+
 TeacherOperationDelegate::TeacherOperationDelegate(QObject *parent) : QStyledItemDelegate(parent) {
     renderers[0] = new QSvgRenderer(QString(":/assets/edit.svg"), this);
     renderers[1] = new QSvgRenderer(QString(":/assets/delete.svg"), this);
 }
 
-void TeacherOperationDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+void TeacherOperationDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
+                                     const QModelIndex &index) const {
     QStyledItemDelegate::paint(painter, option, index);
     const int x = option.rect.x() + (option.rect.width() - 60) / 2;
     const int y = option.rect.y() + (option.rect.height() - 24) / 2;
 
-    drawIconContainer(painter, QRect(x, y, 24, 24), QColor(0x107C10), renderers[0]);
-    drawIconContainer(painter, QRect(x + 36, y, 24, 24), QColor(0xD83B01), renderers[1]);
+    drawIconContainer(painter, QRect(x, y, 24, 24), QColor(0x10107c), renderers[0]);
+    drawIconContainer(painter, QRect(x + 36, y, 24, 24), QColor(0x7c1010), renderers[1]);
 }
 
 void TeacherOperationDelegate::drawIconContainer(QPainter *painter, const QRect &rect, const QColor &color,
@@ -45,10 +49,11 @@ bool TeacherOperationDelegate::editorEvent(QEvent *event, [[maybe_unused]] QAbst
     if (event->type() == QEvent::MouseButtonPress) {
         const int x = option.rect.x() + (option.rect.width() - 60) / 2;
         const int y = option.rect.y() + (option.rect.height() - 24) / 2;
-        if (const QMouseEvent *me = dynamic_cast<QMouseEvent *>(event); QRect(x, y, 24, 24).contains(me->pos())) emit
-            detailClicked(index);
-        else if (QRect(x + 36, y, 24, 24).contains(me->pos())) emit deleteClicked(index);
-
+        if (const QMouseEvent *me = dynamic_cast<QMouseEvent *>(event); QRect(x, y, 24, 24).contains(me->pos())) {
+            emit openEdit(index);
+        } else if (QRect(x + 36, y, 24, 24).contains(me->pos())) {
+            emit confirmDelete(index);
+        }
         return true;
     }
     return false;

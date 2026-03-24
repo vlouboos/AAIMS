@@ -22,11 +22,9 @@ public:
                      const QModelIndex &index) override;
 
 signals:
-    void detailClicked(const QModelIndex &index);
+    void openEdit(const QModelIndex &index);
 
-    void editClicked(const QModelIndex &index);
-
-    void deleteClicked(const QModelIndex &index);
+    void confirmDelete(const QModelIndex & index);
 
 private:
     QSvgRenderer *renderers[2] = {};

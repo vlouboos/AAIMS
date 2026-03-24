@@ -9,6 +9,14 @@ QLabel#Logo {
     border-radius: 40px; /* 圆形背景 */
     padding: 10px;
 }
+QLabel {
+    font-size: 14px;
+    font-weight: 500;
+    color: #0F172A;
+}
+QLabel[enabled="false"] {
+    color: #EFF2F9;
+}
 QLabel#Title {
     font-size: 24px;
     font-weight: bold;
@@ -18,11 +26,6 @@ QLabel#Title {
 QLabel#Subtitle {
     font-size: 14px;
     color: #64748B;
-}
-QLabel#FieldLabel {
-    font-size: 14px;
-    font-weight: 500;
-    color: #0F172A;
 }
 QLabel#RedFieldLabel {
     font-size: 14px;

@@ -61,7 +61,6 @@ oobeDialog::oobeDialog(QWidget *parent) : StyledDialog(parent) {
     userLayout->setSpacing(8);
 
     userLabel = new QLabel("管理员用户名", card);
-    userLabel->setObjectName("FieldLabel");
 
     userEdit = new QLineEdit(card);
     userEdit->setPlaceholderText("请不要使用admin, root等常见用户名");
@@ -73,7 +72,6 @@ oobeDialog::oobeDialog(QWidget *parent) : StyledDialog(parent) {
     passLayout->setSpacing(8);
 
     passLabel = new QLabel("密码", card);
-    passLabel->setObjectName("FieldLabel");
 
     passWrapper = new QFrame(card);
     passWrapper->setObjectName("PassWrapper");
@@ -102,7 +100,6 @@ oobeDialog::oobeDialog(QWidget *parent) : StyledDialog(parent) {
     confirmLayout->setSpacing(8);
 
     confirmLabel = new QLabel("重复密码", card);
-    confirmLabel->setObjectName("FieldLabel");
 
     confirmWrapper = new QFrame(card);
     confirmWrapper->setObjectName("PassWrapper");

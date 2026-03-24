@@ -25,6 +25,8 @@ private slots:
 
     void toggleLoginButton() const;
 
+    void switchToPassword() const;
+
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:

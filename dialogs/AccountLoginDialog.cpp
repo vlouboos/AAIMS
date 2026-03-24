@@ -59,7 +59,6 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
     userLayout->setSpacing(8);
 
     userLabel = new QLabel("用户名", card);
-    userLabel->setObjectName("FieldLabel");
 
     userEdit = new QLineEdit(card);
     userEdit->setPlaceholderText("请输入用户名");
@@ -71,7 +70,6 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
     passLayout->setSpacing(8);
 
     passLabel = new QLabel("密码", card);
-    passLabel->setObjectName("FieldLabel");
 
     passWrapper = new QFrame(card);
     passWrapper->setObjectName("PassWrapper");
@@ -89,6 +87,8 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
     togglePassBtn->setObjectName("ToggleBtn");
     togglePassBtn->setIcon(QIcon(":/assets/hide.svg"));
     togglePassBtn->setCursor(Qt::PointingHandCursor);
+    togglePassBtn->setDefault(false);
+    togglePassBtn->setFocusPolicy(Qt::NoFocus);
 
     passInnerLayout->addWidget(passEdit);
     passInnerLayout->addWidget(togglePassBtn);
@@ -108,7 +108,7 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
     loginBtn->setObjectName("LoginBtn");
     loginBtn->setCursor(Qt::ForbiddenCursor);
     loginBtn->setProperty("isReady", false);
-    loginBtn->addAction(new QAction());
+    loginBtn->setDefault(true);
 
     loginLayout->addWidget(errorLabel);
     loginLayout->addWidget(loginBtn);
@@ -151,7 +151,9 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
     connect(togglePassBtn, &QPushButton::clicked, this, &AccountLoginDialog::onTogglePassword);
     connect(exitButton, &QPushButton::clicked, this, &AccountLoginDialog::reject);
     connect(userEdit, &QLineEdit::textChanged, this, &AccountLoginDialog::toggleLoginButton);
+    connect(userEdit, &QLineEdit::returnPressed, this, &AccountLoginDialog::switchToPassword);
     connect(passEdit, &QLineEdit::textChanged, this, &AccountLoginDialog::toggleLoginButton);
+    connect(passEdit, &QLineEdit::returnPressed, this, &AccountLoginDialog::onLoginClicked);
     passEdit->installEventFilter(this);
 }
 
@@ -188,6 +190,11 @@ void AccountLoginDialog::toggleLoginButton() const {
     }
     loginBtn->style()->unpolish(loginBtn);
     loginBtn->style()->polish(loginBtn);
+}
+
+void AccountLoginDialog::switchToPassword() const {
+    userEdit->clearFocus();
+    passEdit->setFocus();
 }
 
 void AccountLoginDialog::onLoginClicked() {

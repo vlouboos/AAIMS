@@ -87,6 +87,7 @@ namespace aaims {
             constexpr static int MASTER = 0b1000;
             constexpr static int SUSPENDED = 0b10000;
             constexpr static int CLASS_MASTER = 0b100000;
+            static constexpr auto EMPTY_UUID = QUuid();
 
             QUuid uuid;
             QString username;
@@ -139,7 +140,7 @@ namespace aaims {
 
         struct TeacherAccount : PersonAccount {
             QList<QUuid> teachingClasses;
-            QUuid managingClass = QUuid::fromString("00000000-0000-0000-0000-000000000000");
+            QUuid managingClass = EMPTY_UUID;
 
             [[nodiscard]] bool is_teaching() const { return !teachingClasses.isEmpty(); }
 
