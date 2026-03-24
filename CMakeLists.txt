@@ -53,6 +53,10 @@ add_executable(AAIMS main.cpp
         pages/model/TeacherTableModel.h
         dialogs/AddTeacherDialog.cpp
         dialogs/AddTeacherDialog.h
+        pages/delegate/TeacherOperationDelegate.cpp
+        pages/delegate/TeacherOperationDelegate.h
+        dialogs/TeacherDetailDialog.cpp
+        dialogs/TeacherDetailDialog.h
 )
 
 target_link_libraries(AAIMS

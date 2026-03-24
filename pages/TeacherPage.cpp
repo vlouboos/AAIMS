@@ -6,6 +6,7 @@
 
 #include "../dialogs/AddTeacherDialog.h"
 #include "../managements/AccountManager.h"
+#include "delegate/TeacherOperationDelegate.h"
 
 TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
     tableModel = new TeacherTableModel(this);
@@ -60,6 +61,7 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
     header->setSectionResizeMode(2, QHeaderView::Stretch);
     header->setSectionResizeMode(3, QHeaderView::Fixed);
     header->setSectionResizeMode(4, QHeaderView::Fixed);
+    header->setItemDelegateForColumn(4, new TeacherOperationDelegate(this));
 
     tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     tableView->setColumnWidth(0, 120);
