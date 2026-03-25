@@ -4,18 +4,20 @@
 
 #include "AddTeacherDialog.h"
 
+#include <QCompleter>
 #include <QFutureWatcher>
 #include <QProgressDialog>
-#include <QPushButton>
 #include <QtConcurrentRun>
 
+#include "AddDepartmentDialog.h"
 #include "../managements/AccountManager.h"
+#include "../managements/ClassManager.h"
 #include "../utils/DataStructures.h"
 #include "../utils/Sha256Util.h"
 
 using namespace aaims::model;
 
-AddTeacherDialog::AddTeacherDialog(QWidget *parent) : QDialog(parent) {
+AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     setWindowTitle("新增教师账号");
     setFixedSize(450, 380);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
@@ -40,8 +42,26 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : QDialog(parent) {
     genderCombo = new QComboBox(singleAddPage);
     genderCombo->addItems({"男", "女"});
 
-    deptEdit = new QLineEdit(singleAddPage);
-    deptEdit->setPlaceholderText("例如：数学与信息学院 软件学院");
+    deptLayout = new QHBoxLayout();
+
+    completer = new QCompleter(aaims::manager::classes::get_departments());
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    completer->setFilterMode(Qt::MatchContains);
+    completer->setCompletionMode(QCompleter::PopupCompletion);
+
+    deptCombo = new QComboBox(singleAddPage);
+    deptCombo->setEditable(true);
+    deptCombo->setPlaceholderText("请选择学院");
+    deptCombo->setInsertPolicy(QComboBox::NoInsert);
+    deptCombo->setCompleter(completer);
+
+    btnAdd = new QPushButton("+", singleAddPage);
+    btnAdd->setStyleSheet("padding: 0; margin: 0;");
+    btnAdd->setObjectName("AddElement");
+    btnAdd->setFixedSize(24, 24);
+
+    deptLayout->addWidget(deptCombo);
+    deptLayout->addWidget(btnAdd);
 
     phoneNumberEdit = new QLineEdit(singleAddPage);
     phoneNumberEdit->setPlaceholderText("输入有效的中国大陆手机号");
@@ -55,7 +75,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : QDialog(parent) {
     singleLayout->addRow("工号:", idEdit);
     singleLayout->addRow("姓名:", nameEdit);
     singleLayout->addRow("性别:", genderCombo);
-    singleLayout->addRow("院系:", deptEdit);
+    singleLayout->addRow("院系:", deptLayout);
     singleLayout->addRow("手机号:", phoneNumberEdit);
     singleLayout->addRow("", btnConfirmSingle);
 
@@ -93,8 +113,16 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : QDialog(parent) {
     tabWidget->addTab(batchAddPage, "批量导入");
 
     mainLayout->addWidget(tabWidget);
+    applyStyles();
 
-    connect(btnSelectFile, &QPushButton::clicked, [this]() {
+    connect(btnAdd, &QPushButton::clicked, [this] {
+        if (AddDepartmentDialog dialog; dialog.exec() == Accepted) {
+            deptCombo->clear();
+            deptCombo->addItems(aaims::manager::classes::get_departments());
+        }
+    });
+
+    connect(btnSelectFile, &QPushButton::clicked, [this] {
         selectedFilePath = QFileDialog::getOpenFileName(
             this, "选择教师名录", "", "CSV 文件 (*.csv);;所有文件 (*.*)"
         ).trimmed();
@@ -113,12 +141,13 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : QDialog(parent) {
                     QMessageBox::warning(this, "输入错误", "姓名不能为空！");
                     return;
                 }
-                if (deptEdit->text().trimmed().isEmpty()) {
-                    QMessageBox::warning(this, "输入错误", "院系不能为空！");
+                if (deptCombo->currentIndex() == -1) {
+                    QMessageBox::warning(this, "输入错误", "请选择院系！");
                     return;
                 }
                 static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
-                if (phoneNumberEdit->text().trimmed().length() != 11 || !phoneRegex.match(phoneNumberEdit->text().trimmed()).isValid()) {
+                if (phoneNumberEdit->text().trimmed().length() != 11 || !phoneRegex.match(
+                        phoneNumberEdit->text().trimmed()).isValid()) {
                     QMessageBox::warning(this, "输入错误", "无效的中国大陆手机号！");
                     return;
                 }
@@ -133,7 +162,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : QDialog(parent) {
                 teacher->password = Sha256Util::hash("123456");
                 teacher->female = genderCombo->currentIndex() == 1;
                 teacher->status = Account::TEACHER;
-                teacher->department = deptEdit->text().trimmed();
+                teacher->department = deptCombo->currentText().trimmed();
                 teacher->phoneNumber = phoneNumberEdit->text().trimmed();
                 if (const QString result = aaims::manager::account::add(teacher); !result.isEmpty()) {
                     pd->close();

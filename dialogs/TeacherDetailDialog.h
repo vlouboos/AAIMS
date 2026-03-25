@@ -5,7 +5,9 @@
 #ifndef AAIMS_GUI_TEACHER_TEACHERDETAILDIALOG_H
 #define AAIMS_GUI_TEACHER_TEACHERDETAILDIALOG_H
 
-#include <QLineEdit>
+#include <QComboBox>
+#include <QCompleter>
+#include <QFormLayout>
 #include <QLabel>
 
 #include "StyledDialog.h"
@@ -26,18 +28,13 @@ private slots:
 private:
     QVBoxLayout *mainLayout;
     QLabel *headerLabel;
-    QVBoxLayout *tableLayout;
-    QHBoxLayout *idLayout;
-    QLabel *idLabel;
+    QFormLayout *tableLayout;
     QLineEdit *editId;
-    QHBoxLayout *nameLayout;
-    QLabel *nameLabel;
     QLineEdit *editName;
     QHBoxLayout *deptLayout;
-    QLabel *deptLabel;
-    QLineEdit *editDept;
-    QHBoxLayout *phoneNumberLayout;
-    QLabel *phoneNumberLabel;
+    QCompleter *completer;
+    QComboBox *comboDept;
+    QPushButton *btnAdd;
     QLineEdit *editPhoneNumber;
     QHBoxLayout *btnLayout;
     QPushButton *btnSave;

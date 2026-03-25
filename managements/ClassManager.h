@@ -5,9 +5,23 @@
 #ifndef AAIMS_CLASSMANAGER_H
 #define AAIMS_CLASSMANAGER_H
 
+#include <qabstractitemmodel.h>
+#include <QObject>
 
-class ClassManager {
-};
+namespace aaims::manager::classes {
+    class InternalManager : public QObject {
+        Q_OBJECT
 
+    public:
+        static InternalManager *instance() {
+            static InternalManager inst;
+            return &inst;
+        }
+    };
+
+    QPair<unsigned long long, unsigned long long> addDepartment(const QVector<QString> &departments);
+
+    QList<QString> get_departments();
+}
 
 #endif //AAIMS_CLASSMANAGER_H

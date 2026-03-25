@@ -5,13 +5,15 @@
 #include "TeacherDetailDialog.h"
 
 #include <QFutureWatcher>
-#include <QPushButton>
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <qvalidator.h>
+#include <QValidator>
+#include <QLineEdit>
 
+#include "AddDepartmentDialog.h"
 #include "../managements/AccountManager.h"
+#include "../managements/ClassManager.h"
 
 TeacherDetailDialog::TeacherDetailDialog(TeacherAccount *account,
                                          QWidget *parent) : StyledDialog(parent), account(account) {
@@ -24,56 +26,47 @@ TeacherDetailDialog::TeacherDetailDialog(TeacherAccount *account,
     headerLabel = new QLabel("编辑教师信息", this);
     headerLabel->setStyleSheet("font-size: 20px; font-weight: 700; color: #0f172a;");
 
-    tableLayout = new QVBoxLayout();
+    tableLayout = new QFormLayout();
     tableLayout->setSpacing(15);
-
-    idLayout = new QHBoxLayout();
-
-    idLabel = new QLabel("用户名", this);
 
     editId = new QLineEdit(this);
     editId->setStyleSheet("color: #a0a0a9;");
     editId->setEnabled(false);
     editId->setText(account->username);
 
-    idLayout->addWidget(idLabel);
-    idLayout->addWidget(editId);
-
-    nameLayout = new QHBoxLayout();
-
-    nameLabel = new QLabel("姓名", this);
-
     editName = new QLineEdit(this);
     editName->setText(account->name);
 
-    nameLayout->addWidget(nameLabel);
-    nameLayout->addWidget(editName);
-
     deptLayout = new QHBoxLayout();
 
-    deptLabel = new QLabel("所属院系", this);
+    completer = new QCompleter(aaims::manager::classes::get_departments());
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    completer->setFilterMode(Qt::MatchContains);
+    completer->setCompletionMode(QCompleter::PopupCompletion);
 
-    editDept = new QLineEdit(this);
-    editDept->setText(account->department);
+    comboDept = new QComboBox(this);
+    comboDept->setEditable(true);
+    comboDept->setPlaceholderText("请选择学院");
+    comboDept->setCurrentText(account->department);
+    comboDept->setInsertPolicy(QComboBox::NoInsert);
+    comboDept->setCompleter(completer);
 
-    deptLayout->addWidget(deptLabel);
-    deptLayout->addWidget(editDept);
+    btnAdd = new QPushButton("+", this);
+    btnAdd->setStyleSheet("padding: 0; margin: 0;");
+    btnAdd->setObjectName("AddElement");
+    btnAdd->setFixedSize(24, 24);
 
-    phoneNumberLayout = new QHBoxLayout();
-
-    phoneNumberLabel = new QLabel("电话号码", this);
+    deptLayout->addWidget(comboDept);
+    deptLayout->addWidget(btnAdd);
 
     editPhoneNumber = new QLineEdit(this);
     editPhoneNumber->setText(account->phoneNumber);
     editPhoneNumber->setValidator(new QRegularExpressionValidator(QRegularExpression("^1[3-9]\\d{9}$"), this));
 
-    phoneNumberLayout->addWidget(phoneNumberLabel);
-    phoneNumberLayout->addWidget(editPhoneNumber);
-
-    tableLayout->addLayout(idLayout);
-    tableLayout->addLayout(nameLayout);
-    tableLayout->addLayout(deptLayout);
-    tableLayout->addLayout(phoneNumberLayout);
+    tableLayout->addRow("用户名", editId);
+    tableLayout->addRow("姓名", editName);
+    tableLayout->addRow("院系", deptLayout);
+    tableLayout->addRow("手机号码:", editPhoneNumber);
 
     btnLayout = new QHBoxLayout();
     btnLayout->setSpacing(12);
@@ -94,6 +87,12 @@ TeacherDetailDialog::TeacherDetailDialog(TeacherAccount *account,
     mainLayout->addLayout(btnLayout);
     applyStyles();
 
+    connect(btnAdd, &QPushButton::clicked, [this] {
+        if (AddDepartmentDialog dialog; dialog.exec() == Accepted) {
+            comboDept->clear();
+            comboDept->addItems(aaims::manager::classes::get_departments());
+        }
+    });
     connect(btnSave, &QPushButton::clicked, this, &TeacherDetailDialog::onSaveButtonClicked);
     connect(btnCancel, &QPushButton::clicked, this, &QDialog::reject);
 }
@@ -103,12 +102,13 @@ void TeacherDetailDialog::onSaveButtonClicked() {
         QMessageBox::warning(this, "输入错误", "姓名不能为空！");
         return;
     }
-    if (editDept->text().trimmed().isEmpty()) {
-        QMessageBox::warning(this, "输入错误", "院系不能为空！");
+    if (comboDept->currentIndex() == -1) {
+        QMessageBox::warning(this, "输入错误", "请选择院系！");
         return;
     }
     static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
-    if (editPhoneNumber->text().trimmed().length() != 11 || !phoneRegex.match(editPhoneNumber->text().trimmed()).isValid()) {
+    if (editPhoneNumber->text().trimmed().length() != 11 || !phoneRegex.match(editPhoneNumber->text().trimmed()).
+        isValid()) {
         QMessageBox::warning(this, "输入错误", "无效的中国大陆手机号！");
         return;
     }
@@ -116,7 +116,7 @@ void TeacherDetailDialog::onSaveButtonClicked() {
     pd->setWindowModality(Qt::WindowModal);
     pd->show();
     account->name = editName->text().trimmed();
-    account->department = editDept->text().trimmed();
+    account->department = comboDept->currentText();
     account->phoneNumber = editPhoneNumber->text().trimmed();
     const auto future = aaims::manager::account::saveAsync();
     auto watcher = new QFutureWatcher<bool>(this); // NOLINT

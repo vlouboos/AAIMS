@@ -71,7 +71,6 @@ namespace aaims::manager::account {
         auto *watcher = new QFutureWatcher<void>(InternalManager::instance()); // NOLINT
         QObject::connect(watcher, &QFutureWatcher<void>::finished, [watcher] {
             qDebug() << "Loaded" << accounts.size() << "accounts.";
-            emit InternalManager::instance()->loaded();
             watcher->deleteLater();
             loading = false;
         });
@@ -89,7 +88,6 @@ namespace aaims::manager::account {
         auto *watcher = new QFutureWatcher<void>(InternalManager::instance()); // NOLINT
         QObject::connect(watcher, &QFutureWatcher<void>::finished, [watcher] {
             qDebug() << "Saved" << accounts.size() << "accounts.";
-            emit InternalManager::instance()->loaded();
             watcher->deleteLater();
         });
         watcher->setFuture(future);
@@ -149,10 +147,6 @@ namespace aaims::manager::account {
 
     bool isEmpty() {
         return accounts.isEmpty();
-    }
-
-    void onLoaded(const std::function<void()> &callback) {
-        QObject::connect(InternalManager::instance(), &InternalManager::loaded, callback);
     }
 
     Account *findByUUID(const QUuid &uuid) {

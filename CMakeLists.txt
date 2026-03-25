@@ -56,6 +56,8 @@ add_executable(AAIMS main.cpp
         dialogs/TeacherDetailDialog.cpp
         dialogs/TeacherDetailDialog.h
         pages/model/FilterProxyModel.h
+        dialogs/AddDepartmentDialog.cpp
+        dialogs/AddDepartmentDialog.h
 )
 
 target_link_libraries(AAIMS

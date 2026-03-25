@@ -19,9 +19,6 @@ namespace aaims::manager::account {
             static InternalManager inst;
             return &inst;
         }
-
-    signals:
-        void loaded();
     };
 
     inline Account *logged = nullptr;
@@ -35,8 +32,6 @@ namespace aaims::manager::account {
     bool isEmpty();
 
     Account *tryLogin(const QString &username, const QString &password);
-
-    void onLoaded(const std::function<void()> &callback);
 
     Account *findByUUID(const QUuid &uuid);
 

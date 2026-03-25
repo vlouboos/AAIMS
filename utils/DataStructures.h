@@ -142,7 +142,7 @@ namespace aaims {
             QList<QUuid> teachingClasses;
             QUuid managingClass = EMPTY_UUID;
 
-            [[nodiscard]] bool is_teaching() const { return !teachingClasses.isEmpty(); }
+            [[nodiscard]] bool is_occupied() const { return !teachingClasses.isEmpty() || managingClass != EMPTY_UUID; }
 
             [[nodiscard]] static TeacherAccount fromJson(const QUuid &uuid, const QJsonObject &json) {
                 TeacherAccount t;

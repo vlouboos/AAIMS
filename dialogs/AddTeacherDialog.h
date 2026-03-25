@@ -13,10 +13,14 @@
 #include <QMessageBox>
 #include <QComboBox>
 
-class AddTeacherDialog : public QDialog {
+#include "StyledDialog.h"
+
+class AddTeacherDialog : public StyledDialog {
     Q_OBJECT
+
 public:
     explicit AddTeacherDialog(QWidget *parent = nullptr);
+
     ~AddTeacherDialog() override = default;
 
 private:
@@ -26,8 +30,11 @@ private:
     QFormLayout *singleLayout;
     QLineEdit *idEdit;
     QLineEdit *nameEdit;
-    QLineEdit *deptEdit;
     QComboBox *genderCombo;
+    QHBoxLayout *deptLayout;
+    QCompleter *completer;
+    QComboBox *deptCombo;
+    QPushButton *btnAdd;
     QLineEdit *phoneNumberEdit;
     QPushButton *btnConfirmSingle;
     QWidget *batchAddPage;

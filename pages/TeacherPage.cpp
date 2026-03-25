@@ -106,6 +106,10 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
     connect(delegate, &OperationDelegate::confirmDelete, [this](const QModelIndex &index) {
         if (TeacherAccount *account = aaims::manager::account::get_teachers()[tableModel->getAccount(
             proxyModel->mapToSource(index))]) {
+            if (account->is_occupied()) {
+                QMessageBox::critical(this, "非法操作", "该教师有课程或为班主任，请先转移课程或转移班级！", QMessageBox::Ok);
+                return;
+            }
             const auto result = QMessageBox::warning(this, "危险操作",
                                                      QString("确定要删除教师 %1 (%2) 吗？\n该操作不可撤销！").arg(
                                                          account->name, account->username),

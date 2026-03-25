@@ -56,14 +56,14 @@ public:
                 case Lessons: return t->teachingClasses.isEmpty()
                                          ? "暂无授课"
                                          : QString("%1 门课程").arg(t->teachingClasses.size());
-                case Status: return t->is_teaching() ? "授课中" : "空闲";
+                case Status: return t->is_occupied() ? "授课中" : "空闲";
                 default: return {};
             }
         }
 
         // 辅助：给状态列加点颜色提示
         if (role == Qt::ForegroundRole && index.column() == Status) {
-            return t->is_teaching() ? QColor(0x2563eb) : QColor(0x64748b);
+            return t->is_occupied() ? QColor(0x2563eb) : QColor(0x64748b);
         }
 
         if (role == Qt::TextAlignmentRole) {
