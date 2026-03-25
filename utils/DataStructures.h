@@ -89,7 +89,7 @@ namespace aaims {
             constexpr static int CLASS_MASTER = 0b100000;
             static constexpr auto EMPTY_UUID = QUuid();
 
-            QUuid uuid;
+            QUuid uuid = EMPTY_UUID;
             QString username;
             QString name;
             QString password;
@@ -131,7 +131,6 @@ namespace aaims {
         };
 
         struct PersonAccount : Account {
-            QString department;
             QString phoneNumber;
 
         protected:
@@ -140,6 +139,7 @@ namespace aaims {
 
         struct TeacherAccount : PersonAccount {
             QList<QUuid> teachingClasses;
+            QString department;
             QUuid managingClass = EMPTY_UUID;
 
             [[nodiscard]] bool is_occupied() const { return !teachingClasses.isEmpty() || managingClass != EMPTY_UUID; }
@@ -166,7 +166,7 @@ namespace aaims {
             [[nodiscard]] QJsonObject toJson() const override {
                 QJsonArray lessonData;
                 for (const auto &uuid: teachingClasses) {
-                    lessonData.append(uuid.toString());
+                    lessonData.append(uuid.toString(QUuid::WithoutBraces));
                 }
                 return {
                     {"username", username},
@@ -182,6 +182,7 @@ namespace aaims {
         };
 
         struct StudentAccount : PersonAccount {
+            QUuid currentClass;
             QString dormitoryNumber;
             QList<LessonStatus> lessons;
 
@@ -193,7 +194,7 @@ namespace aaims {
                 student.password = json.value("password").toString();
                 student.female = json.value("female").toBool();
                 student.status = static_cast<uint8_t>(json.value("status").toInt());
-                student.department = json.value("department").toString();
+                student.currentClass = QUuid::fromString(json.value("currentClass").toString());
                 student.phoneNumber = json.value("phoneNumber").toString();
                 for (const auto &x: json.value("lessons").toArray()) {
                     if (x.isObject()) {
@@ -209,7 +210,7 @@ namespace aaims {
             [[nodiscard]] QJsonObject toJson() const override {
                 QJsonArray lessonData;
                 for (const auto &[uuid, retake]: lessons) {
-                    const QJsonObject &lesson = {{"uuid", uuid.toString()}, {"retake", retake}};
+                    const QJsonObject &lesson = {{"uuid", uuid.toString(QUuid::WithoutBraces)}, {"retake", retake}};
                     lessonData.append(lesson);
                 }
                 return {
@@ -218,7 +219,7 @@ namespace aaims {
                     {"password", password},
                     {"female", female},
                     {"status", status},
-                    {"department", department},
+                    {"currentClass", currentClass.toString(QUuid::WithoutBraces)},
                     {"phoneNumber", phoneNumber},
                     {"lessons", lessonData}
                 };

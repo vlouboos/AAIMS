@@ -18,12 +18,11 @@ class StudentTableModel : public QAbstractTableModel {
 
 public:
     enum Column {
-        Name = 0,
-        Department,
-        Lessons,
+        Username,
+        Name,
+        Class,
         Status,
-        Actions,
-        ColumnCount
+        Actions
     };
 
     explicit StudentTableModel(QObject *parent = nullptr) : QAbstractTableModel(parent) {
@@ -40,7 +39,7 @@ public:
     }
 
     [[nodiscard]] int columnCount([[maybe_unused]] const QModelIndex &parent) const override {
-        return ColumnCount;
+        return 5;
     }
 
     [[nodiscard]] QVariant data(const QModelIndex &index, const int role) const override {
@@ -52,8 +51,9 @@ public:
 
         if (role == Qt::DisplayRole) {
             switch (index.column()) {
+                case Username: return t->username;
                 case Name: return t->name;
-                case Department: return t->department;
+                case Class: return t->currentClass;
                 case Status: return t->is_graduated() ? "已毕业" : t->is_suspended() ? "休学" : "在校";
                 default: return {};
             }
@@ -73,7 +73,7 @@ public:
     [[nodiscard]] QVariant
     headerData(const int section, const Qt::Orientation orientation, const int role) const override {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-            static const QStringList headers = {"姓名", "院系", "授课情况", "状态", "操作"};
+            static const QStringList headers = {"学号", "姓名", "班级",  "状态", "操作"};
             return headers[section];
         }
         return {};

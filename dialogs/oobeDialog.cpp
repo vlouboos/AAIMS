@@ -229,15 +229,14 @@ void oobeDialog::registerClicked() {
     loading->setCancelButton(nullptr);
     loading->setRange(0, 0);
     loading->show();
-    QUuid uuid = QUuid::createUuid();
     const auto masterAccount = std::make_shared<Account>();
-    masterAccount->uuid = uuid;
     masterAccount->username = userEdit->text();
     masterAccount->name = "主管理员";
     masterAccount->password = Sha256Util::hash(passEdit->text());
     masterAccount->female = false;
     masterAccount->status = Account::MASTER;
     aaims::manager::account::add(masterAccount);
+    const QUuid &uuid = masterAccount->uuid;
     const auto future = aaims::manager::account::saveAsync();
 
     auto *watcher = new QFutureWatcher<bool>(this); // NOLINT

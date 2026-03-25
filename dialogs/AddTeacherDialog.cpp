@@ -156,7 +156,6 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
                 pd->show();
 
                 const auto teacher = std::make_shared<TeacherAccount>();
-                teacher->uuid = QUuid::createUuid();
                 teacher->username = idEdit->text().trimmed();
                 teacher->name = nameEdit->text().trimmed();
                 teacher->password = Sha256Util::hash("123456");
@@ -240,7 +239,6 @@ QPair<unsigned long long, unsigned long long> AddTeacherDialog::importFromCsv() 
         }
 
         auto teacher = std::make_shared<TeacherAccount>();
-        teacher->uuid = QUuid::createUuid();
         teacher->username = username;
         teacher->name = name;
         teacher->password = password;

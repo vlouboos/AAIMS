@@ -105,7 +105,11 @@ namespace aaims::manager::account {
 
     QString add(const std::shared_ptr<Account> &account) {
         if (!account) return "内部错误";
-        const QUuid &uuid = account->uuid;
+        QUuid uuid;
+        do {
+            uuid = QUuid::createUuid();
+        } while (accounts.contains(uuid));
+        account->uuid = uuid;
 
         if (account->is_master()) {
             master = uuid;
