@@ -74,10 +74,16 @@ namespace aaims {
             int retake = 0;
         };
 
-        struct Class {
+        struct Classes {
             QUuid uuid;
+            QString grade;
             QString name;
             QList<QUuid> lessons;
+            QList<QUuid> students;
+
+            bool isEmpty() const {
+                return students.isEmpty();
+            }
         };
 
         struct Account {

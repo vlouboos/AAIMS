@@ -6,12 +6,13 @@
 
 #include <qcoreapplication.h>
 #include <QFutureWatcher>
-#include <QJsonArray>
 
 #include "../utils/AsyncJsonIO.h"
+#include "../utils/DataStructures.h"
 
 namespace {
     QList<QString> departments;
+    QHash<QUuid, aaims::model::Classes *> all_classes;
 }
 
 namespace aaims::manager::classes {
@@ -60,5 +61,13 @@ namespace aaims::manager::classes {
             watcher->deleteLater();
         });
         watcher->setFuture(future);
+    }
+
+    QHash<QUuid, model::Classes *> get_classes() {
+        return all_classes;
+    }
+
+    void removeClass(const QUuid &uuid) {
+        all_classes.remove(uuid);
     }
 }

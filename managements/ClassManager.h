@@ -8,6 +8,8 @@
 #include <qabstractitemmodel.h>
 #include <QObject>
 
+#include "../utils/DataStructures.h"
+
 namespace aaims::manager::classes {
     class InternalManager : public QObject {
         Q_OBJECT
@@ -26,6 +28,10 @@ namespace aaims::manager::classes {
     bool saveDepartments();
 
     void init();
+
+    QHash<QUuid, model::Classes *> get_classes();
+
+    void removeClass(const QUuid &uuid);
 }
 
 #endif //AAIMS_CLASSMANAGER_H
