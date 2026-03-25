@@ -10,6 +10,7 @@
 #include <QMessageBox>
 #include <QProgressDialog>
 
+#include "../dialogs/ClassDetailDialog.h"
 #include "../managements/ClassManager.h"
 #include "delegate/OperationDelegate.h"
 #include "model/FilterProxyModel.h"
@@ -95,7 +96,9 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
     connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
         if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
             proxyModel->mapToSource(index))].get()) {
-            // TODO: 班级详细面板
+            if (ClassDetailDialog dialog(cls); dialog.exec() == QDialog::Accepted) {
+                reloadData();
+            }
         }
     });
 
@@ -133,7 +136,9 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
     connect(tableView, &QTableView::doubleClicked, [this](const QModelIndex &index) {
                 if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
                     proxyModel->mapToSource(index))].get()) {
-                    // TODO: 班级详细面板
+                    if (ClassDetailDialog dialog(cls); dialog.exec() == QDialog::Accepted) {
+                        reloadData();
+                    }
                 }
             }
     );
