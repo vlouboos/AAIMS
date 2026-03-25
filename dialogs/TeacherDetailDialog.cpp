@@ -66,9 +66,9 @@ TeacherDetailDialog::TeacherDetailDialog(TeacherAccount *account,
     editPhoneNumber->setText(account->phoneNumber);
     editPhoneNumber->setValidator(new QRegularExpressionValidator(QRegularExpression("^1[3-9]\\d{9}$"), this));
 
-    tableLayout->addRow("用户名", editId);
-    tableLayout->addRow("姓名", editName);
-    tableLayout->addRow("院系", deptLayout);
+    tableLayout->addRow("用户名:", editId);
+    tableLayout->addRow("姓名:", editName);
+    tableLayout->addRow("院系:", deptLayout);
     tableLayout->addRow("手机号码:", editPhoneNumber);
 
     btnLayout = new QHBoxLayout();

@@ -82,7 +82,7 @@ namespace aaims::manager::account {
         const QString path = QCoreApplication::applicationDirPath() + "/data/accounts.json";
         QJsonObject root;
         for (auto it = accounts.begin(); it != accounts.end(); ++it) {
-            root.insert(it.key().toString(), it.value()->toJson());
+            root.insert(it.key().toString(QUuid::WithoutBraces), it.value()->toJson());
         }
         const auto &future = io::saveAsync(path, root);
         auto *watcher = new QFutureWatcher<void>(InternalManager::instance()); // NOLINT
@@ -98,7 +98,7 @@ namespace aaims::manager::account {
         const QString path = QCoreApplication::applicationDirPath() + "/data/accounts.json";
         QJsonObject root;
         for (auto it = accounts.begin(); it != accounts.end(); ++it) {
-            root.insert(it.key().toString(), it.value()->toJson());
+            root.insert(it.key().toString(QUuid::WithoutBraces), it.value()->toJson());
         }
         return io::save(path, root);
     }
@@ -108,7 +108,7 @@ namespace aaims::manager::account {
         QUuid uuid;
         do {
             uuid = QUuid::createUuid();
-        } while (accounts.contains(uuid));
+        } while (accounts.contains(uuid) || uuid == Account::EMPTY_UUID);
         account->uuid = uuid;
 
         if (account->is_master()) {

@@ -5,14 +5,13 @@
 #include "ClassManager.h"
 
 #include <qcoreapplication.h>
-#include <QFutureWatcher>
 
 #include "../utils/AsyncJsonIO.h"
 #include "../utils/DataStructures.h"
 
 namespace {
     QList<QString> departments;
-    QHash<QUuid, aaims::model::Classes *> all_classes;
+    QHash<QUuid, std::shared_ptr<aaims::model::Classes> > all_classes;
 }
 
 namespace aaims::manager::classes {
@@ -45,8 +44,8 @@ namespace aaims::manager::classes {
     }
 
     void init() {
-        const QString path = QCoreApplication::applicationDirPath() + "/data/departments.json";
-        const auto &future = io::loadAsync(path, [](const QJsonObject &json) {
+        QString path = QCoreApplication::applicationDirPath() + "/data/departments.json";
+        io::load(path, [](const QJsonObject &json) {
             if (json.contains("departments")) {
                 QJsonArray departments = json["departments"].toArray();
                 QVector<QString> department_list;
@@ -56,18 +55,41 @@ namespace aaims::manager::classes {
                 addDepartment(department_list);
             }
         });
-        const auto watcher = new QFutureWatcher<void>(); // NOLINT
-        QObject::connect(watcher, &QFutureWatcher<void>::finished, [watcher] {
-            watcher->deleteLater();
+        path = QCoreApplication::applicationDirPath() + "/data/classes.json";
+        io::load(path, [](const QJsonObject &json) {
+            for (const auto &key: json.keys()) {
+                QUuid uuid = QUuid::fromString(key);
+                all_classes[uuid] = std::make_shared<model::Classes>(
+                    model::Classes::fromJson(uuid, json.value(key).toObject()));
+            }
         });
-        watcher->setFuture(future);
     }
 
-    QHash<QUuid, model::Classes *> get_classes() {
+    QHash<QUuid, std::shared_ptr<model::Classes> > get_classes() {
         return all_classes;
+    }
+
+    QString add(const std::shared_ptr<model::Classes> &cls) {
+        if (!cls) return "内部错误";
+        QUuid uuid;
+        do {
+            uuid = QUuid::createUuid();
+        } while (all_classes.contains(uuid));
+        all_classes[uuid] = cls;
+        return "";
     }
 
     void removeClass(const QUuid &uuid) {
         all_classes.remove(uuid);
+    }
+
+    bool saveClasses() {
+        const QString path = QCoreApplication::applicationDirPath() + "/data/classes.json";
+        QJsonObject root;
+        for (auto it = all_classes.begin(); it != all_classes.end(); ++it) {
+            QUuid uuid = it.key();
+            root.insert(uuid.toString(QUuid::WithoutBraces), it.value()->toJson());
+        }
+        return io::save(path, root);
     }
 }

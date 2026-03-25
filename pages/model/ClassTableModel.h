@@ -21,6 +21,7 @@ public:
         Grade,
         Department,
         MemberCount,
+        Master,
         Actions
     };
 
@@ -57,7 +58,7 @@ public:
     [[nodiscard]] QVariant
     headerData(const int section, const Qt::Orientation orientation, const int role) const override {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-            static const QStringList headers = {"班名", "年级", "所属院系",  "人数", "操作"};
+            static const QStringList headers = {"班名", "年级", "所属院系",  "人数", "班主任", "操作"};
             return headers[section];
         }
         return {};

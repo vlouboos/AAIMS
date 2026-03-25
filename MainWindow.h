@@ -10,6 +10,7 @@
 #include <qlabel.h>
 
 #include "pages/AdminDashboardPage.h"
+#include "pages/ClassPage.h"
 #include "pages/StudentPage.h"
 #include "pages/TeacherPage.h"
 
@@ -33,6 +34,7 @@ private:
     QPushButton *btnDashboard;
     QPushButton *btnTeachers;
     QPushButton *btnStudents;
+    QPushButton *btnClasses;
     QWidget *rightContainer;
     QVBoxLayout *rightLayout;
     QWidget *headerWidget;
@@ -46,6 +48,7 @@ private:
     AdminDashboardPage *adminDashboardPage;
     TeacherPage *teacherPage;
     StudentPage *studentPage;
+    ClassPage *classPage;
     CloseReason closeReason = CloseReason::Exit;
 
 protected:

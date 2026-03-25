@@ -40,7 +40,7 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
     searchEdit->setFixedWidth(280);
     searchEdit->setObjectName("SearchEdit");
 
-    btnAddClass = new QPushButton("+ 新增班级教师", this);
+    btnAddClass = new QPushButton("+ 新增班级", this);
     btnAddClass->setCursor(Qt::PointingHandCursor);
     btnAddClass->setObjectName("AddElement");
 
@@ -94,14 +94,14 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
 
     connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
         if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
-            proxyModel->mapToSource(index))]) {
+            proxyModel->mapToSource(index))].get()) {
             // TODO: 班级详细面板
         }
     });
 
     connect(delegate, &OperationDelegate::confirmDelete, [this](const QModelIndex &index) {
         if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
-            proxyModel->mapToSource(index))]) {
+            proxyModel->mapToSource(index))].get()) {
             if (!cls->isEmpty()) {
                 QMessageBox::critical(this, "非法操作", "该教师有课程或是班主任，请先转移课程或转移班级！", QMessageBox::Ok);
                 return;
@@ -132,7 +132,7 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
 
     connect(tableView, &QTableView::doubleClicked, [this](const QModelIndex &index) {
                 if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
-                    proxyModel->mapToSource(index))]) {
+                    proxyModel->mapToSource(index))].get()) {
                     // TODO: 班级详细面板
                 }
             }

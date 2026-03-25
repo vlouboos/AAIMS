@@ -47,6 +47,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         btnStudents = new QPushButton("学生", sidebarWidget);
         btnStudents->setProperty("class", "category-button");
         btnStudents->setCheckable(true);
+
+        btnClasses = new QPushButton("班级", sidebarWidget);
+        btnClasses->setProperty("class", "category-button");
+        btnClasses->setCheckable(true);
     }
 
     sidebarLayout->addWidget(logoLabel);
@@ -54,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     if (loggedAccount->is_master() || loggedAccount->is_admin()) {
         sidebarLayout->addWidget(btnTeachers);
         sidebarLayout->addWidget(btnStudents);
+        sidebarLayout->addWidget(btnClasses);
     }
     sidebarLayout->addStretch();
 
@@ -109,10 +114,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         adminDashboardPage = new AdminDashboardPage(contentStack);
         teacherPage = new TeacherPage(contentStack);
         studentPage = new StudentPage(contentStack);
+        classPage = new ClassPage(contentStack);
 
         contentStack->addWidget(adminDashboardPage);
         contentStack->addWidget(teacherPage);
         contentStack->addWidget(studentPage);
+        contentStack->addWidget(classPage);
     }
 
     rightLayout->addWidget(headerWidget);
@@ -131,6 +138,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         btnDashboard->setChecked(true);
         btnTeachers->setChecked(false);
         btnStudents->setChecked(false);
+        btnClasses->setChecked(false);
     });
     if (loggedAccount->is_master() || loggedAccount->is_admin()) {
         connect(btnTeachers, &QPushButton::clicked, [this] {
@@ -139,6 +147,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             btnDashboard->setChecked(false);
             btnTeachers->setChecked(true);
             btnStudents->setChecked(false);
+            btnClasses->setChecked(false);
         });
         connect(btnStudents, &QPushButton::clicked, [this] {
             contentStack->setCurrentIndex(2);
@@ -146,6 +155,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             btnDashboard->setChecked(false);
             btnTeachers->setChecked(false);
             btnStudents->setChecked(true);
+            btnClasses->setChecked(false);
+        });
+        connect(btnClasses, &QPushButton::clicked, [this] {
+            contentStack->setCurrentIndex(3);
+            pageTitleLabel->setText("班级");
+            btnDashboard->setChecked(false);
+            btnTeachers->setChecked(false);
+            btnStudents->setChecked(false);
+            btnClasses->setChecked(true);
         });
     }
     connect(logoutAction, &QAction::triggered, [this] {

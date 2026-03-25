@@ -78,11 +78,50 @@ namespace aaims {
             QUuid uuid;
             QString grade;
             QString name;
+            QUuid master;
+            QString department;
             QList<QUuid> lessons;
             QList<QUuid> students;
 
+            virtual ~Classes() = default;
+
             bool isEmpty() const {
                 return students.isEmpty();
+            }
+
+            static Classes fromJson(const QUuid &uuid, const QJsonObject &json) {
+                Classes cls;
+                cls.uuid = uuid;
+                cls.grade = json.value("grade").toString();
+                cls.name = json.value("name").toString();
+                cls.master = QUuid::fromString(json.value("master").toString());
+                cls.department = json.value("department").toString();
+                for (const auto &x: json.value("lessons").toArray()) {
+                    cls.lessons.append(QUuid::fromString(x.toString()));
+                }
+                for (const auto &x: json.value("students").toArray()) {
+                    cls.students.append(QUuid::fromString(x.toString()));
+                }
+                return cls;
+            }
+
+            [[nodiscard]] virtual QJsonObject toJson() const {
+                QJsonArray lessons_array;
+                for (const auto &lesson: lessons) {
+                    lessons_array.append(lesson.toString(QUuid::WithoutBraces));
+                }
+                QJsonArray students_array;
+                for (const auto &student: students) {
+                    students_array.append(student.toString(QUuid::WithoutBraces));
+                }
+                return {
+                    {"grade", grade},
+                    {"name", name},
+                    {"master", master.toString(QUuid::WithoutBraces)},
+                    {"department", department},
+                    {"lessons", lessons_array},
+                    {"students", students_array}
+                };
             }
         };
 
