@@ -45,9 +45,12 @@ TeacherDetailDialog::TeacherDetailDialog(TeacherAccount *account,
     completer->setCompletionMode(QCompleter::PopupCompletion);
 
     comboDept = new QComboBox(this);
+    comboDept->addItems(aaims::manager::classes::get_departments());
     comboDept->setEditable(true);
     comboDept->setPlaceholderText("请选择学院");
-    comboDept->setCurrentText(account->department);
+    if (aaims::manager::classes::get_departments().contains(account->department)) {
+        comboDept->setCurrentText(account->department);
+    }
     comboDept->setInsertPolicy(QComboBox::NoInsert);
     comboDept->setCompleter(completer);
 
@@ -102,7 +105,7 @@ void TeacherDetailDialog::onSaveButtonClicked() {
         QMessageBox::warning(this, "输入错误", "姓名不能为空！");
         return;
     }
-    if (comboDept->currentIndex() == -1) {
+    if (!aaims::manager::classes::get_departments().contains(comboDept->currentText())) {
         QMessageBox::warning(this, "输入错误", "请选择院系！");
         return;
     }

@@ -94,6 +94,7 @@ namespace aaims {
             QString name;
             QString password;
             bool female = false;
+
             uint8_t status = 0;
 
             [[nodiscard]] bool is_admin() const { return (status & ADMIN) != 0; }

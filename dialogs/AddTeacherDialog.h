@@ -6,7 +6,6 @@
 #define AAIMS_ADDTEACHERDIALOG_H
 
 #include <QLineEdit>
-#include <QHBoxLayout>
 #include <QFormLayout>
 #include <QLabel>
 #include <QFileDialog>

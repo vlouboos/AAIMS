@@ -19,9 +19,13 @@ namespace aaims::manager::classes {
         }
     };
 
-    QPair<unsigned long long, unsigned long long> addDepartment(const QVector<QString> &departments);
+    QPair<unsigned long long, unsigned long long> addDepartment(const QVector<QString> &dep);
 
     QList<QString> get_departments();
+
+    bool saveDepartments();
+
+    void init();
 }
 
 #endif //AAIMS_CLASSMANAGER_H

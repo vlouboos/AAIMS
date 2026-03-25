@@ -4,14 +4,20 @@
 
 #include "ClassManager.h"
 
+#include <qcoreapplication.h>
+#include <QFutureWatcher>
+#include <QJsonArray>
+
+#include "../utils/AsyncJsonIO.h"
+
 namespace {
     QList<QString> departments;
 }
 
 namespace aaims::manager::classes {
-    QPair<unsigned long long, unsigned long long> addDepartment(const QVector<QString> &d) {
+    QPair<unsigned long long, unsigned long long> addDepartment(const QVector<QString> &dep) {
         unsigned long long succeed = 0, fail = 0;
-        for (const auto &department: d) {
+        for (const auto &department: dep) {
             if (departments.contains(department, Qt::CaseInsensitive)) {
                 fail++;
                 continue;
@@ -24,5 +30,35 @@ namespace aaims::manager::classes {
 
     QList<QString> get_departments() {
         return departments;
+    }
+
+    bool saveDepartments() {
+        const QString path = QCoreApplication::applicationDirPath() + "/data/departments.json";
+        QJsonObject root;
+        QJsonArray array;
+        for (auto it = departments.begin(); it != departments.end(); ++it) {
+            array.append(*it);
+        }
+        root["departments"] = array;
+        return io::save(path, root);
+    }
+
+    void init() {
+        const QString path = QCoreApplication::applicationDirPath() + "/data/departments.json";
+        const auto &future = io::loadAsync(path, [](const QJsonObject &json) {
+            if (json.contains("departments")) {
+                QJsonArray departments = json["departments"].toArray();
+                QVector<QString> department_list;
+                for (const auto &department: departments) {
+                    department_list.append(department.toString());
+                }
+                addDepartment(department_list);
+            }
+        });
+        const auto watcher = new QFutureWatcher<void>(); // NOLINT
+        QObject::connect(watcher, &QFutureWatcher<void>::finished, [watcher] {
+            watcher->deleteLater();
+        });
+        watcher->setFuture(future);
     }
 }

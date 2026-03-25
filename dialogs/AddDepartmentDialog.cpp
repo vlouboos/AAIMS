@@ -4,8 +4,11 @@
 
 #include "AddDepartmentDialog.h"
 
+#include <QFutureWatcher>
 #include <QLabel>
 #include <QMessageBox>
+#include <QProgressDialog>
+#include <qtconcurrentrun.h>
 
 #include "../managements/ClassManager.h"
 
@@ -32,8 +35,22 @@ AddDepartmentDialog::AddDepartmentDialog(QWidget *parent) : StyledDialog(parent)
     applyStyles();
 
     connect(btnConfirm, &QPushButton::clicked, this, [this] {
-        const auto &[succeed, fail] = aaims::manager::classes::addDepartment(edit->toPlainText().split('\n', Qt::SkipEmptyParts));
-        QMessageBox::information(this, "添加完成", QString("成功添加%1个学院(%2个重复)").arg(succeed).arg(fail));
-        accept();
+        auto *pd = new QProgressDialog("正在添加...", nullptr, 0, 0, this); // NOLINT
+        pd->setWindowModality(Qt::WindowModal);
+        pd->show();
+        const auto &[succeed, fail] = aaims::manager::classes::addDepartment(
+            edit->toPlainText().split('\n', Qt::SkipEmptyParts));
+        const auto future = QtConcurrent::run([] {
+            aaims::manager::classes::saveDepartments();
+        });
+        const auto watcher = new QFutureWatcher<void>(this); // NOLINT
+        connect(watcher, &QFutureWatcher<void>::finished, [this, succeed, fail, pd, watcher] {
+            pd->close();
+            pd->deleteLater();
+            watcher->deleteLater();
+            QMessageBox::information(this, "添加完成", QString("成功添加%1个学院(%2个重复)").arg(succeed).arg(fail));
+            accept();
+        });
+        watcher->setFuture(future);
     });
 }

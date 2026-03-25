@@ -109,11 +109,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         adminDashboardPage = new AdminDashboardPage(contentStack);
         teacherPage = new TeacherPage(contentStack);
         studentPage = new StudentPage(contentStack);
-    }
 
-    contentStack->addWidget(adminDashboardPage);
-    contentStack->addWidget(teacherPage);
-    contentStack->addWidget(studentPage);
+        contentStack->addWidget(adminDashboardPage);
+        contentStack->addWidget(teacherPage);
+        contentStack->addWidget(studentPage);
+    }
 
     rightLayout->addWidget(headerWidget);
     rightLayout->addWidget(contentStack);

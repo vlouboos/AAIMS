@@ -208,6 +208,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
 
 QPair<unsigned long long, unsigned long long> AddTeacherDialog::importFromCsv() const {
     static const QString password = Sha256Util::hash("123456");
+    static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
     unsigned long long succeed = 0, failed = 0;
     QFile file(selectedFilePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return {0, 0};
@@ -232,12 +233,17 @@ QPair<unsigned long long, unsigned long long> AddTeacherDialog::importFromCsv() 
         const bool isFemale = fields[2].trimmed() == "女";
         const QString dept = fields[3].trimmed();
         const QString phone = fields[4].trimmed();
-
+        if (username.isEmpty() || name.isEmpty() || phone.length() != 11 || !phoneRegex.match(phone).isValid()) {
+            failed++;
+            continue;
+        }
         if (aaims::manager::account::findByUsername(username)) {
             failed++;
             continue;
         }
-
+        if (!aaims::manager::classes::get_departments().contains(dept)) {
+            aaims::manager::classes::addDepartment({dept});
+        }
         auto teacher = std::make_shared<TeacherAccount>();
         teacher->username = username;
         teacher->name = name;
@@ -250,6 +256,7 @@ QPair<unsigned long long, unsigned long long> AddTeacherDialog::importFromCsv() 
         aaims::manager::account::add(teacher);
         succeed++;
     }
+    aaims::manager::classes::saveDepartments();
     aaims::manager::account::save(); // This is synchronized!!!
 
     return {succeed, failed};

@@ -107,7 +107,7 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
         if (TeacherAccount *account = aaims::manager::account::get_teachers()[tableModel->getAccount(
             proxyModel->mapToSource(index))]) {
             if (account->is_occupied()) {
-                QMessageBox::critical(this, "非法操作", "该教师有课程或为班主任，请先转移课程或转移班级！", QMessageBox::Ok);
+                QMessageBox::critical(this, "非法操作", "该教师有课程或是班主任，请先转移课程或转移班级！", QMessageBox::Ok);
                 return;
             }
             const auto result = QMessageBox::warning(this, "危险操作",
@@ -150,5 +150,6 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
 
 void TeacherPage::reloadData() const {
     tableModel->setTeachers(aaims::manager::account::get_teachers().keys());
+    proxyModel->sort(0);
     subtitleLabel->setText(QString("管理系统内共 %1 名教师").arg(tableModel->rowCount(QModelIndex())));
 }
