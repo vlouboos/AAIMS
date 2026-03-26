@@ -63,6 +63,8 @@ add_executable(AAIMS main.cpp
         pages/model/ClassTableModel.h
         dialogs/ClassDetailDialog.cpp
         dialogs/ClassDetailDialog.h
+        dialogs/AddClassDialog.cpp
+        dialogs/AddClassDialog.h
 )
 
 target_link_libraries(AAIMS

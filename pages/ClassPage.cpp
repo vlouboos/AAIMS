@@ -2,14 +2,12 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-
 #include "ClassPage.h"
 
-#include <QFile>
 #include <QFutureWatcher>
-#include <QMessageBox>
 #include <QProgressDialog>
 
+#include "../dialogs/AddClassDialog.h"
 #include "../dialogs/ClassDetailDialog.h"
 #include "../managements/ClassManager.h"
 #include "delegate/OperationDelegate.h"
@@ -91,6 +89,9 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
     });
 
     connect(btnAddClass, &QPushButton::clicked, [this] {
+        if (AddClassDialog dialog; dialog.exec() == QDialog::Accepted) {
+            reloadData();
+        }
     });
 
     connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {

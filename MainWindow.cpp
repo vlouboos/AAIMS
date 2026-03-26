@@ -90,15 +90,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     userMenuBtn->setText(loggedAccount->name + '(' + loggedAccount->username + ") ");
     // Add a space to prevent something strange from happening.
     if (loggedAccount->is_master()) {
-        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #AA0000;");
+        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #AA0000; background: transparent;");
     } else if (loggedAccount->is_admin()) {
-        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #FF5555;");
+        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #FF5555; background: transparent;");
     } else if (loggedAccount->is_teacher()) {
-        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #55FF55;");
+        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #55FF55; background: transparent;");
     } else if (loggedAccount->is_graduated()) {
-        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #555555;");
+        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #555555; background: transparent;");
     } else {
-        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #000000;");
+        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #000000; background: transparent;");
     }
     userMenuBtn->setMenu(menu);
 

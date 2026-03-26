@@ -10,6 +10,7 @@
 #include <QPointer>
 
 #include "../../managements/AccountManager.h"
+#include "../../managements/ClassManager.h"
 #include "../../utils/DataStructures.h"
 
 class ClassTableModel : public QAbstractTableModel {
@@ -45,7 +46,23 @@ public:
     [[nodiscard]] QVariant data(const QModelIndex &index, const int role) const override {
         if (!index.isValid() || index.row() >= classes.size()) return {};
 
+
+        Classes *cls = aaims::manager::classes::get_classes()[classes[index.row()]].get();
+
+        if (!cls) return {};
+
+        TeacherAccount *master = aaims::manager::account::get_teachers()[cls->master];
+        QString m = master ? master->name : "错误";
+
         if (role == Qt::DisplayRole) {
+            switch (index.column()) {
+                case Name: return cls->name;
+                case Grade: return cls->grade;
+                case Department: return cls->department;
+                case MemberCount: return cls->students.size();
+                case Master: return m;
+                default: return {};
+            }
         }
 
         if (role == Qt::TextAlignmentRole) {
@@ -58,7 +75,7 @@ public:
     [[nodiscard]] QVariant
     headerData(const int section, const Qt::Orientation orientation, const int role) const override {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-            static const QStringList headers = {"班名", "年级", "所属院系",  "人数", "班主任", "操作"};
+            static const QStringList headers = {"班名", "年级", "所属院系", "人数", "班主任", "操作"};
             return headers[section];
         }
         return {};

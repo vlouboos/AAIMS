@@ -13,6 +13,7 @@
 #include <qtconcurrentrun.h>
 
 #include "AddDepartmentDialog.h"
+#include "AddTeacherDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
 
@@ -117,6 +118,16 @@ ClassDetailDialog::ClassDetailDialog(Classes *classes,
         if (AddDepartmentDialog dialog; dialog.exec() == Accepted) {
             comboDept->clear();
             comboDept->addItems(aaims::manager::classes::get_departments());
+        }
+    });
+    connect(btnAddTeacher, &QPushButton::clicked, [this] {
+        if (AddTeacherDialog dialog; dialog.exec() == Accepted) {
+            const auto &t = aaims::manager::account::get_teachers();
+            comboMaster->clear();
+            for (auto it = t.begin(); it != t.end(); ++it) {
+                QString display = QString("%1(%2)").arg((*it)->name, (*it)->department);
+                comboMaster->addItem(display, (*it)->uuid);
+            }
         }
     });
     connect(btnSave, &QPushButton::clicked, this, &ClassDetailDialog::onSaveButtonClicked);

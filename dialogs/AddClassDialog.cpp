@@ -2,7 +2,7 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#include "AddTeacherDialog.h"
+#include "AddClassDialog.h"
 
 #include <QCompleter>
 #include <QFutureWatcher>
@@ -10,14 +10,11 @@
 #include <QtConcurrentRun>
 
 #include "AddDepartmentDialog.h"
+#include "AddTeacherDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
-#include "../utils/DataStructures.h"
-#include "../utils/Sha256Util.h"
 
-using namespace aaims::model;
-
-AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
+AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
     setWindowTitle("新增教师账号");
     setFixedSize(450, 380);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
@@ -32,52 +29,70 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     singleLayout->setContentsMargins(30, 30, 30, 30);
     singleLayout->setSpacing(15);
 
-    idEdit = new QLineEdit(singleAddPage);
-    idEdit->setPlaceholderText("输入工号");
-    idEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]*$"), this));
+    gradeEdit = new QLineEdit(singleAddPage);
+    gradeEdit->setPlaceholderText("例如: 2025");
+    gradeEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]*$"), this));
 
     nameEdit = new QLineEdit(singleAddPage);
-    nameEdit->setPlaceholderText("例如: 张三");
-
-    genderCombo = new QComboBox(singleAddPage);
-    genderCombo->addItems({"男", "女"});
+    nameEdit->setPlaceholderText("例如: 软工R4");
 
     deptLayout = new QHBoxLayout();
 
-    completer = new QCompleter();
-    completer->setCaseSensitivity(Qt::CaseInsensitive);
-    completer->setFilterMode(Qt::MatchContains);
-    completer->setCompletionMode(QCompleter::PopupCompletion);
+    deptCompleter = new QCompleter();
+    deptCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    deptCompleter->setFilterMode(Qt::MatchContains);
+    deptCompleter->setCompletionMode(QCompleter::PopupCompletion);
 
     deptCombo = new QComboBox(singleAddPage);
     deptCombo->addItems(aaims::manager::classes::get_departments());
     deptCombo->setEditable(true);
     deptCombo->setPlaceholderText("请选择学院");
     deptCombo->setInsertPolicy(QComboBox::NoInsert);
-    deptCombo->setCompleter(completer);
+    deptCombo->setCompleter(deptCompleter);
 
-    btnAdd = new QPushButton("+", singleAddPage);
-    btnAdd->setStyleSheet("padding: 0; margin: 0;");
-    btnAdd->setObjectName("AddElement");
-    btnAdd->setFixedSize(24, 24);
+    btnAddDept = new QPushButton("+", singleAddPage);
+    btnAddDept->setStyleSheet("padding: 0; margin: 0;");
+    btnAddDept->setObjectName("AddElement");
+    btnAddDept->setFixedSize(24, 24);
 
     deptLayout->addWidget(deptCombo);
-    deptLayout->addWidget(btnAdd);
+    deptLayout->addWidget(btnAddDept);
 
-    phoneNumberEdit = new QLineEdit(singleAddPage);
-    phoneNumberEdit->setPlaceholderText("输入有效的中国大陆手机号");
-    phoneNumberEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^1[3-9]\\d{9}$"), this));
-    phoneNumberEdit->setMaxLength(11);
+    masterLayout = new QHBoxLayout();
+
+    masterCompleter = new QCompleter();
+    masterCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    masterCompleter->setFilterMode(Qt::MatchContains);
+    masterCompleter->setCompletionMode(QCompleter::PopupCompletion);
+
+    masterCombo = new QComboBox(this);
+    const auto &teachers = aaims::manager::account::get_teachers();
+
+    for (auto it = teachers.begin(); it != teachers.end(); ++it) {
+        QString display = QString("%1(%2)").arg((*it)->name, (*it)->department);
+        masterCombo->addItem(display, (*it)->uuid);
+    }
+    masterCombo->setEditable(true);
+    masterCombo->setPlaceholderText("例如: 张三");
+    masterCombo->setInsertPolicy(QComboBox::NoInsert);
+    masterCombo->setCompleter(masterCompleter);
+
+    btnAddTeacher = new QPushButton("+", singleAddPage);
+    btnAddTeacher->setStyleSheet("padding: 0; margin: 0;");
+    btnAddTeacher->setObjectName("AddElement");
+    btnAddTeacher->setFixedSize(24, 24);
+
+    masterLayout->addWidget(masterCombo);
+    masterLayout->addWidget(btnAddTeacher);
 
     btnConfirmSingle = new QPushButton("确认添加", singleAddPage);
     btnConfirmSingle->setCursor(Qt::PointingHandCursor);
     btnConfirmSingle->setObjectName("AddElement");
 
-    singleLayout->addRow("工号:", idEdit);
-    singleLayout->addRow("姓名:", nameEdit);
-    singleLayout->addRow("性别:", genderCombo);
+    singleLayout->addRow("年级:", gradeEdit);
+    singleLayout->addRow("班级名字:", nameEdit);
     singleLayout->addRow("院系:", deptLayout);
-    singleLayout->addRow("手机号:", phoneNumberEdit);
+    singleLayout->addRow("班主任:", masterLayout);
     singleLayout->addRow("", btnConfirmSingle);
 
     batchAddPage = new QWidget();
@@ -116,10 +131,20 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     mainLayout->addWidget(tabWidget);
     applyStyles();
 
-    connect(btnAdd, &QPushButton::clicked, [this] {
+    connect(btnAddDept, &QPushButton::clicked, [this] {
         if (AddDepartmentDialog dialog; dialog.exec() == Accepted) {
             deptCombo->clear();
             deptCombo->addItems(aaims::manager::classes::get_departments());
+        }
+    });
+    connect(btnAddTeacher, &QPushButton::clicked, [this] {
+        if (AddTeacherDialog dialog; dialog.exec() == Accepted) {
+            const auto &t = aaims::manager::account::get_teachers();
+            masterCombo->clear();
+            for (auto it = t.begin(); it != t.end(); ++it) {
+                QString display = QString("%1(%2)").arg((*it)->name, (*it)->department);
+                masterCombo->addItem(display, (*it)->uuid);
+            }
         }
     });
 
@@ -134,43 +159,39 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     });
 
     connect(btnConfirmSingle, &QPushButton::clicked, [this] {
-                if (idEdit->text().trimmed().isEmpty()) {
-                    QMessageBox::warning(this, "输入错误", "工号不能为空！");
+                if (gradeEdit->text().trimmed().isEmpty()) {
+                    QMessageBox::warning(this, "输入错误", "年级不能为空！");
                     return;
                 }
                 if (nameEdit->text().trimmed().isEmpty()) {
-                    QMessageBox::warning(this, "输入错误", "姓名不能为空！");
+                    QMessageBox::warning(this, "输入错误", "班级名字不能为空！");
                     return;
                 }
                 if (deptCombo->currentIndex() == -1) {
                     QMessageBox::warning(this, "输入错误", "请选择院系！");
                     return;
                 }
-                static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
-                if (phoneNumberEdit->text().trimmed().length() != 11 || !phoneRegex.match(
-                        phoneNumberEdit->text().trimmed()).isValid()) {
-                    QMessageBox::warning(this, "输入错误", "无效的中国大陆手机号！");
+                if (!masterCombo->currentData().isValid() || !aaims::manager::account::get_teachers().contains(
+                        masterCombo->currentData().value<QUuid>())) {
+                    QMessageBox::warning(this, "输入错误", "请选择班主任！");
                     return;
                 }
                 auto *pd = new QProgressDialog("正在添加...", nullptr, 0, 0, this); // NOLINT
                 pd->setWindowModality(Qt::WindowModal);
                 pd->show();
 
-                const auto teacher = std::make_shared<TeacherAccount>();
-                teacher->username = idEdit->text().trimmed();
-                teacher->name = nameEdit->text().trimmed();
-                teacher->password = Sha256Util::hash("123456");
-                teacher->female = genderCombo->currentIndex() == 1;
-                teacher->status = Account::TEACHER;
-                teacher->department = deptCombo->currentText().trimmed();
-                teacher->phoneNumber = phoneNumberEdit->text().trimmed();
-                if (const QString result = aaims::manager::account::add(teacher); !result.isEmpty()) {
+                const auto cls = std::make_shared<aaims::model::Classes>();
+                cls->grade = gradeEdit->text().trimmed();
+                cls->name = nameEdit->text().trimmed();
+                cls->department = deptCombo->currentText().trimmed();
+                cls->master = masterCombo->currentData().value<QUuid>();
+                if (const QString result = aaims::manager::classes::add(cls); !result.isEmpty()) {
                     pd->close();
                     pd->deleteLater();
                     QMessageBox::critical(this, "错误", result);
                     return;
                 }
-                const auto future = aaims::manager::account::saveAsync();;
+                const auto future = QtConcurrent::run([] { return aaims::manager::classes::saveClasses(); });
 
                 auto *watcher = new QFutureWatcher<void>(this); // NOLINT
 
@@ -192,7 +213,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
         pd->setWindowModality(Qt::WindowModal);
         pd->show();
 
-        const auto &future = QtConcurrent::run(&AddTeacherDialog::importFromCsv, this);
+        const auto &future = QtConcurrent::run(&AddClassDialog::importFromCsv, this);
         auto *watcher = new QFutureWatcher<QPair<unsigned long long, unsigned long long> >(this); // NOLINT
         connect(watcher, &QFutureWatcherBase::finished, [this, watcher, pd] {
             const auto &[succeed, failed] = watcher->result();
@@ -207,9 +228,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     });
 }
 
-QPair<unsigned long long, unsigned long long> AddTeacherDialog::importFromCsv() const {
-    static const QString password = Sha256Util::hash("123456");
-    static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
+QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() const {
     unsigned long long succeed = 0, failed = 0;
     QFile file(selectedFilePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return {0, 0};
@@ -229,36 +248,34 @@ QPair<unsigned long long, unsigned long long> AddTeacherDialog::importFromCsv() 
             continue;
         }
 
-        const QString username = fields[0].trimmed();
+        const QString grade = fields[0].trimmed();
         const QString name = fields[1].trimmed();
-        const bool isFemale = fields[2].trimmed() == "女";
         const QString dept = fields[3].trimmed();
         const QString phone = fields[4].trimmed();
-        if (username.isEmpty() || name.isEmpty() || phone.length() != 11 || !phoneRegex.match(phone).isValid()) {
+        if (grade.isEmpty() || name.isEmpty()) {
             failed++;
             continue;
         }
-        if (aaims::manager::account::findByUsername(username)) {
+        if (auto classes = aaims::manager::classes::get_all_ptr(); std::ranges::any_of(
+            classes, [grade, name, dept](const aaims::model::Classes *cls) {
+                return cls->grade == grade && cls->name == name && cls->department == dept;
+            })) {
             failed++;
             continue;
         }
         if (!aaims::manager::classes::get_departments().contains(dept)) {
             aaims::manager::classes::addDepartment({dept});
         }
-        auto teacher = std::make_shared<TeacherAccount>();
-        teacher->username = username;
-        teacher->name = name;
-        teacher->password = password;
-        teacher->female = isFemale;
-        teacher->status = Account::TEACHER;
-        teacher->department = dept;
-        teacher->phoneNumber = phone;
+        auto cls = std::make_shared<aaims::model::Classes>();
+        cls->grade = grade;
+        cls->name = name;
+        cls->department = dept;
 
-        aaims::manager::account::add(teacher);
+        aaims::manager::classes::add(cls);
         succeed++;
     }
     aaims::manager::classes::saveDepartments();
-    aaims::manager::account::save(); // This is synchronized!!!
+    aaims::manager::classes::saveClasses(); // This is synchronized!!!
 
     return {succeed, failed};
 }
