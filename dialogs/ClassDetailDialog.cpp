@@ -162,7 +162,7 @@ void ClassDetailDialog::onSaveButtonClicked() {
     TeacherAccount *teacher = aaims::manager::account::get_teachers()[comboMaster->currentData().value<QUuid>()];
     const QUuid newUuid = teacher->uuid;
     if (teacher->uuid != cls->master) {
-        if (teacher->is_master()) {
+        if (teacher->is_class_master()) {
             QMessageBox::warning(this, "输入错误", "该老师已经是另一班级的班主任！");
             return;
         }

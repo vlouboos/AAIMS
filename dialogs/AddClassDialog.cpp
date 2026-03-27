@@ -186,7 +186,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
 
                 TeacherAccount *teacher = aaims::manager::account::get_teachers()[masterCombo->currentData().value<
                     QUuid>()];
-                if (teacher->is_master()) {
+                if (teacher->is_class_master()) {
                     QMessageBox::warning(this, "输入错误", "该老师已经是另一班级的班主任！");
                     return;
                 }
@@ -286,7 +286,7 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
             failed++;
             continue;
         }
-        if ((*it)->is_master()) {
+        if ((*it)->is_class_master()) {
             failed++;
             continue;
         }

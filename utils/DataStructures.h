@@ -152,6 +152,8 @@ namespace aaims {
 
             [[nodiscard]] bool is_suspended() const { return (status & SUSPENDED) != 0; }
 
+            [[nodiscard]] bool is_class_master() const { return (status & CLASS_MASTER) != 0; }
+
             static Account fromJson(const QUuid &uuid, const QJsonObject &json) {
                 Account acc;
                 acc.uuid = uuid;
