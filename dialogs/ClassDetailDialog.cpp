@@ -7,7 +7,6 @@
 #include <QCompleter>
 #include <QFutureWatcher>
 #include <QHBoxLayout>
-#include <QMessageBox>
 #include <QProgressDialog>
 #include <QLineEdit>
 #include <qtconcurrentrun.h>
@@ -33,6 +32,10 @@ ClassDetailDialog::ClassDetailDialog(Classes *classes,
 
     editName = new QLineEdit(this);
     editName->setText(classes->name);
+
+    editGrade = new QLineEdit(this);
+    editGrade->setText(classes->grade);
+    editGrade->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]*$"), this));
 
     deptLayout = new QHBoxLayout();
 
@@ -78,7 +81,7 @@ ClassDetailDialog::ClassDetailDialog(Classes *classes,
     comboMaster->setPlaceholderText("例如: 张三");
     if (teachers.contains(classes->master)) {
         const TeacherAccount *t = teachers[classes->master];
-        comboMaster->setCurrentText(QString("%1(%2)").arg(t->name).arg(t->department));
+        comboMaster->setCurrentText(QString("%1(%2)").arg(t->name, t->department));
     }
     comboMaster->setInsertPolicy(QComboBox::NoInsert);
     comboMaster->setCompleter(completerMaster);
@@ -92,6 +95,7 @@ ClassDetailDialog::ClassDetailDialog(Classes *classes,
     masterLayout->addWidget(btnAddTeacher);
 
     tableLayout->addRow("班级名称:", editName);
+    tableLayout->addRow("年级:", editGrade);
     tableLayout->addRow("院系:", deptLayout);
     tableLayout->addRow("班主任:", masterLayout);
 
@@ -155,13 +159,27 @@ void ClassDetailDialog::onSaveButtonClicked() {
         QMessageBox::warning(this, "输入错误", "请选择班主任！");
         return;
     }
+    TeacherAccount *teacher = aaims::manager::account::get_teachers()[comboMaster->currentData().value<QUuid>()];
+    const QUuid newUuid = teacher->uuid;
+    if (teacher->uuid != cls->master) {
+        if (teacher->is_master()) {
+            QMessageBox::warning(this, "输入错误", "该老师已经是另一班级的班主任！");
+            return;
+        }
+        teacher->status |= Account::CLASS_MASTER;
+        teacher->managingClass = cls->uuid;
+        teacher = aaims::manager::account::get_teachers()[cls->master];
+        teacher->status &= ~Account::CLASS_MASTER;
+        teacher->managingClass = Account::EMPTY_UUID;
+    }
     auto *pd = new QProgressDialog("正在保存...", nullptr, 0, 0, this); // NOLINT
     pd->setWindowModality(Qt::WindowModal);
     pd->show();
+
     cls->name = name;
     cls->grade = grade;
     cls->department = department;
-    cls->master = comboMaster->currentData().value<QUuid>();
+    cls->master = newUuid;
     const auto future = QtConcurrent::run([] { return aaims::manager::classes::saveClasses(); });
     auto watcher = new QFutureWatcher<bool>(this); // NOLINT
     connect(watcher, &QFutureWatcherBase::finished, [this, pd, watcher] {

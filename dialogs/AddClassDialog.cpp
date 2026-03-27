@@ -184,11 +184,18 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                 pd->setWindowModality(Qt::WindowModal);
                 pd->show();
 
+                TeacherAccount *teacher = aaims::manager::account::get_teachers()[masterCombo->currentData().value<QUuid>()];
+                if (teacher->is_master()) {
+                    QMessageBox::warning(this, "输入错误", "该老师已经是另一班级的班主任！");
+                    return;
+                }
                 const auto cls = std::make_shared<Classes>();
                 cls->grade = gradeEdit->text().trimmed();
                 cls->name = nameEdit->text().trimmed();
                 cls->department = deptCombo->currentText().trimmed();
-                cls->master = masterCombo->currentData().value<QUuid>();
+                cls->master = teacher->uuid;
+                teacher->status |= Account::CLASS_MASTER;
+                teacher->managingClass = cls->uuid;
                 if (const QString result = aaims::manager::classes::add(cls); !result.isEmpty()) {
                     pd->close();
                     pd->deleteLater();
@@ -268,7 +275,9 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
             continue;
         }
         if (std::ranges::none_of(aaims::manager::account::get_teachers(),
-                                 [master](const auto *t) { return master == QString("%1(%2)").arg(t->name).arg(t->department); })) {
+                                 [master](const auto *t) {
+                                     return master == QString("%1(%2)").arg(t->name).arg(t->department);
+                                 })) {
             failed++;
             continue;
         }
