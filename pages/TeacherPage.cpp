@@ -75,7 +75,7 @@ TeacherPage::TeacherPage(QWidget *parent) : QWidget(parent) {
     tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     tableView->setColumnWidth(0, 120);
     tableView->setColumnWidth(1, 120);
-    tableView->setColumnWidth(4, 100);
+    tableView->setColumnWidth(4, 150);
     tableView->setColumnWidth(5, 120);
     tableView->setItemDelegateForColumn(5, delegate);
 

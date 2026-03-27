@@ -71,6 +71,8 @@ TeacherDetailDialog::TeacherDetailDialog(TeacherAccount *account,
     tableLayout->addRow("院系:", deptLayout);
     tableLayout->addRow("手机号码:", editPhoneNumber);
 
+    if (account->is_master()) tableLayout->addRow("身份:", new QLabel(QString(aaims::manager::classes::get_classes()[account->managingClass]->name).append("班主任"), this));
+
     btnLayout = new QHBoxLayout();
     btnLayout->setSpacing(12);
 

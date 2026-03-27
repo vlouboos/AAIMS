@@ -180,7 +180,10 @@ void ClassDetailDialog::onSaveButtonClicked() {
     cls->grade = grade;
     cls->department = department;
     cls->master = newUuid;
-    const auto future = QtConcurrent::run([] { return aaims::manager::classes::saveClasses(); });
+    const auto future = QtConcurrent::run([] {
+        return aaims::manager::classes::saveClasses() &&
+               aaims::manager::account::save();
+    });
     auto watcher = new QFutureWatcher<bool>(this); // NOLINT
     connect(watcher, &QFutureWatcherBase::finished, [this, pd, watcher] {
         pd->close();

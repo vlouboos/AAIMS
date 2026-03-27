@@ -184,7 +184,8 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                 pd->setWindowModality(Qt::WindowModal);
                 pd->show();
 
-                TeacherAccount *teacher = aaims::manager::account::get_teachers()[masterCombo->currentData().value<QUuid>()];
+                TeacherAccount *teacher = aaims::manager::account::get_teachers()[masterCombo->currentData().value<
+                    QUuid>()];
                 if (teacher->is_master()) {
                     QMessageBox::warning(this, "输入错误", "该老师已经是另一班级的班主任！");
                     return;
@@ -202,7 +203,10 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                     QMessageBox::critical(this, "错误", result);
                     return;
                 }
-                const auto future = QtConcurrent::run([] { return aaims::manager::classes::saveClasses(); });
+                const auto future = QtConcurrent::run([] {
+                    return aaims::manager::classes::saveClasses() &&
+                           aaims::manager::account::save();
+                });
 
                 auto *watcher = new QFutureWatcher<void>(this); // NOLINT
 
@@ -246,7 +250,7 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
 
     QTextStream in(&file);
     in.readLine(); // Skip first line
-
+    auto teachers = aaims::manager::account::get_teachers();
     while (!in.atEnd()) {
         QString line = in.readLine();
         if (line.trimmed().isEmpty()) {
@@ -274,10 +278,15 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
             failed++;
             continue;
         }
-        if (std::ranges::none_of(aaims::manager::account::get_teachers(),
-                                 [master](const auto *t) {
-                                     return master == QString("%1(%2)").arg(t->name).arg(t->department);
-                                 })) {
+        auto it = std::ranges::find_if(teachers,
+                                       [master](const auto *t) {
+                                           return master == QString("%1(%2)").arg(t->name).arg(t->department);
+                                       });
+        if (it == teachers.end()) {
+            failed++;
+            continue;
+        }
+        if ((*it)->is_master()) {
             failed++;
             continue;
         }
@@ -288,12 +297,15 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
         cls->grade = grade;
         cls->name = name;
         cls->department = dept;
-
+        cls->master = (*it)->uuid;
         aaims::manager::classes::add(cls);
+        (*it)->status |= Account::CLASS_MASTER;
+        (*it)->managingClass = cls->uuid;
         succeed++;
     }
     aaims::manager::classes::saveDepartments();
     aaims::manager::classes::saveClasses(); // This is synchronized!!!
+    aaims::manager::account::save();
 
     return {succeed, failed};
 }

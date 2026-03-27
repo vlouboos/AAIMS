@@ -96,8 +96,8 @@ namespace aaims::manager::classes {
     QVector<model::Classes *> get_all_ptr() {
         QVector<model::Classes *> classes;
         classes.reserve(all_classes.size());
-        for (auto it = all_classes.begin(); it != all_classes.end(); ++it) {
-            classes.emplace_back(it->get());
+        for (auto &cls: all_classes) {
+            classes.emplace_back(cls.get());
         }
         return classes;
     }

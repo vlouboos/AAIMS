@@ -85,7 +85,7 @@ namespace aaims {
 
             virtual ~Classes() = default;
 
-            bool isEmpty() const {
+            [[nodiscard]] bool isEmpty() const {
                 return students.isEmpty();
             }
 
@@ -222,6 +222,7 @@ namespace aaims {
                     {"status", status},
                     {"department", department},
                     {"phoneNumber", phoneNumber},
+                    {"managingClass", managingClass.toString(QUuid::WithoutBraces)},
                     {"lessons", lessonData}
                 };
             }
