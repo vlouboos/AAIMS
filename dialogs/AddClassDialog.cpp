@@ -38,16 +38,17 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
 
     deptLayout = new QHBoxLayout();
 
-    deptCompleter = new QCompleter();
-    deptCompleter->setCaseSensitivity(Qt::CaseInsensitive);
-    deptCompleter->setFilterMode(Qt::MatchContains);
-    deptCompleter->setCompletionMode(QCompleter::PopupCompletion);
-
     deptCombo = new QComboBox(singleAddPage);
     deptCombo->addItems(aaims::manager::classes::get_departments());
     deptCombo->setEditable(true);
     deptCombo->setPlaceholderText("请选择学院");
     deptCombo->setInsertPolicy(QComboBox::NoInsert);
+
+    deptCompleter = new QCompleter(deptCombo->model());
+    deptCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    deptCompleter->setFilterMode(Qt::MatchContains);
+    deptCompleter->setCompletionMode(QCompleter::InlineCompletion);
+
     deptCombo->setCompleter(deptCompleter);
 
     btnAddDept = new QPushButton("+", singleAddPage);
@@ -60,11 +61,6 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
 
     masterLayout = new QHBoxLayout();
 
-    masterCompleter = new QCompleter();
-    masterCompleter->setCaseSensitivity(Qt::CaseInsensitive);
-    masterCompleter->setFilterMode(Qt::MatchContains);
-    masterCompleter->setCompletionMode(QCompleter::PopupCompletion);
-
     masterCombo = new QComboBox(this);
     const auto &teachers = aaims::manager::account::get_teachers();
 
@@ -75,6 +71,12 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
     masterCombo->setEditable(true);
     masterCombo->setPlaceholderText("例如: 张三");
     masterCombo->setInsertPolicy(QComboBox::NoInsert);
+
+    masterCompleter = new QCompleter(masterCombo->model());
+    masterCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    masterCompleter->setFilterMode(Qt::MatchContains);
+    masterCompleter->setCompletionMode(QCompleter::InlineCompletion);
+
     masterCombo->setCompleter(masterCompleter);
 
     btnAddTeacher = new QPushButton("+", singleAddPage);
@@ -101,7 +103,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
     batchLayout->setContentsMargins(30, 30, 30, 30);
     batchLayout->setSpacing(20);
 
-    tipLabel = new QLabel("支持导入 .csv 格式的文件。\n请确保列头包含: 工号, 姓名, 性别, 院系, 手机号", batchAddPage);
+    tipLabel = new QLabel("支持导入 .csv 格式的文件。\n请确保列头包含: 年级、班级名字、院系、班主任\n例: 2025,软工R4,软件学院,李华(数学与信息学院)", batchAddPage);
     tipLabel->setStyleSheet("color: #64748b; line-height: 1.5;");
 
     btnSelectFile = new QPushButton("选择 CSV 文件", batchAddPage);
@@ -135,6 +137,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
         if (AddDepartmentDialog dialog; dialog.exec() == Accepted) {
             deptCombo->clear();
             deptCombo->addItems(aaims::manager::classes::get_departments());
+            deptCompleter->setModel(deptCombo->model());
         }
     });
     connect(btnAddTeacher, &QPushButton::clicked, [this] {
@@ -145,12 +148,13 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                 QString display = QString("%1(%2)").arg((*it)->name, (*it)->department);
                 masterCombo->addItem(display, (*it)->uuid);
             }
+            masterCompleter->setModel(masterCombo->model());
         }
     });
 
     connect(btnSelectFile, &QPushButton::clicked, [this] {
         selectedFilePath = QFileDialog::getOpenFileName(
-            this, "选择教师名录", "", "CSV 文件 (*.csv);;所有文件 (*.*)"
+            this, "选择班级名录", "", "CSV 文件 (*.csv);;所有文件 (*.*)"
         ).trimmed();
         if (!selectedFilePath.isEmpty()) {
             fileStatusLabel->setText("已就绪: " + selectedFilePath.split('/').last());
@@ -180,7 +184,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                 pd->setWindowModality(Qt::WindowModal);
                 pd->show();
 
-                const auto cls = std::make_shared<aaims::model::Classes>();
+                const auto cls = std::make_shared<Classes>();
                 cls->grade = gradeEdit->text().trimmed();
                 cls->name = nameEdit->text().trimmed();
                 cls->department = deptCombo->currentText().trimmed();
@@ -251,22 +255,27 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
         const QString grade = fields[0].trimmed();
         const QString name = fields[1].trimmed();
         const QString dept = fields[3].trimmed();
-        const QString phone = fields[4].trimmed();
+        const QString master = fields[4].trimmed();
         if (grade.isEmpty() || name.isEmpty()) {
             failed++;
             continue;
         }
         if (auto classes = aaims::manager::classes::get_all_ptr(); std::ranges::any_of(
-            classes, [grade, name, dept](const aaims::model::Classes *cls) {
+            classes, [grade, name, dept](const Classes *cls) {
                 return cls->grade == grade && cls->name == name && cls->department == dept;
             })) {
+            failed++;
+            continue;
+        }
+        if (std::ranges::none_of(aaims::manager::account::get_teachers(),
+                                 [master](const auto *t) { return master == QString("%1(%2)").arg(t->name).arg(t->department); })) {
             failed++;
             continue;
         }
         if (!aaims::manager::classes::get_departments().contains(dept)) {
             aaims::manager::classes::addDepartment({dept});
         }
-        auto cls = std::make_shared<aaims::model::Classes>();
+        auto cls = std::make_shared<Classes>();
         cls->grade = grade;
         cls->name = name;
         cls->department = dept;

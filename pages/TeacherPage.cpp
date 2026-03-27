@@ -5,6 +5,7 @@
 #include "TeacherPage.h"
 
 #include <QFutureWatcher>
+#include <QHeaderView>
 #include <QProgressDialog>
 
 #include "../dialogs/AddTeacherDialog.h"

@@ -6,11 +6,9 @@
 #define AAIMS_TEACHERPAGE_H
 
 #include <QTableView>
-#include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
 #include <QHBoxLayout>
-#include <QHeaderView>
 #include <QSortFilterProxyModel>
 
 #include "model/TeacherTableModel.h"
