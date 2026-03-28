@@ -13,13 +13,13 @@ namespace aaims {
     inline bool restart = true;
 
     namespace model {
-        struct Lesson {
-            struct ClassTime {
+        struct Course {
+            struct LessonTime {
                 int dayOfWeek;
                 int startSection;
                 int duration;
 
-                static ClassTime fromJson(const QJsonObject &json) {
+                static LessonTime fromJson(const QJsonObject &json) {
                     return {json.value("day").toInt(), json.value("start").toInt(), json.value("duration").toInt()};
                 }
 
@@ -35,14 +35,14 @@ namespace aaims {
             QUuid uuid;
             QString name;
             QString teacher;
-            QList<ClassTime> times;
+            QList<LessonTime> times;
 
-            static Lesson fromJson(const QUuid &uuid, const QJsonObject &json) {
+            static Course fromJson(const QUuid &uuid, const QJsonObject &json) {
                 const QString name = json.value("name").toString();
                 const QString teacher = json.value("teacher").toString();
-                QList<ClassTime> times;
+                QList<LessonTime> times;
                 for (const auto &t: json.value("times").toArray()) {
-                    times.emplace_back(ClassTime::fromJson(t.toObject()));
+                    times.emplace_back(LessonTime::fromJson(t.toObject()));
                 }
                 return {uuid, name, teacher, times};
             }
@@ -59,7 +59,7 @@ namespace aaims {
         };
 
         struct RatingDetail {
-            QUuid lesson_uuid;
+            QUuid course_uuid;
             double performance = 0.0;
             double score = 0.0;
         };
@@ -69,7 +69,7 @@ namespace aaims {
             QList<RatingDetail> ratings;
         };
 
-        struct LessonStatus {
+        struct CourseStatus {
             QUuid uuid;
             int retake = 0;
         };
@@ -232,7 +232,7 @@ namespace aaims {
         struct StudentAccount : PersonAccount {
             QUuid currentClass;
             QString dormitory;
-            QList<LessonStatus> lessons;
+            QList<CourseStatus> lessons;
 
             [[nodiscard]] static StudentAccount fromJson(const QUuid &uuid, const QJsonObject &json) {
                 StudentAccount student;
@@ -248,7 +248,7 @@ namespace aaims {
                 for (const auto &x: json.value("lessons").toArray()) {
                     if (x.isObject()) {
                         QJsonObject obj = x.toObject();
-                        LessonStatus lesson(QUuid::fromString(obj.value("uuid").toString()),
+                        CourseStatus lesson(QUuid::fromString(obj.value("uuid").toString()),
                                             obj.value("retake").toInt());
                         student.lessons.append(lesson);
                     }

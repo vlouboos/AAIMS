@@ -19,7 +19,7 @@ using namespace aaims::model;
 
 AddStudentDialog::AddStudentDialog(QWidget *parent) : StyledDialog(parent) {
     setWindowTitle("新增学生账号");
-    setFixedSize(450, 380);
+    setFixedSize(450, 400);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
     mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(15, 15, 15, 15);

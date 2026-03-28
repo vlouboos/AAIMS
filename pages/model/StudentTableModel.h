@@ -7,10 +7,9 @@
 
 #include <QAbstractTableModel>
 #include <QColor>
-#include <QVector>
-#include <QPointer>
 
 #include "../../managements/AccountManager.h"
+#include "../../managements/ClassManager.h"
 #include "../../utils/DataStructures.h"
 
 class StudentTableModel : public QAbstractTableModel {
@@ -21,6 +20,7 @@ public:
         Username,
         Name,
         Class,
+        Dormitory,
         Status,
         Actions
     };
@@ -39,7 +39,7 @@ public:
     }
 
     [[nodiscard]] int columnCount([[maybe_unused]] const QModelIndex &parent) const override {
-        return 5;
+        return 6;
     }
 
     [[nodiscard]] QVariant data(const QModelIndex &index, const int role) const override {
@@ -49,11 +49,14 @@ public:
 
         if (!t) return {};
 
+        const auto cls = aaims::manager::classes::get_classes()[t->currentClass].get();
+
         if (role == Qt::DisplayRole) {
             switch (index.column()) {
                 case Username: return t->username;
                 case Name: return t->name;
-                case Class: return t->currentClass;
+                case Class: return cls->grade + cls->name;
+                case Dormitory: return t->dormitory;
                 case Status: return t->is_graduated() ? "已毕业" : t->is_suspended() ? "休学" : "在校";
                 default: return {};
             }
@@ -73,7 +76,7 @@ public:
     [[nodiscard]] QVariant
     headerData(const int section, const Qt::Orientation orientation, const int role) const override {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-            static const QStringList headers = {"学号", "姓名", "班级",  "状态", "操作"};
+            static const QStringList headers = {"学号", "姓名", "班级", "宿舍",  "状态", "操作"};
             return headers[section];
         }
         return {};

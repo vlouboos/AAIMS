@@ -33,7 +33,7 @@ namespace aaims::manager::account {
             for (const auto &key: json.keys()) {
                 const QUuid uuid = QUuid::fromString(key);
                 QJsonObject accountData = json.value(key).toObject();
-                QList<LessonStatus> lessons;
+                QList<CourseStatus> lessons;
                 for (QJsonArray lessonData = accountData.value("lessons").toArray(); const auto &lesson: lessonData) {
                     if (lesson.isObject()) {
                         const auto &lessonJson = lesson.toObject();
@@ -223,10 +223,15 @@ namespace aaims::manager::account {
             teachers.remove(account->uuid);
         } else if (account->is_admin()) {
             admins.remove(account->uuid);
-        } else if (account->is_graduated()) {
-            graduatedStudents.remove(account->uuid);
         } else {
-            workingStudents.remove(account->uuid);
+            students.remove(account->uuid);
+            if (account->is_graduated()) {
+                graduatedStudents.remove(account->uuid);
+            } else if (account->is_suspended()) {
+                suspendedStudents.remove(account->uuid);
+            } else {
+                workingStudents.remove(account->uuid);
+            }
         }
         accounts.remove(account->uuid);
     }

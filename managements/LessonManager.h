@@ -12,7 +12,7 @@
 #include <optional>
 
 namespace aaims::manager::lesson {
-    inline std::map<std::string, model::Lesson> lessons;
+    inline std::map<std::string, model::Course> lessons;
     inline std::shared_mutex mtx;
     inline std::string current_path = "data/lessons.json";
 
@@ -27,14 +27,14 @@ namespace aaims::manager::lesson {
         return file::save(current_path, lessons);
     }
 
-    inline bool add(const model::Lesson &lesson) {
+    inline bool add(const model::Course &lesson) {
         std::unique_lock lock(mtx);
         if (lessons.contains(lesson.uuid)) return false;
         lessons[lesson.uuid] = lesson;
         return true;
     }
 
-    inline std::optional<model::Lesson> find(const std::string &uuid) {
+    inline std::optional<model::Course> find(const std::string &uuid) {
         std::shared_lock lock(mtx);
         if (const auto it = lessons.find(uuid); it != lessons.end()) {
             return it->second;
