@@ -2,7 +2,7 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#include "AddTeacherDialog.h"
+#include "AddStudentDialog.h"
 
 #include <QCompleter>
 #include <QFutureWatcher>
@@ -17,8 +17,8 @@
 
 using namespace aaims::model;
 
-AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
-    setWindowTitle("新增教师账号");
+AddStudentDialog::AddStudentDialog(QWidget *parent) : StyledDialog(parent) {
+    setWindowTitle("新增学生账号");
     setFixedSize(450, 380);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
     mainLayout = new QVBoxLayout(this);
@@ -33,7 +33,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     singleLayout->setSpacing(15);
 
     idEdit = new QLineEdit(singleAddPage);
-    idEdit->setPlaceholderText("输入工号");
+    idEdit->setPlaceholderText("输入学号");
     idEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]*$"), this));
 
     nameEdit = new QLineEdit(singleAddPage);
@@ -42,27 +42,32 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     genderCombo = new QComboBox(singleAddPage);
     genderCombo->addItems({"男", "女"});
 
-    deptLayout = new QHBoxLayout();
+    classLayout = new QHBoxLayout();
 
     completer = new QCompleter();
     completer->setCaseSensitivity(Qt::CaseInsensitive);
     completer->setFilterMode(Qt::MatchContains);
     completer->setCompletionMode(QCompleter::PopupCompletion);
 
-    deptCombo = new QComboBox(singleAddPage);
-    deptCombo->addItems(aaims::manager::classes::get_departments());
-    deptCombo->setEditable(true);
-    deptCombo->setPlaceholderText("请选择学院");
-    deptCombo->setInsertPolicy(QComboBox::NoInsert);
-    deptCombo->setCompleter(completer);
+    classCombo = new QComboBox(singleAddPage);
+    for (const auto &x: aaims::manager::classes::get_all_ptr()) {
+        classCombo->addItem(x->grade + x->name, x->uuid);
+    }
+    classCombo->setEditable(true);
+    classCombo->setPlaceholderText("请选择班级");
+    classCombo->setInsertPolicy(QComboBox::NoInsert);
+    classCombo->setCompleter(completer);
 
     btnAdd = new QPushButton("+", singleAddPage);
     btnAdd->setStyleSheet("padding: 0; margin: 0;");
     btnAdd->setObjectName("AddElement");
     btnAdd->setFixedSize(24, 24);
 
-    deptLayout->addWidget(deptCombo);
-    deptLayout->addWidget(btnAdd);
+    classLayout->addWidget(classCombo);
+    classLayout->addWidget(btnAdd);
+
+    roomEdit = new QLineEdit(singleAddPage);
+    roomEdit->setPlaceholderText("例如: 火山区0栋110");
 
     phoneNumberEdit = new QLineEdit(singleAddPage);
     phoneNumberEdit->setPlaceholderText("输入有效的中国大陆手机号");
@@ -73,10 +78,11 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     btnConfirmSingle->setCursor(Qt::PointingHandCursor);
     btnConfirmSingle->setObjectName("AddElement");
 
-    singleLayout->addRow("工号:", idEdit);
+    singleLayout->addRow("学号:", idEdit);
     singleLayout->addRow("姓名:", nameEdit);
     singleLayout->addRow("性别:", genderCombo);
-    singleLayout->addRow("院系:", deptLayout);
+    singleLayout->addRow("班级:", classLayout);
+    singleLayout->addRow("宿舍(可选):", roomEdit);
     singleLayout->addRow("手机号:", phoneNumberEdit);
     singleLayout->addRow("", btnConfirmSingle);
 
@@ -86,7 +92,9 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     batchLayout->setContentsMargins(30, 30, 30, 30);
     batchLayout->setSpacing(20);
 
-    tipLabel = new QLabel("支持导入 .csv 格式的文件。\n请确保列头包含: 工号, 姓名, 性别, 院系, 手机号\n例: 202600001001,李华,沃尔玛购物袋,软件学院,13511351113", batchAddPage);
+    tipLabel = new QLabel(
+        "支持导入 .csv 格式的文件。\n请确保列头包含: 学号, 姓名, 性别, 班级, 宿舍号(占位可选), 手机号\n例: 202525220420,林锦华,男,2025软工R4,,我的11位手机号",
+        batchAddPage);
     tipLabel->setStyleSheet("color: #64748b; line-height: 1.5;");
 
     btnSelectFile = new QPushButton("选择 CSV 文件", batchAddPage);
@@ -118,14 +126,14 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
 
     connect(btnAdd, &QPushButton::clicked, [this] {
         if (AddDepartmentDialog dialog; dialog.exec() == Accepted) {
-            deptCombo->clear();
-            deptCombo->addItems(aaims::manager::classes::get_departments());
+            classCombo->clear();
+            classCombo->addItems(aaims::manager::classes::get_departments());
         }
     });
 
     connect(btnSelectFile, &QPushButton::clicked, [this] {
         selectedFilePath = QFileDialog::getOpenFileName(
-            this, "选择教师名录", "", "CSV 文件 (*.csv);;所有文件 (*.*)"
+            this, "选择学生名录", "", "CSV 文件 (*.csv);;所有文件 (*.*)"
         ).trimmed();
         if (!selectedFilePath.isEmpty()) {
             fileStatusLabel->setText("已就绪: " + selectedFilePath.split('/').last());
@@ -142,8 +150,10 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
                     QMessageBox::warning(this, "输入错误", "姓名不能为空！");
                     return;
                 }
-                if (deptCombo->currentIndex() == -1) {
-                    QMessageBox::warning(this, "输入错误", "请选择院系！");
+                const auto &clsUuid = classCombo->currentData().value<QUuid>();
+                auto *cls = aaims::manager::classes::get_classes()[clsUuid].get();
+                if (!cls) {
+                    QMessageBox::warning(this, "输入错误", "请选择班级！");
                     return;
                 }
                 static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
@@ -156,20 +166,22 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
                 pd->setWindowModality(Qt::WindowModal);
                 pd->show();
 
-                const auto teacher = std::make_shared<TeacherAccount>();
-                teacher->username = idEdit->text().trimmed();
-                teacher->name = nameEdit->text().trimmed();
-                teacher->password = Sha256Util::hash("123456");
-                teacher->female = genderCombo->currentIndex() == 1;
-                teacher->status = Account::TEACHER;
-                teacher->department = deptCombo->currentText().trimmed();
-                teacher->phoneNumber = phoneNumberEdit->text().trimmed();
-                if (const QString result = aaims::manager::account::add(teacher); !result.isEmpty()) {
+                const auto student = std::make_shared<StudentAccount>();
+                student->username = idEdit->text().trimmed();
+                student->name = nameEdit->text().trimmed();
+                student->password = Sha256Util::hash("123456");
+                student->female = genderCombo->currentIndex() == 1;
+                student->status = 0;
+                student->currentClass = cls->uuid;
+                student->dormitory = roomEdit->text().trimmed();
+                student->phoneNumber = phoneNumberEdit->text().trimmed();
+                if (const QString result = aaims::manager::account::add(student); !result.isEmpty()) {
                     pd->close();
                     pd->deleteLater();
                     QMessageBox::critical(this, "错误", result);
                     return;
                 }
+                cls->students.append(student->uuid);
                 const auto future = aaims::manager::account::saveAsync();;
 
                 auto *watcher = new QFutureWatcher<void>(this); // NOLINT
@@ -178,7 +190,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
                     pd->close();
                     pd->deleteLater();
                     watcher->deleteLater();
-                    QMessageBox::information(this, "添加完成", QString("添加教师成功！"));
+                    QMessageBox::information(this, "添加完成", QString("添加学生成功！"));
                     accept();
                 });
                 watcher->setFuture(future);
@@ -192,7 +204,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
         pd->setWindowModality(Qt::WindowModal);
         pd->show();
 
-        const auto &future = QtConcurrent::run(&AddTeacherDialog::importFromCsv, this);
+        const auto &future = QtConcurrent::run(&AddStudentDialog::importFromCsv, this);
         auto *watcher = new QFutureWatcher<QPair<unsigned long long, unsigned long long> >(this); // NOLINT
         connect(watcher, &QFutureWatcherBase::finished, [this, watcher, pd] {
             const auto &[succeed, failed] = watcher->result();
@@ -207,7 +219,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     });
 }
 
-QPair<unsigned long long, unsigned long long> AddTeacherDialog::importFromCsv() const {
+QPair<unsigned long long, unsigned long long> AddStudentDialog::importFromCsv() const {
     static const QString password = Sha256Util::hash("123456");
     static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
     unsigned long long succeed = 0, failed = 0;
@@ -217,6 +229,7 @@ QPair<unsigned long long, unsigned long long> AddTeacherDialog::importFromCsv() 
     QTextStream in(&file);
     in.readLine(); // Skip first line
 
+    auto classes = aaims::manager::classes::get_all_ptr();
     while (!in.atEnd()) {
         QString line = in.readLine();
         if (line.trimmed().isEmpty()) {
@@ -232,9 +245,11 @@ QPair<unsigned long long, unsigned long long> AddTeacherDialog::importFromCsv() 
         const QString username = fields[0].trimmed();
         const QString name = fields[1].trimmed();
         const bool isFemale = fields[2].trimmed() == "女";
-        const QString dept = fields[3].trimmed();
-        const QString phone = fields[4].trimmed();
-        if (username.isEmpty() || name.isEmpty() || phone.length() != 11 || !phoneRegex.match(phone).isValid()) {
+        const QString cls = fields[3].trimmed();
+        const QString dormitory = fields[4].trimmed();
+        const QString phone = fields[5].trimmed();
+        if (username.isEmpty() || name.isEmpty() || cls.isEmpty() || phone.length() != 11 || !phoneRegex.match(phone).
+            isValid()) {
             failed++;
             continue;
         }
@@ -242,22 +257,28 @@ QPair<unsigned long long, unsigned long long> AddTeacherDialog::importFromCsv() 
             failed++;
             continue;
         }
-        if (!aaims::manager::classes::get_departments().contains(dept)) {
-            aaims::manager::classes::addDepartment({dept});
-        }
-        auto teacher = std::make_shared<TeacherAccount>();
-        teacher->username = username;
-        teacher->name = name;
-        teacher->password = password;
-        teacher->female = isFemale;
-        teacher->status = Account::TEACHER;
-        teacher->department = dept;
-        teacher->phoneNumber = phone;
-
-        if (const QString result = aaims::manager::account::add(teacher); !result.isEmpty()) {
+        const auto it = std::ranges::find_if(classes, [cls](const auto *x) {
+            return QString(x->grade).append(x->name) == cls;
+        });
+        if (it == classes.end()) {
             failed++;
             continue;
         }
+        auto student = std::make_shared<StudentAccount>();
+        student->username = username;
+        student->name = name;
+        student->password = password;
+        student->female = isFemale;
+        student->status = 0;
+        student->currentClass = (*it)->uuid;
+        student->dormitory = dormitory;
+        student->phoneNumber = phone;
+
+        if (const QString result = aaims::manager::account::add(student); !result.isEmpty()) {
+            failed++;
+            continue;
+        }
+        (*it)->students.append(student->uuid);
         succeed++;
     }
     aaims::manager::classes::saveDepartments();

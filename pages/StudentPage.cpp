@@ -4,11 +4,10 @@
 
 #include "StudentPage.h"
 
-#include <QFile>
 #include <QFutureWatcher>
-#include <QMessageBox>
 #include <QProgressDialog>
 
+#include "../dialogs/AddStudentDialog.h"
 #include "../managements/AccountManager.h"
 #include "delegate/OperationDelegate.h"
 #include "model/FilterProxyModel.h"
@@ -88,11 +87,11 @@ StudentPage::StudentPage(QWidget *parent) : QWidget(parent) {
         proxyModel->setFilterFixedString(text);
     });
 
-    //connect(btnAddStudent, &QPushButton::clicked, [this] {
-    //    if (AddStudentDialog dialog(this); dialog.exec() == QDialog::Accepted) {
-    //        reloadData();
-    //    }
-    //});
+    connect(btnAddStudent, &QPushButton::clicked, [this] {
+        if (AddStudentDialog dialog(this); dialog.exec() == QDialog::Accepted) {
+            reloadData();
+        }
+    });
 
     //connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
     //    if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(proxyModel->mapToSource(index))]) {
@@ -133,5 +132,6 @@ StudentPage::StudentPage(QWidget *parent) : QWidget(parent) {
 
 void StudentPage::reloadData() const {
     tableModel->setStudents(aaims::manager::account::get_students().keys());
+    proxyModel->sort(0);
     subtitleLabel->setText(QString("管理系统内共 %1 名学生").arg(tableModel->rowCount(QModelIndex())));
 }

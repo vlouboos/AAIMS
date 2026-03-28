@@ -103,7 +103,7 @@ namespace aaims::manager::account {
         return io::save(path, root);
     }
 
-    QString add(const std::shared_ptr<Account> &account) {
+    [[nodiscard]] QString add(const std::shared_ptr<Account> &account) {
         if (!account) return "内部错误";
         QUuid uuid;
         do {
@@ -130,10 +130,13 @@ namespace aaims::manager::account {
                 return account->username.toLower() == a->username.toLower();
             }))
                 return "学号已存在！";
+            students[uuid] = dynamic_cast<StudentAccount *>(account.get());
             if (account->is_graduated()) {
-                graduatedStudents[uuid] = dynamic_cast<StudentAccount *>(account.get());
+                graduatedStudents[uuid] = students[uuid];
+            } else if (account->is_suspended()) {
+                suspendedStudents[uuid] = students[uuid];
             } else {
-                workingStudents[uuid] = dynamic_cast<StudentAccount *>(account.get());
+                workingStudents[uuid] = students[uuid];
             }
         }
 

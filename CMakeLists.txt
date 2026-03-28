@@ -65,6 +65,8 @@ add_executable(AAIMS main.cpp
         dialogs/ClassDetailDialog.h
         dialogs/AddClassDialog.cpp
         dialogs/AddClassDialog.h
+        dialogs/AddStudentDialog.cpp
+        dialogs/AddStudentDialog.h
 )
 
 target_link_libraries(AAIMS

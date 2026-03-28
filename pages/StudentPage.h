@@ -14,7 +14,6 @@
 #include <QSortFilterProxyModel>
 
 #include "model/StudentTableModel.h"
-#include "model/TeacherTableModel.h"
 
 class StudentPage : public QWidget {
     Q_OBJECT

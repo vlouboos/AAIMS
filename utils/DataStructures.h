@@ -139,7 +139,6 @@ namespace aaims {
             QString name;
             QString password;
             bool female = false;
-
             uint8_t status = 0;
 
             [[nodiscard]] bool is_admin() const { return (status & ADMIN) != 0; }
@@ -232,7 +231,7 @@ namespace aaims {
 
         struct StudentAccount : PersonAccount {
             QUuid currentClass;
-            QString dormitoryNumber;
+            QString dormitory;
             QList<LessonStatus> lessons;
 
             [[nodiscard]] static StudentAccount fromJson(const QUuid &uuid, const QJsonObject &json) {
@@ -244,6 +243,7 @@ namespace aaims {
                 student.female = json.value("female").toBool();
                 student.status = static_cast<uint8_t>(json.value("status").toInt());
                 student.currentClass = QUuid::fromString(json.value("currentClass").toString());
+                student.dormitory = json.value("dormitory").toString();
                 student.phoneNumber = json.value("phoneNumber").toString();
                 for (const auto &x: json.value("lessons").toArray()) {
                     if (x.isObject()) {
@@ -269,6 +269,7 @@ namespace aaims {
                     {"female", female},
                     {"status", status},
                     {"currentClass", currentClass.toString(QUuid::WithoutBraces)},
+                    {"dormitory", dormitory},
                     {"phoneNumber", phoneNumber},
                     {"lessons", lessonData}
                 };

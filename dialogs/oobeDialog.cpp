@@ -235,7 +235,12 @@ void oobeDialog::registerClicked() {
     masterAccount->password = Sha256Util::hash(passEdit->text());
     masterAccount->female = false;
     masterAccount->status = Account::MASTER;
-    aaims::manager::account::add(masterAccount);
+    if (const QString result = aaims::manager::account::add(masterAccount); !result.isEmpty()) {
+        loading->close();
+        loading->deleteLater();
+        QMessageBox::critical(this, "错误", result);
+        return; // NOLINT
+    }
     const QUuid &uuid = masterAccount->uuid;
     const auto future = aaims::manager::account::saveAsync();
 

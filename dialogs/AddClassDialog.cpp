@@ -141,7 +141,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
         }
     });
     connect(btnAddTeacher, &QPushButton::clicked, [this] {
-        if (AddTeacherDialog dialog; dialog.exec() == Accepted) {
+        if (AddTeacherDialog dialog(this); dialog.exec() == Accepted) {
             const auto &t = aaims::manager::account::get_teachers();
             masterCombo->clear();
             for (auto it = t.begin(); it != t.end(); ++it) {
