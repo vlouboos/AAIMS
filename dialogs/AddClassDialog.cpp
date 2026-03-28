@@ -298,7 +298,10 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
         cls->name = name;
         cls->department = dept;
         cls->master = (*it)->uuid;
-        aaims::manager::classes::add(cls);
+        if (const QString result = aaims::manager::classes::add(cls); !result.isEmpty()) {
+            failed++;
+            continue;
+        }
         (*it)->status |= Account::CLASS_MASTER;
         (*it)->managingClass = cls->uuid;
         succeed++;

@@ -46,12 +46,11 @@ public:
     [[nodiscard]] QVariant data(const QModelIndex &index, const int role) const override {
         if (!index.isValid() || index.row() >= classes.size()) return {};
 
-
         Classes *cls = aaims::manager::classes::get_classes()[classes[index.row()]].get();
 
         if (!cls) return {};
 
-        TeacherAccount *master = aaims::manager::account::get_teachers()[cls->master];
+        const TeacherAccount *master = aaims::manager::account::get_teachers()[cls->master];
         QString m = master ? master->name : "错误";
 
         if (role == Qt::DisplayRole) {

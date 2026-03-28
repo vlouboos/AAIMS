@@ -89,7 +89,7 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
     });
 
     connect(btnAddClass, &QPushButton::clicked, [this] {
-        if (AddClassDialog dialog; dialog.exec() == QDialog::Accepted) {
+        if (AddClassDialog dialog(this); dialog.exec() == QDialog::Accepted) {
             reloadData();
         }
     });
@@ -97,7 +97,7 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
     connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
         if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
             proxyModel->mapToSource(index))].get()) {
-            if (ClassDetailDialog dialog(cls); dialog.exec() == QDialog::Accepted) {
+            if (ClassDetailDialog dialog(cls, this); dialog.exec() == QDialog::Accepted) {
                 reloadData();
             }
         }
@@ -137,7 +137,7 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
     connect(tableView, &QTableView::doubleClicked, [this](const QModelIndex &index) {
                 if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
                     proxyModel->mapToSource(index))].get()) {
-                    if (ClassDetailDialog dialog(cls); dialog.exec() == QDialog::Accepted) {
+                    if (ClassDetailDialog dialog(cls, this); dialog.exec() == QDialog::Accepted) {
                         reloadData();
                     }
                 }

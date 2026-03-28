@@ -22,7 +22,6 @@ add_executable(AAIMS main.cpp
         file_info.rc
         managements/AccountManager.h
         utils/DataStructures.h
-        managements/LessonManager.h
         managements/RatingManager.h
         dialogs/AccountLoginDialog.cpp
         dialogs/AccountLoginDialog.h
@@ -67,6 +66,10 @@ add_executable(AAIMS main.cpp
         dialogs/AddClassDialog.h
         dialogs/AddStudentDialog.cpp
         dialogs/AddStudentDialog.h
+        managements/CourseManager.cpp
+        managements/CourseManager.h
+        dialogs/StudentDetailDialog.cpp
+        dialogs/StudentDetailDialog.h
 )
 
 target_link_libraries(AAIMS

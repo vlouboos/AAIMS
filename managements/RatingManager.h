@@ -6,7 +6,6 @@
 #define AAIMS_RATING_MANAGER_H
 
 #include "../utils/DataStructures.h"
-#include "FileManager.h"
 #include <map>
 #include <vector>
 #include <shared_mutex>

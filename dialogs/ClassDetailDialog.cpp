@@ -170,7 +170,7 @@ void ClassDetailDialog::onSaveButtonClicked() {
         teacher->managingClass = cls->uuid;
         teacher = aaims::manager::account::get_teachers()[cls->master];
         teacher->status &= ~Account::CLASS_MASTER;
-        teacher->managingClass = Account::EMPTY_UUID;
+        teacher->managingClass = EMPTY_UUID;
     }
     auto *pd = new QProgressDialog("正在保存...", nullptr, 0, 0, this); // NOLINT
     pd->setWindowModality(Qt::WindowModal);

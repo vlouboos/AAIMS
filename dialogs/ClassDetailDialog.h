@@ -13,7 +13,6 @@
 #include "StyledDialog.h"
 #include "../utils/DataStructures.h"
 
-
 class ClassDetailDialog : public StyledDialog {
     Q_OBJECT
 

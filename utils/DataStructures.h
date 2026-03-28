@@ -13,11 +13,19 @@ namespace aaims {
     inline bool restart = true;
 
     namespace model {
+        static constexpr auto EMPTY_UUID = QUuid();
+
         struct Course {
+            constexpr static int ACCEPTING = 0b1;
+            constexpr static int QUALIFYING = 0b10;
+            constexpr static int STARTED = 0b100;
+
             struct LessonTime {
                 int dayOfWeek;
                 int startSection;
                 int duration;
+
+                ~LessonTime() = default;
 
                 static LessonTime fromJson(const QJsonObject &json) {
                     return {json.value("day").toInt(), json.value("start").toInt(), json.value("duration").toInt()};
@@ -36,15 +44,21 @@ namespace aaims {
             QString name;
             QString teacher;
             QList<LessonTime> times;
+            uint8_t status;
+
+            ~Course() = default;
 
             static Course fromJson(const QUuid &uuid, const QJsonObject &json) {
-                const QString name = json.value("name").toString();
-                const QString teacher = json.value("teacher").toString();
+                Course course;
+                course.uuid = uuid;
+                course.name = json.value("name").toString();
+                course.teacher = json.value("teacher").toString();
+                course.status = json.value("status").toInt();
                 QList<LessonTime> times;
                 for (const auto &t: json.value("times").toArray()) {
                     times.emplace_back(LessonTime::fromJson(t.toObject()));
                 }
-                return {uuid, name, teacher, times};
+                return course;
             }
 
             [[nodiscard]] QJsonObject toJson() const {
@@ -53,6 +67,7 @@ namespace aaims {
                 return {
                     {"name", name},
                     {"teacher", teacher},
+                    {"status", status},
                     {"times", t}
                 };
             }
@@ -132,7 +147,6 @@ namespace aaims {
             constexpr static int MASTER = 0b1000;
             constexpr static int SUSPENDED = 0b10000;
             constexpr static int CLASS_MASTER = 0b100000;
-            static constexpr auto EMPTY_UUID = QUuid();
 
             QUuid uuid = EMPTY_UUID;
             QString username;

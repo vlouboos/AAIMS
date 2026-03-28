@@ -8,6 +8,7 @@
 #include <QProgressDialog>
 
 #include "../dialogs/AddStudentDialog.h"
+#include "../dialogs/StudentDetailDialog.h"
 #include "../managements/AccountManager.h"
 #include "delegate/OperationDelegate.h"
 #include "model/FilterProxyModel.h"
@@ -93,16 +94,18 @@ StudentPage::StudentPage(QWidget *parent) : QWidget(parent) {
         }
     });
 
-    //connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
-    //    if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(proxyModel->mapToSource(index))]) {
-    //        if (StudentDetailDialog dialog(account, this); dialog.exec() == QDialog::Accepted) {
-    //            reloadData();
-    //        }
-    //    }
-    //});
+    connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
+        if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(
+            proxyModel->mapToSource(index))]) {
+            if (StudentDetailDialog dialog(account, this); dialog.exec() == QDialog::Accepted) {
+                reloadData();
+            }
+        }
+    });
 
     connect(delegate, &OperationDelegate::confirmDelete, [this](const QModelIndex &index) {
-        if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(proxyModel->mapToSource(index))]) {
+        if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(
+            proxyModel->mapToSource(index))]) {
             const auto result = QMessageBox::warning(this, "危险操作",
                                                      QString("确定要删除学生 %1 (%2) 吗？\n该操作不可撤销！").arg(
                                                          account->name, account->username),
@@ -123,6 +126,16 @@ StudentPage::StudentPage(QWidget *parent) : QWidget(parent) {
                     QMessageBox::information(this, "删除完成", QString("删除学生成功！"));
                 });
                 watcher->setFuture(future);
+            }
+        }
+    });
+
+
+    connect(tableView, &QTableView::doubleClicked, [this](const QModelIndex &index) {
+        if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(
+            proxyModel->mapToSource(index))]) {
+            if (StudentDetailDialog dialog(account, this); dialog.exec() == QDialog::Accepted) {
+                reloadData();
             }
         }
     });
