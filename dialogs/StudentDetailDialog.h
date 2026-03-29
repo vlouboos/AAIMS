@@ -22,6 +22,7 @@ public:
 private slots:
     void onSaveButtonClicked();
 
+private:
     QVBoxLayout *mainLayout;
     QLabel *headerLabel;
     QFormLayout *tableLayout;
