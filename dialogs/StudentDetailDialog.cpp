@@ -69,7 +69,7 @@ StudentDetailDialog::StudentDetailDialog(StudentAccount *account, QWidget *paren
     comboStatus->setPlaceholderText("请选择状态");
     comboStatus->addItems({"在校", "毕业", "休学"});
     if (account->is_graduated()) comboStatus->setCurrentIndex(1);
-    else if (account->is_graduated()) comboStatus->setCurrentIndex(2);
+    else if (account->is_suspended()) comboStatus->setCurrentIndex(2);
     else comboStatus->setCurrentIndex(0);
 
     editRoom = new QLineEdit(this);
@@ -144,6 +144,7 @@ void StudentDetailDialog::onSaveButtonClicked() {
             else break;
             aaims::manager::account::get_working_students()[account->uuid] = account;
             account->status &= ~Account::SUSPENDED & ~Account::GRADUATED;
+            break;
         }
         case 1: {
             if (account->is_suspended()) aaims::manager::account::get_suspended_students().remove(account->uuid);
@@ -152,6 +153,7 @@ void StudentDetailDialog::onSaveButtonClicked() {
             aaims::manager::account::get_graduated_students()[account->uuid] = account;
             account->status &= ~Account::SUSPENDED;
             account->status |= Account::GRADUATED;
+            break;
         }
         case 2: {
             if (account->is_graduated()) aaims::manager::account::get_graduated_students().remove(account->uuid);
@@ -160,6 +162,7 @@ void StudentDetailDialog::onSaveButtonClicked() {
             aaims::manager::account::get_suspended_students()[account->uuid] = account;
             account->status &= ~Account::GRADUATED;
             account->status |= Account::SUSPENDED;
+            break;
         }
         default: break;
     }
