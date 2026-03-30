@@ -3,7 +3,7 @@
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
 #include <QApplication>
-#include <iostream>
+#include <QCommandLineParser>
 
 #include "dialogs/AccountLoginDialog.h"
 #include "dialogs/oobeDialog.h"
@@ -13,6 +13,8 @@
 
 int main(int argc, char *argv[]) {
     const QApplication a(argc, argv);
+    QApplication::setApplicationName("AAIMS");
+
     qInfo() << "Loading departments & classes...";
     aaims::manager::classes::init();
     qInfo() << "Loading accounts...";

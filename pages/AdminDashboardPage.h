@@ -2,8 +2,8 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef AAIMS_DASHBOARDPAGE_H
-#define AAIMS_DASHBOARDPAGE_H
+#ifndef AAIMS_ADMINDASHBOARDPAGE_H
+#define AAIMS_ADMINDASHBOARDPAGE_H
 
 #include <QLabel>
 #include <QVBoxLayout>
@@ -29,4 +29,4 @@ private:
 };
 
 
-#endif //AAIMS_DASHBOARDPAGE_H
+#endif //AAIMS_ADMINDASHBOARDPAGE_H

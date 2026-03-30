@@ -2,19 +2,19 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#include "ClassPage.h"
+#include "AdminStudentPage.h"
 
 #include <QFutureWatcher>
 #include <QProgressDialog>
 
-#include "../dialogs/AddClassDialog.h"
-#include "../dialogs/ClassDetailDialog.h"
-#include "../managements/ClassManager.h"
+#include "../dialogs/AddStudentDialog.h"
+#include "../dialogs/StudentDetailDialog.h"
+#include "../managements/AccountManager.h"
 #include "delegate/OperationDelegate.h"
 #include "model/FilterProxyModel.h"
 
-ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
-    tableModel = new ClassTableModel(this);
+AdminStudentPage::AdminStudentPage(QWidget *parent) : QWidget(parent) {
+    tableModel = new StudentTableModel(this);
     proxyModel = new FilterProxyModel(this);
     proxyModel->setSourceModel(tableModel);
     mainLayout = new QVBoxLayout(this);
@@ -25,7 +25,7 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
 
     titleContainer = new QVBoxLayout();
 
-    titleLabel = new QLabel("班级管理", this);
+    titleLabel = new QLabel("学生管理", this);
     titleLabel->setStyleSheet("font-size: 24px; font-weight: bold; color: #0f172a;");
 
     subtitleLabel = new QLabel("加载中", this);
@@ -35,18 +35,18 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
     titleContainer->addWidget(subtitleLabel);
 
     searchEdit = new QLineEdit(this);
-    searchEdit->setPlaceholderText("搜索班级名字、院系...");
+    searchEdit->setPlaceholderText("搜索学生姓名、学号...");
     searchEdit->setFixedWidth(280);
     searchEdit->setObjectName("SearchEdit");
 
-    btnAddClass = new QPushButton("+ 新增班级", this);
-    btnAddClass->setCursor(Qt::PointingHandCursor);
-    btnAddClass->setObjectName("AddElement");
+    btnAddStudent = new QPushButton("+ 新增学生", this);
+    btnAddStudent->setCursor(Qt::PointingHandCursor);
+    btnAddStudent->setObjectName("AddElement");
 
     headerLayout->addLayout(titleContainer);
     headerLayout->addStretch();
     headerLayout->addWidget(searchEdit);
-    headerLayout->addWidget(btnAddClass);
+    headerLayout->addWidget(btnAddStudent);
 
     mainLayout->addLayout(headerLayout);
 
@@ -88,38 +88,34 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
         proxyModel->setFilterFixedString(text);
     });
 
-    connect(btnAddClass, &QPushButton::clicked, [this] {
-        if (AddClassDialog dialog(this); dialog.exec() == QDialog::Accepted) {
+    connect(btnAddStudent, &QPushButton::clicked, [this] {
+        if (AddStudentDialog dialog(this); dialog.exec() == QDialog::Accepted) {
             reloadData();
         }
     });
 
     connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
-        if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
-            proxyModel->mapToSource(index))].get()) {
-            if (ClassDetailDialog dialog(cls, this); dialog.exec() == QDialog::Accepted) {
+        if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(
+            proxyModel->mapToSource(index))]) {
+            if (StudentDetailDialog dialog(account, this); dialog.exec() == QDialog::Accepted) {
                 reloadData();
             }
         }
     });
 
     connect(delegate, &OperationDelegate::confirmDelete, [this](const QModelIndex &index) {
-        if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
-            proxyModel->mapToSource(index))].get()) {
-            if (!cls->isEmpty()) {
-                QMessageBox::critical(this, "非法操作", "该教师有课程或是班主任，请先转移课程或转移班级！", QMessageBox::Ok);
-                return;
-            }
+        if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(
+            proxyModel->mapToSource(index))]) {
             const auto result = QMessageBox::warning(this, "危险操作",
-                                                     QString("确定要删除班级 %1 (%2) 吗？\n该操作不可撤销！").arg(
-                                                         cls->name, cls->grade),
+                                                     QString("确定要删除学生 %1 (%2) 吗？\n该操作不可撤销！").arg(
+                                                         account->name, account->username),
                                                      QMessageBox::Yes | QMessageBox::No);
 
             if (result == QMessageBox::Yes) {
                 auto *pd = new QProgressDialog("正在删除...", nullptr, 0, 0, this); // NOLINT
                 pd->setWindowModality(Qt::WindowModal);
                 pd->show();
-                aaims::manager::classes::removeClass(cls->uuid);
+                aaims::manager::account::remove(account);
                 reloadData();
                 const auto future = aaims::manager::account::saveAsync();
                 auto watcher = new QFutureWatcher<bool>(this); // NOLINT
@@ -127,29 +123,28 @@ ClassPage::ClassPage(QWidget *parent) : QWidget(parent) {
                     pd->close();
                     pd->deleteLater();
                     watcher->deleteLater();
-                    QMessageBox::information(this, "删除完成", QString("删除教师成功！"));
+                    QMessageBox::information(this, "删除完成", QString("删除学生成功！"));
                 });
                 watcher->setFuture(future);
             }
         }
     });
 
+
     connect(tableView, &QTableView::doubleClicked, [this](const QModelIndex &index) {
-                if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
-                    proxyModel->mapToSource(index))].get()) {
-                    if (ClassDetailDialog dialog(cls, this); dialog.exec() == QDialog::Accepted) {
-                        reloadData();
-                    }
-                }
+        if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(
+            proxyModel->mapToSource(index))]) {
+            if (StudentDetailDialog dialog(account, this); dialog.exec() == QDialog::Accepted) {
+                reloadData();
             }
-    );
+        }
+    });
 
     reloadData();
 }
 
-
-void ClassPage::reloadData() const {
-    tableModel->setClasss(aaims::manager::classes::get_classes().keys());
+void AdminStudentPage::reloadData() const {
+    tableModel->setStudents(aaims::manager::account::get_students().keys());
     proxyModel->sort(0);
-    subtitleLabel->setText(QString("管理系统内共 %1 个班级").arg(tableModel->rowCount(QModelIndex())));
+    subtitleLabel->setText(QString("管理系统内共 %1 名学生").arg(tableModel->rowCount(QModelIndex())));
 }

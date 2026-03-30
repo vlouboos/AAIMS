@@ -19,40 +19,50 @@ namespace aaims {
             constexpr static int ACCEPTING = 0b1;
             constexpr static int QUALIFYING = 0b10;
             constexpr static int STARTED = 0b100;
+            constexpr static int ENDED = 0b1000;
 
             struct LessonTime {
+                inline static const QString TIME_TABLE[] = {"8:00", "8:45", "9:55", "10:40", "11:25", "12:40", "13:25", "14:30", "15:15", "16:25", "17:10", "17:55", "19:30", "20:15", "21:00"};
+                int weekStart;
+                int weekEnd;
                 int dayOfWeek;
-                int startSection;
+                int startTime;
                 int duration;
 
                 ~LessonTime() = default;
 
                 static LessonTime fromJson(const QJsonObject &json) {
-                    return {json.value("day").toInt(), json.value("start").toInt(), json.value("duration").toInt()};
+                    return {json.value("weekStart").toInt(), json.value("weekEnd").toInt(), json.value("day").toInt(), json.value("start").toInt(), json.value("duration").toInt()};
                 }
 
                 [[nodiscard]] QJsonObject toJson() const {
                     return {
+                        {"weekStart", weekStart},
+                        {"weekEnd", weekEnd},
                         {"day", dayOfWeek},
-                        {"start", startSection},
+                        {"start", startTime},
                         {"duration", duration}
                     };
                 }
             };
 
             QUuid uuid;
+            QString id;
             QString name;
             QString teacher;
+            int credit = 0;
+            uint8_t status = 0;
             QList<LessonTime> times;
-            uint8_t status;
 
             ~Course() = default;
 
             static Course fromJson(const QUuid &uuid, const QJsonObject &json) {
                 Course course;
                 course.uuid = uuid;
+                course.id = json.value("id").toString();
                 course.name = json.value("name").toString();
                 course.teacher = json.value("teacher").toString();
+                course.credit = json.value("credit").toInt();
                 course.status = json.value("status").toInt();
                 QList<LessonTime> times;
                 for (const auto &t: json.value("times").toArray()) {
@@ -64,9 +74,10 @@ namespace aaims {
             [[nodiscard]] QJsonObject toJson() const {
                 QJsonArray t;
                 for (const auto &x: this->times) { t.append(x.toJson()); }
-                return {
+                return {{"id", id},
                     {"name", name},
                     {"teacher", teacher},
+                    {"credit", credit},
                     {"status", status},
                     {"times", t}
                 };

@@ -112,14 +112,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     if (loggedAccount->is_master() || loggedAccount->is_admin()) {
         adminDashboardPage = new AdminDashboardPage(contentStack);
-        teacherPage = new TeacherPage(contentStack);
-        studentPage = new StudentPage(contentStack);
-        classPage = new ClassPage(contentStack);
+        teacherPage = new AdminTeacherPage(contentStack);
+        studentPage = new AdminStudentPage(contentStack);
+        classPage = new AdminClassPage(contentStack);
+        coursePage = new AdminCoursePage(contentStack);
 
         contentStack->addWidget(adminDashboardPage);
         contentStack->addWidget(teacherPage);
         contentStack->addWidget(studentPage);
         contentStack->addWidget(classPage);
+        contentStack->addWidget(coursePage);
     }
 
     rightLayout->addWidget(headerWidget);

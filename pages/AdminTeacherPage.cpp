@@ -2,19 +2,20 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#include "StudentPage.h"
+#include "AdminTeacherPage.h"
 
 #include <QFutureWatcher>
+#include <QHeaderView>
 #include <QProgressDialog>
 
-#include "../dialogs/AddStudentDialog.h"
-#include "../dialogs/StudentDetailDialog.h"
+#include "../dialogs/AddTeacherDialog.h"
+#include "../dialogs/TeacherDetailDialog.h"
 #include "../managements/AccountManager.h"
 #include "delegate/OperationDelegate.h"
 #include "model/FilterProxyModel.h"
 
-StudentPage::StudentPage(QWidget *parent) : QWidget(parent) {
-    tableModel = new StudentTableModel(this);
+AdminTeacherPage::AdminTeacherPage(QWidget *parent) : QWidget(parent) {
+    tableModel = new TeacherTableModel(this);
     proxyModel = new FilterProxyModel(this);
     proxyModel->setSourceModel(tableModel);
     mainLayout = new QVBoxLayout(this);
@@ -25,7 +26,7 @@ StudentPage::StudentPage(QWidget *parent) : QWidget(parent) {
 
     titleContainer = new QVBoxLayout();
 
-    titleLabel = new QLabel("学生管理", this);
+    titleLabel = new QLabel("教师管理", this);
     titleLabel->setStyleSheet("font-size: 24px; font-weight: bold; color: #0f172a;");
 
     subtitleLabel = new QLabel("加载中", this);
@@ -35,18 +36,18 @@ StudentPage::StudentPage(QWidget *parent) : QWidget(parent) {
     titleContainer->addWidget(subtitleLabel);
 
     searchEdit = new QLineEdit(this);
-    searchEdit->setPlaceholderText("搜索学生姓名、学号...");
+    searchEdit->setPlaceholderText("搜索教师姓名、工号...");
     searchEdit->setFixedWidth(280);
     searchEdit->setObjectName("SearchEdit");
 
-    btnAddStudent = new QPushButton("+ 新增学生", this);
-    btnAddStudent->setCursor(Qt::PointingHandCursor);
-    btnAddStudent->setObjectName("AddElement");
+    btnAddTeacher = new QPushButton("+ 新增教师", this);
+    btnAddTeacher->setCursor(Qt::PointingHandCursor);
+    btnAddTeacher->setObjectName("AddElement");
 
     headerLayout->addLayout(titleContainer);
     headerLayout->addStretch();
     headerLayout->addWidget(searchEdit);
-    headerLayout->addWidget(btnAddStudent);
+    headerLayout->addWidget(btnAddTeacher);
 
     mainLayout->addLayout(headerLayout);
 
@@ -74,7 +75,7 @@ StudentPage::StudentPage(QWidget *parent) : QWidget(parent) {
     tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     tableView->setColumnWidth(0, 120);
     tableView->setColumnWidth(1, 120);
-    tableView->setColumnWidth(4, 100);
+    tableView->setColumnWidth(4, 150);
     tableView->setColumnWidth(5, 120);
     tableView->setItemDelegateForColumn(5, delegate);
 
@@ -88,26 +89,30 @@ StudentPage::StudentPage(QWidget *parent) : QWidget(parent) {
         proxyModel->setFilterFixedString(text);
     });
 
-    connect(btnAddStudent, &QPushButton::clicked, [this] {
-        if (AddStudentDialog dialog(this); dialog.exec() == QDialog::Accepted) {
+    connect(btnAddTeacher, &QPushButton::clicked, [this] {
+        if (AddTeacherDialog dialog(this); dialog.exec() == QDialog::Accepted) {
             reloadData();
         }
     });
 
     connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
-        if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(
+        if (TeacherAccount *account = aaims::manager::account::get_teachers()[tableModel->getAccount(
             proxyModel->mapToSource(index))]) {
-            if (StudentDetailDialog dialog(account, this); dialog.exec() == QDialog::Accepted) {
+            if (TeacherDetailDialog dialog(account, this); dialog.exec() == QDialog::Accepted) {
                 reloadData();
             }
         }
     });
 
     connect(delegate, &OperationDelegate::confirmDelete, [this](const QModelIndex &index) {
-        if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(
+        if (TeacherAccount *account = aaims::manager::account::get_teachers()[tableModel->getAccount(
             proxyModel->mapToSource(index))]) {
+            if (account->is_occupied()) {
+                QMessageBox::critical(this, "非法操作", "该教师有课程或是班主任，请先转移课程或转移班级！", QMessageBox::Ok);
+                return;
+            }
             const auto result = QMessageBox::warning(this, "危险操作",
-                                                     QString("确定要删除学生 %1 (%2) 吗？\n该操作不可撤销！").arg(
+                                                     QString("确定要删除教师 %1 (%2) 吗？\n该操作不可撤销！").arg(
                                                          account->name, account->username),
                                                      QMessageBox::Yes | QMessageBox::No);
 
@@ -123,28 +128,29 @@ StudentPage::StudentPage(QWidget *parent) : QWidget(parent) {
                     pd->close();
                     pd->deleteLater();
                     watcher->deleteLater();
-                    QMessageBox::information(this, "删除完成", QString("删除学生成功！"));
+                    QMessageBox::information(this, "删除完成", QString("删除教师成功！"));
                 });
                 watcher->setFuture(future);
             }
         }
     });
 
-
     connect(tableView, &QTableView::doubleClicked, [this](const QModelIndex &index) {
-        if (StudentAccount *account = aaims::manager::account::get_students()[tableModel->getAccount(
-            proxyModel->mapToSource(index))]) {
-            if (StudentDetailDialog dialog(account, this); dialog.exec() == QDialog::Accepted) {
-                reloadData();
+                if (TeacherAccount *account = aaims::manager::account::get_teachers()[tableModel->getAccount(
+                    proxyModel->mapToSource(index))]) {
+                    if (TeacherDetailDialog dialog(account, this); dialog.exec() == QDialog::Accepted) {
+                        reloadData();
+                    }
+                }
             }
-        }
-    });
+    );
 
     reloadData();
 }
 
-void StudentPage::reloadData() const {
-    tableModel->setStudents(aaims::manager::account::get_students().keys());
+
+void AdminTeacherPage::reloadData() const {
+    tableModel->setTeachers(aaims::manager::account::get_teachers().keys());
     proxyModel->sort(0);
-    subtitleLabel->setText(QString("管理系统内共 %1 名学生").arg(tableModel->rowCount(QModelIndex())));
+    subtitleLabel->setText(QString("管理系统内共 %1 名教师").arg(tableModel->rowCount(QModelIndex())));
 }

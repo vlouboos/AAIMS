@@ -10,9 +10,10 @@
 #include <qlabel.h>
 
 #include "pages/AdminDashboardPage.h"
-#include "pages/ClassPage.h"
-#include "pages/StudentPage.h"
-#include "pages/TeacherPage.h"
+#include "pages/AdminClassPage.h"
+#include "pages/AdminCoursePage.h"
+#include "pages/AdminStudentPage.h"
+#include "pages/AdminTeacherPage.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -46,9 +47,10 @@ private:
     QPushButton *userMenuBtn;
     QStackedWidget *contentStack;
     AdminDashboardPage *adminDashboardPage;
-    TeacherPage *teacherPage;
-    StudentPage *studentPage;
-    ClassPage *classPage;
+    AdminTeacherPage *teacherPage;
+    AdminStudentPage *studentPage;
+    AdminClassPage *classPage;
+    AdminCoursePage *coursePage;
     CloseReason closeReason = CloseReason::Exit;
 
 protected:

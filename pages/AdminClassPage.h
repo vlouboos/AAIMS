@@ -2,24 +2,24 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef AAIMS_TEACHERPAGE_H
-#define AAIMS_TEACHERPAGE_H
+#ifndef AAIMS_ADMINCLASSPAGE_H
+#define AAIMS_ADMINCLASSPAGE_H
 
 #include <QTableView>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QSortFilterProxyModel>
 
-#include "model/TeacherTableModel.h"
+#include "model/ClassTableModel.h"
 
-class TeacherPage : public QWidget {
+class AdminClassPage : public QWidget {
     Q_OBJECT
 
 public:
-    explicit TeacherPage(QWidget *parent = nullptr);
-
-    ~TeacherPage() override = default;
+    explicit AdminClassPage(QWidget *parent = nullptr);
 
     void reloadData() const;
 
@@ -30,10 +30,10 @@ private:
     QLabel *titleLabel;
     QLabel *subtitleLabel;
     QLineEdit *searchEdit;
-    QPushButton *btnAddTeacher;
+    QPushButton *btnAddClass;
     QTableView *tableView;
-    TeacherTableModel *tableModel;
+    ClassTableModel *tableModel;
     QSortFilterProxyModel *proxyModel;
 };
 
-#endif //AAIMS_TEACHERPAGE_H
+#endif //AAIMS_ADMINCLASSPAGE_H

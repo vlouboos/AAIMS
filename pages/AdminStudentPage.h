@@ -2,8 +2,8 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef AAIMS_STUDENTPAGE_H
-#define AAIMS_STUDENTPAGE_H
+#ifndef AAIMS_ADMINSTUDENTPAGE_H
+#define AAIMS_ADMINSTUDENTPAGE_H
 
 #include <QTableView>
 #include <QLineEdit>
@@ -15,13 +15,13 @@
 
 #include "model/StudentTableModel.h"
 
-class StudentPage : public QWidget {
+class AdminStudentPage : public QWidget {
     Q_OBJECT
 
 public:
-    explicit StudentPage(QWidget *parent = nullptr);
+    explicit AdminStudentPage(QWidget *parent = nullptr);
 
-    ~StudentPage() override = default;
+    ~AdminStudentPage() override = default;
 
     void reloadData() const;
 
@@ -38,4 +38,4 @@ private:
     QSortFilterProxyModel *proxyModel;
 };
 
-#endif //AAIMS_STUDENTPAGE_H
+#endif //AAIMS_ADMINSTUDENTPAGE_H
