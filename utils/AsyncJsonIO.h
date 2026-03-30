@@ -13,6 +13,7 @@
 namespace aaims::io {
     static void load(const QString &filePath, const std::function<void(const QJsonObject &)> &consumer) {
         QFile file(filePath);
+        if (!file.exists()) return;
         if (!file.open(QIODevice::ReadOnly)) return;
 
         if (const QJsonDocument doc = QJsonDocument::fromJson(file.readAll()); doc.isObject()) {
@@ -24,6 +25,7 @@ namespace aaims::io {
     static QFuture<void> loadAsync(const QString &filePath, const std::function<void(const QJsonObject &)> &consumer) {
         return QtConcurrent::run([filePath, consumer] {
             QFile file(filePath);
+            if (!file.exists()) return;
             if (!file.open(QIODevice::ReadOnly)) return;
 
             if (const QJsonDocument doc = QJsonDocument::fromJson(file.readAll()); doc.isObject()) {

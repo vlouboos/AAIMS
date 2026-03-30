@@ -94,28 +94,25 @@ if (NOT MSVC)
 endif ()
 
 if (WIN32)
-    # 1. 确保获取了工具路径
-    get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
-    get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
-    find_program(QT_DEPLOY_TOOL NAMES windeployqt.exe windeployqt HINTS "${_qt_bin_dir}")
+    if (MSVC)
+        set(MANIFEST_FILE "${CMAKE_CURRENT_SOURCE_DIR}/manifest.xml")
+        add_custom_command(TARGET AAIMS POST_BUILD
+                COMMAND mt.exe -manifest ${MANIFEST_FILE} -outputresource:$<TARGET_FILE:AAIMS>;#1
+                COMMENT "Embedding UAC manifest..."
+        )
+    elseif (MINGW)
+        set(MANIFEST_FILE "${CMAKE_CURRENT_SOURCE_DIR}/manifest.xml")
+        set(RC_FILE "${CMAKE_CURRENT_BINARY_DIR}/resources.rc")
 
-    set(RELEASE_DIR "${CMAKE_SOURCE_DIR}/build/libs")
+        file(WRITE ${RC_FILE}
+                "1 24 \"${MANIFEST_FILE}\"\n"
+        )
 
-    add_custom_target(AlwaysDeploy ALL
-            DEPENDS ${PROJECT_NAME}
-            # A. 确保目录存在
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${RELEASE_DIR}"
+        add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/resources.o
+                COMMAND windres -i ${RC_FILE} -o ${CMAKE_CURRENT_BINARY_DIR}/resources.o
+                DEPENDS ${RC_FILE} ${MANIFEST_FILE}
+        )
 
-            # B. 强制拷贝 (即使文件已经存在也会覆盖)
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> "${RELEASE_DIR}/"
-
-            # C. 执行部署
-            COMMAND "${QT_DEPLOY_TOOL}"
-            --no-translations
-            --compiler-runtime
-            "${RELEASE_DIR}/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
-
-            COMMENT ">>> [Shadow Copy] Deploying to build/libs..."
-            VERBATIM
-    )
+        target_sources(AAIMS PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/resources.o)
+    endif ()
 endif ()
