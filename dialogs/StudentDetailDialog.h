@@ -32,6 +32,7 @@ private:
     QCompleter *completer;
     QComboBox *comboClass;
     QPushButton *btnAdd;
+    QComboBox *comboStatus;
     QLineEdit *editRoom;
     QLineEdit *editPhoneNumber;
     QHBoxLayout *btnLayout;

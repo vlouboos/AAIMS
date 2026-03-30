@@ -18,7 +18,7 @@
 StudentDetailDialog::StudentDetailDialog(StudentAccount *account, QWidget *parent) : StyledDialog(parent),
     account(account) {
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
-    setFixedSize(450, 320);
+    setFixedSize(450, 350);
     mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(15, 15, 15, 15);
     mainLayout->setAlignment(Qt::AlignCenter);
@@ -65,7 +65,15 @@ StudentDetailDialog::StudentDetailDialog(StudentAccount *account, QWidget *paren
     classLayout->addWidget(comboClass);
     classLayout->addWidget(btnAdd);
 
+    comboStatus = new QComboBox(this);
+    comboStatus->setPlaceholderText("请选择状态");
+    comboStatus->addItems({"在校", "毕业", "休学"});
+    if (account->is_graduated()) comboStatus->setCurrentIndex(1);
+    else if (account->is_graduated()) comboStatus->setCurrentIndex(2);
+    else comboStatus->setCurrentIndex(0);
+
     editRoom = new QLineEdit(this);
+    editRoom->setText(account->dormitory);
 
     editPhoneNumber = new QLineEdit(this);
     editPhoneNumber->setText(account->phoneNumber);
@@ -74,6 +82,7 @@ StudentDetailDialog::StudentDetailDialog(StudentAccount *account, QWidget *paren
     tableLayout->addRow("用户名:", editId);
     tableLayout->addRow("姓名:", editName);
     tableLayout->addRow("班级:", classLayout);
+    tableLayout->addRow("状态:", comboStatus);
     tableLayout->addRow("宿舍:", editRoom);
     tableLayout->addRow("手机号码:", editPhoneNumber);
 
@@ -128,6 +137,27 @@ void StudentDetailDialog::onSaveButtonClicked() {
     account->name = editName->text().trimmed();
     account->currentClass = clsUuid;
     account->phoneNumber = editPhoneNumber->text().trimmed();
+    switch (comboStatus->currentIndex()) {
+        case 0: {
+            if (account->is_suspended()) aaims::manager::account::get_suspended_students().remove(account->uuid);
+            else if (account->is_graduated()) aaims::manager::account::get_graduated_students().remove(account->uuid);
+            else break;
+            aaims::manager::account::get_working_students()[account->uuid] = account;
+        }
+        case 1: {
+            if (account->is_suspended()) aaims::manager::account::get_suspended_students().remove(account->uuid);
+            else if (!account->is_graduated()) aaims::manager::account::get_working_students().remove(account->uuid);
+            else break;
+            aaims::manager::account::get_graduated_students()[account->uuid] = account;
+        }
+        case 2: {
+            if (account->is_graduated()) aaims::manager::account::get_graduated_students().remove(account->uuid);
+            else if (!account->is_suspended()) aaims::manager::account::get_working_students().remove(account->uuid);
+            else break;
+            aaims::manager::account::get_suspended_students()[account->uuid] = account;
+        }
+        default: break;
+    }
     const auto future = QtConcurrent::run([] { return aaims::manager::account::save(); });
     auto watcher = new QFutureWatcher<bool>(this); // NOLINT
     connect(watcher, &QFutureWatcherBase::finished, [this, pd, watcher] {
