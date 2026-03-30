@@ -143,18 +143,23 @@ void StudentDetailDialog::onSaveButtonClicked() {
             else if (account->is_graduated()) aaims::manager::account::get_graduated_students().remove(account->uuid);
             else break;
             aaims::manager::account::get_working_students()[account->uuid] = account;
+            account->status &= ~Account::SUSPENDED & ~Account::GRADUATED;
         }
         case 1: {
             if (account->is_suspended()) aaims::manager::account::get_suspended_students().remove(account->uuid);
             else if (!account->is_graduated()) aaims::manager::account::get_working_students().remove(account->uuid);
             else break;
             aaims::manager::account::get_graduated_students()[account->uuid] = account;
+            account->status &= ~Account::SUSPENDED;
+            account->status |= Account::GRADUATED;
         }
         case 2: {
             if (account->is_graduated()) aaims::manager::account::get_graduated_students().remove(account->uuid);
             else if (!account->is_suspended()) aaims::manager::account::get_working_students().remove(account->uuid);
             else break;
             aaims::manager::account::get_suspended_students()[account->uuid] = account;
+            account->status &= ~Account::GRADUATED;
+            account->status |= Account::SUSPENDED;
         }
         default: break;
     }
