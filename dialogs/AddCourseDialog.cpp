@@ -10,9 +10,10 @@
 #include <QGroupBox>
 
 AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    mainLayout = new QVBoxLayout(this);
 
-    QFormLayout *formLayout = new QFormLayout();
+    formLayout = new QFormLayout();
+
     editId = new QLineEdit(this);
     editName = new QLineEdit(this);
     editInstructor = new QLineEdit(this);
@@ -20,7 +21,7 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     comboCredits = new QComboBox(this);
     for (int i = 1; i <= 6; ++i) comboCredits->addItem(QString::number(i) + " 学分", i);
 
-    QHBoxLayout *weekLayout = new QHBoxLayout();
+    weekLayout = new QHBoxLayout();
     comboWeekStart = new QComboBox(this);
     comboWeekEnd = new QComboBox(this);
     for (int i = 1; i <= 20; ++i) {
@@ -43,10 +44,10 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     mainLayout->addLayout(formLayout);
 
     // 2. 动态时间段区域 (上课时间段)
-    QGroupBox *timeGroup = new QGroupBox("上课时间", this);
-    QVBoxLayout *groupLayout = new QVBoxLayout(timeGroup);
+    timeGroup = new QGroupBox("上课时间", this);
+    groupLayout = new QVBoxLayout(timeGroup);
 
-    QPushButton *btnAddSlot = new QPushButton("+ 添加时段", this);
+    btnAddSlot = new QPushButton("+ 添加时段", this);
     connect(btnAddSlot, &QPushButton::clicked, this, &AddCourseDialog::onAddSlotClicked);
     groupLayout->addWidget(btnAddSlot, 0, Qt::AlignRight);
 
@@ -55,9 +56,9 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     mainLayout->addWidget(timeGroup);
 
     // 3. 底部按钮
-    QHBoxLayout *btnLayout = new QHBoxLayout();
-    QPushButton *btnCancel = new QPushButton("取消", this);
-    QPushButton *btnSave = new QPushButton("添加", this);
+    btnLayout = new QHBoxLayout();
+    btnCancel = new QPushButton("取消", this);
+    btnSave = new QPushButton("添加", this);
 
     // Qt 默认行为绑定
     connect(btnCancel, &QPushButton::clicked, this, &QDialog::reject);
@@ -70,11 +71,14 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     setWindowTitle("添加课程");
     resize(500, 600);
 
+    const auto w = new TimeSlot(Course::LessonTime(), this);
+    timeSlotsLayout->addWidget(w);
+    slotWidgets.append(w);
     applyStyles();
 }
 
 void AddCourseDialog::onAddSlotClicked() {
-    auto w = new TimeSlot(Course::LessonTime(), this);
+    const auto w = new TimeSlot(Course::LessonTime(), this);
     //connect(w, &TimeSlot::removeRequested, this, &AddCourseDialog::onRemoveSlotRequested);
     timeSlotsLayout->addWidget(w);
     slotWidgets.append(w);

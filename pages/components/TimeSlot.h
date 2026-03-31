@@ -21,7 +21,7 @@ class TimeSlot : public QWidget {
     Q_OBJECT
 
 public:
-    explicit TimeSlot(const Course::LessonTime &slot, QWidget *parent = nullptr);
+    explicit TimeSlot(const Course::LessonTime &l, QWidget *parent = nullptr);
 
     [[nodiscard]] Course::LessonTime getData() const;
 

@@ -6,11 +6,12 @@
 #define AAIMS_ADDCOURSEDIALOG_H
 
 #pragma once
+#include <qformlayout.h>
+#include <qgroupbox.h>
 #include <QLineEdit>
 
 #include "StyledDialog.h"
 #include "../pages/components/TimeSlot.h"
-#include "../utils/DataStructures.h"
 
 class AddCourseDialog : public StyledDialog {
     Q_OBJECT
@@ -24,14 +25,23 @@ private slots:
     void onRemoveSlotRequested(TimeSlot *widget);
 
 private:
+    QVBoxLayout *mainLayout;
+    QFormLayout *formLayout;
     QLineEdit *editId;
     QLineEdit *editName;
     QLineEdit *editInstructor;
     QComboBox *comboCredits;
+    QHBoxLayout *weekLayout;
     QComboBox *comboWeekStart;
     QComboBox *comboWeekEnd;
+    QGroupBox *timeGroup;
     QVBoxLayout *timeSlotsLayout;
+    QVBoxLayout *groupLayout;
+    QPushButton *btnAddSlot;
     QList<TimeSlot *> slotWidgets;
+    QHBoxLayout *btnLayout;
+    QPushButton *btnCancel;
+    QPushButton *btnSave;
 
     bool validateForm();
 };
