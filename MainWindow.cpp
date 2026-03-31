@@ -51,6 +51,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         btnClasses = new QPushButton("班级", sidebarWidget);
         btnClasses->setProperty("class", "category-button");
         btnClasses->setCheckable(true);
+
+        btnCourses = new QPushButton("课程", sidebarWidget);
+        btnCourses->setProperty("class", "category-button");
+        btnCourses->setCheckable(true);
     }
 
     sidebarLayout->addWidget(logoLabel);
@@ -60,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         sidebarLayout->addWidget(btnStudents);
         sidebarLayout->addWidget(btnClasses);
     }
+    sidebarLayout->addWidget(btnCourses);
     sidebarLayout->addStretch();
 
     rightContainer = new QWidget(centralWidget);
@@ -90,15 +95,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     userMenuBtn->setText(loggedAccount->name + '(' + loggedAccount->username + ") ");
     // Add a space to prevent something strange from happening.
     if (loggedAccount->is_master()) {
-        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #AA0000; background: transparent;");
+        userMenuBtn->setStyleSheet(
+            "font-size: 12px; font-weight: 600; border: 0; color: #AA0000; background: transparent;");
     } else if (loggedAccount->is_admin()) {
-        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #FF5555; background: transparent;");
+        userMenuBtn->setStyleSheet(
+            "font-size: 12px; font-weight: 600; border: 0; color: #FF5555; background: transparent;");
     } else if (loggedAccount->is_teacher()) {
-        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #55FF55; background: transparent;");
+        userMenuBtn->setStyleSheet(
+            "font-size: 12px; font-weight: 600; border: 0; color: #55FF55; background: transparent;");
     } else if (loggedAccount->is_graduated()) {
-        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #555555; background: transparent;");
+        userMenuBtn->setStyleSheet(
+            "font-size: 12px; font-weight: 600; border: 0; color: #555555; background: transparent;");
     } else {
-        userMenuBtn->setStyleSheet("font-size: 12px; font-weight: 600; border: 0; color: #000000; background: transparent;");
+        userMenuBtn->setStyleSheet(
+            "font-size: 12px; font-weight: 600; border: 0; color: #000000; background: transparent;");
     }
     userMenuBtn->setMenu(menu);
 
@@ -134,15 +144,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         this->setStyleSheet(file.readAll());
     }
 
-    connect(btnDashboard, &QPushButton::clicked, [this] {
-        contentStack->setCurrentIndex(0);
-        pageTitleLabel->setText("仪表盘");
-        btnDashboard->setChecked(true);
-        btnTeachers->setChecked(false);
-        btnStudents->setChecked(false);
-        btnClasses->setChecked(false);
-    });
     if (loggedAccount->is_master() || loggedAccount->is_admin()) {
+        connect(btnDashboard, &QPushButton::clicked, [this] {
+            contentStack->setCurrentIndex(0);
+            pageTitleLabel->setText("仪表盘");
+            btnDashboard->setChecked(true);
+            btnTeachers->setChecked(false);
+            btnStudents->setChecked(false);
+            btnClasses->setChecked(false);
+        });
         connect(btnTeachers, &QPushButton::clicked, [this] {
             contentStack->setCurrentIndex(1);
             pageTitleLabel->setText("教师");
@@ -150,6 +160,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             btnTeachers->setChecked(true);
             btnStudents->setChecked(false);
             btnClasses->setChecked(false);
+            btnCourses->setChecked(false);
         });
         connect(btnStudents, &QPushButton::clicked, [this] {
             contentStack->setCurrentIndex(2);
@@ -158,6 +169,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             btnTeachers->setChecked(false);
             btnStudents->setChecked(true);
             btnClasses->setChecked(false);
+            btnCourses->setChecked(false);
         });
         connect(btnClasses, &QPushButton::clicked, [this] {
             contentStack->setCurrentIndex(3);
@@ -166,6 +178,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             btnTeachers->setChecked(false);
             btnStudents->setChecked(false);
             btnClasses->setChecked(true);
+            btnCourses->setChecked(false);
+        });
+        connect(btnCourses, &QPushButton::clicked, [this] {
+            contentStack->setCurrentIndex(4);
+            pageTitleLabel->setText("课程");
+            btnDashboard->setChecked(false);
+            btnTeachers->setChecked(false);
+            btnStudents->setChecked(false);
+            btnClasses->setChecked(false);
+            btnCourses->setChecked(true);
         });
     }
     connect(logoutAction, &QAction::triggered, [this] {

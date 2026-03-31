@@ -9,9 +9,7 @@
 #include <QLabel>
 #include <QGroupBox>
 
-AddCourseDialog::AddCourseDialog(const Course& initialData, QWidget *parent)
-    : StyledDialog(parent), data(initialData)
-{
+AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
     QFormLayout *formLayout = new QFormLayout();
@@ -20,12 +18,12 @@ AddCourseDialog::AddCourseDialog(const Course& initialData, QWidget *parent)
     editInstructor = new QLineEdit(this);
 
     comboCredits = new QComboBox(this);
-    for(int i=1; i<=6; ++i) comboCredits->addItem(QString::number(i) + " 学分", i);
+    for (int i = 1; i <= 6; ++i) comboCredits->addItem(QString::number(i) + " 学分", i);
 
     QHBoxLayout *weekLayout = new QHBoxLayout();
     comboWeekStart = new QComboBox(this);
     comboWeekEnd = new QComboBox(this);
-    for(int i=1; i<=20; ++i) {
+    for (int i = 1; i <= 20; ++i) {
         comboWeekStart->addItem(QString::number(i), i);
         comboWeekEnd->addItem(QString::number(i), i);
     }
@@ -68,17 +66,11 @@ AddCourseDialog::AddCourseDialog(const Course& initialData, QWidget *parent)
     btnLayout->addWidget(btnCancel);
     btnLayout->addWidget(btnSave);
     mainLayout->addLayout(btnLayout);
-    populateData();
 
     setWindowTitle("添加课程");
     resize(500, 600);
-}
 
-void AddCourseDialog::populateData() {
-    data.times.append(Course::LessonTime());
-
-    for (const auto& slot : data.times) {
-    }
+    applyStyles();
 }
 
 void AddCourseDialog::onAddSlotClicked() {
@@ -88,7 +80,7 @@ void AddCourseDialog::onAddSlotClicked() {
     slotWidgets.append(w);
 }
 
-void AddCourseDialog::onRemoveSlotRequested(TimeSlot* widget) {
+void AddCourseDialog::onRemoveSlotRequested(TimeSlot *widget) {
     if (slotWidgets.size() <= 1) {
         QMessageBox::warning(this, "提示", "至少需要保留一个上课时间段！");
         return;
@@ -113,7 +105,7 @@ bool AddCourseDialog::validateForm() {
         return false;
     }
 
-    for (const auto* w : slotWidgets) {
+    for (const auto *w: slotWidgets) {
         const auto data = w->getData();
         if (data.startTime + data.duration > 15) {
             QMessageBox::warning(this, "时间冲突", "排课时间超出了当天的最大课节范围！");
@@ -127,8 +119,4 @@ bool AddCourseDialog::validateForm() {
     }
 
     return true;
-}
-
-Course AddCourseDialog::getCourseData() const {
-    return data;
 }

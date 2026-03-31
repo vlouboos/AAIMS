@@ -76,7 +76,7 @@ public:
     [[nodiscard]] QVariant
     headerData(const int section, const Qt::Orientation orientation, const int role) const override {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-            static const QStringList headers = {"学号", "姓名", "班级", "宿舍",  "状态", "操作"};
+            static const QStringList headers = {"学号", "姓名", "班级", "宿舍", "状态", "操作"};
             return headers[section];
         }
         return {};

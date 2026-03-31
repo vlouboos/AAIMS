@@ -15,7 +15,10 @@ namespace aaims::manager::course {
     QString add(const std::shared_ptr<Course> &course);
 
     void remove(const Course *course);
-};
 
+    QHash<QUuid, std::shared_ptr<Course>> get_courses();
+
+    bool save();
+}
 
 #endif //AAIMS_COURSEMANAGER_H

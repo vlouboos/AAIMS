@@ -22,7 +22,10 @@ namespace aaims {
             constexpr static int ENDED = 0b1000;
 
             struct LessonTime {
-                inline static const QString TIME_TABLE[] = {"8:00", "8:45", "9:55", "10:40", "11:25", "12:40", "13:25", "14:30", "15:15", "16:25", "17:10", "17:55", "19:30", "20:15", "21:00"};
+                inline static const QString TIME_TABLE[] = {
+                    "8:00", "8:45", "9:55", "10:40", "11:25", "12:40", "13:25", "14:30", "15:15", "16:25", "17:10",
+                    "17:55", "19:30", "20:15", "21:00"
+                };
                 int weekStart;
                 int weekEnd;
                 int dayOfWeek;
@@ -32,7 +35,10 @@ namespace aaims {
                 ~LessonTime() = default;
 
                 static LessonTime fromJson(const QJsonObject &json) {
-                    return {json.value("weekStart").toInt(), json.value("weekEnd").toInt(), json.value("day").toInt(), json.value("start").toInt(), json.value("duration").toInt()};
+                    return {
+                        json.value("weekStart").toInt(), json.value("weekEnd").toInt(), json.value("day").toInt(),
+                        json.value("start").toInt(), json.value("duration").toInt()
+                    };
                 }
 
                 [[nodiscard]] QJsonObject toJson() const {
@@ -56,6 +62,14 @@ namespace aaims {
 
             ~Course() = default;
 
+            [[nodiscard]] bool is_accepting() const { return (status & ACCEPTING) != 0; }
+
+            [[nodiscard]] bool is_qualifying() const { return (status & QUALIFYING) != 0; }
+
+            [[nodiscard]] bool is_started() const { return (status & STARTED) != 0; }
+
+            [[nodiscard]] bool is_ended() const { return (status & ENDED) != 0; }
+
             static Course fromJson(const QUuid &uuid, const QJsonObject &json) {
                 Course course;
                 course.uuid = uuid;
@@ -74,7 +88,8 @@ namespace aaims {
             [[nodiscard]] QJsonObject toJson() const {
                 QJsonArray t;
                 for (const auto &x: this->times) { t.append(x.toJson()); }
-                return {{"id", id},
+                return {
+                    {"id", id},
                     {"name", name},
                     {"teacher", teacher},
                     {"credit", credit},

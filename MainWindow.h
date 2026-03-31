@@ -36,6 +36,7 @@ private:
     QPushButton *btnTeachers;
     QPushButton *btnStudents;
     QPushButton *btnClasses;
+    QPushButton *btnCourses;
     QWidget *rightContainer;
     QVBoxLayout *rightLayout;
     QWidget *headerWidget;

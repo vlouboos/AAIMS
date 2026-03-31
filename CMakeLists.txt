@@ -77,6 +77,7 @@ if (WIN32)
             pages/components/TimeSlot.cpp
             pages/AdminCoursePage.cpp
             pages/AdminCoursePage.h
+            pages/model/CourseTableModel.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -138,6 +139,7 @@ else ()
             pages/components/TimeSlot.cpp
             pages/AdminCoursePage.cpp
             pages/AdminCoursePage.h
+            pages/model/CourseTableModel.h
     )
 endif ()
 

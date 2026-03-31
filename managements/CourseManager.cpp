@@ -36,4 +36,19 @@ namespace aaims::manager::course {
     void remove(const Course *course) {
         courses.remove(course->uuid);
     }
+
+    QHash<QUuid, std::shared_ptr<Course>> get_courses() {
+        return courses;
+    }
+
+    bool save() {
+        const QString path = QCoreApplication::applicationDirPath() + "/data/courses.json";
+        QJsonObject json;
+        for (const auto &key : courses.keys()) {
+            QUuid uuid = key;
+            QJsonObject course = courses[key]->toJson();
+            json.insert(uuid.toString(QUuid::WithoutBraces), course);
+        }
+        return io::save(path, json);
+    }
 }

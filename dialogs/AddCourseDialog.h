@@ -13,9 +13,10 @@
 #include "../utils/DataStructures.h"
 
 class AddCourseDialog : public StyledDialog {
-    explicit AddCourseDialog(const Course &initialData, QWidget *parent = nullptr);
+    Q_OBJECT
 
-    [[nodiscard]] Course getCourseData() const;
+public:
+    explicit AddCourseDialog(QWidget *parent = nullptr);
 
 private slots:
     void onAddSlotClicked();
@@ -31,9 +32,6 @@ private:
     QComboBox *comboWeekEnd;
     QVBoxLayout *timeSlotsLayout;
     QList<TimeSlot *> slotWidgets;
-    Course data;
-
-    void populateData();
 
     bool validateForm();
 };

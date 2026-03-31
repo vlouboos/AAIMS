@@ -4,13 +4,36 @@
 
 #ifndef AAIMS_ADMINCOURSEPAGE_H
 #define AAIMS_ADMINCOURSEPAGE_H
+
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QSortFilterProxyModel>
+#include <QTableView>
+#include <QVBoxLayout>
 #include <QWidget>
+
+#include "model/CourseTableModel.h"
 
 class AdminCoursePage : public QWidget {
     Q_OBJECT
 
 public:
     explicit AdminCoursePage(QWidget *parent = nullptr);
+
+private:
+    QVBoxLayout *mainLayout;
+    QHBoxLayout *headerLayout;
+    QVBoxLayout *titleContainer;
+    QLabel *titleLabel;
+    QLabel *subtitleLabel;
+    QLineEdit *searchEdit;
+    QPushButton *btnAddStudent;
+    QTableView *tableView;
+    CourseTableModel *tableModel;
+    QSortFilterProxyModel *proxyModel;
+
+    void reloadData() const;
 };
 
 #endif //AAIMS_ADMINCOURSEPAGE_H
