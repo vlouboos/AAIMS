@@ -23,10 +23,10 @@ class TimeSlot : public QWidget {
 public:
     explicit TimeSlot(const Course::LessonTime &l, QWidget *parent = nullptr);
 
-    [[nodiscard]] Course::LessonTime getData() const;
+    [[nodiscard]] Course::LessonTime toData() const;
 
 signals:
-    void removeRequested(TimeSlot *widget);
+    void removeRequested();
 
 private:
     QHBoxLayout *layout;

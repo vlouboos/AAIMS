@@ -6,16 +6,14 @@
 
 #include <QLabel>
 
-TimeSlot::TimeSlot(const Course::LessonTime& l, QWidget *parent)
-    : QWidget(parent)
-{
+TimeSlot::TimeSlot(const Course::LessonTime &l, QWidget *parent) : QWidget(parent) {
     layout = new QHBoxLayout(this);
 
     comboDay = new QComboBox(this);
     comboDay->addItems({"周一", "周二", "周三", "周四", "周五", "周六", "周日"});
 
     comboStart = new QComboBox(this);
-    for(int i = 0; i < 15; ++i) {
+    for (int i = 0; i < 15; ++i) {
         comboStart->addItem(QString("第 %1 节 (%2)").arg(i + 1).arg(Course::LessonTime::TIME_TABLE[i]), i);
     }
     comboStart->setCurrentIndex(l.startTime);
@@ -37,19 +35,23 @@ TimeSlot::TimeSlot(const Course::LessonTime& l, QWidget *parent)
     btnRemove->setFixedWidth(30);
 
     layout->addWidget(comboDay);
-    layout->addWidget(new QLabel("从"));
+    layout->addWidget(new QLabel("从", this));
     layout->addWidget(comboStart);
-    layout->addWidget(new QLabel("上"));
+    layout->addWidget(new QLabel("开始上", this));
     layout->addWidget(duration);
-    layout->addWidget(new QLabel(" | 第"));
+    layout->addWidget(new QLabel(" | 第", this));
     layout->addWidget(weekStart);
-    layout->addWidget(new QLabel("-"));
+    layout->addWidget(new QLabel("-", this));
     layout->addWidget(weekEnd);
-    layout->addWidget(new QLabel("周"));
+    layout->addWidget(new QLabel("周", this));
     layout->addWidget(btnRemove);
+
+    connect(btnRemove, &QPushButton::clicked, this, [this] {
+        emit removeRequested();
+    });
 }
 
-Course::LessonTime TimeSlot::getData() const {
+Course::LessonTime TimeSlot::toData() const {
     Course::LessonTime s{};
     s.dayOfWeek = comboDay->currentIndex();
     s.startTime = comboStart->currentIndex();

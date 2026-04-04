@@ -22,8 +22,6 @@ public:
 private slots:
     void onAddSlotClicked();
 
-    void onRemoveSlotRequested(TimeSlot *widget);
-
 private:
     QVBoxLayout *mainLayout;
     QFormLayout *formLayout;
@@ -31,9 +29,6 @@ private:
     QLineEdit *editName;
     QLineEdit *editInstructor;
     QComboBox *comboCredits;
-    QHBoxLayout *weekLayout;
-    QComboBox *comboWeekStart;
-    QComboBox *comboWeekEnd;
     QGroupBox *timeGroup;
     QVBoxLayout *timeSlotsLayout;
     QVBoxLayout *groupLayout;
@@ -44,6 +39,8 @@ private:
     QPushButton *btnSave;
 
     bool validateForm();
+
+    void removeSlot(TimeSlot *slot);
 };
 
 #endif //AAIMS_ADDCOURSEDIALOG_H
