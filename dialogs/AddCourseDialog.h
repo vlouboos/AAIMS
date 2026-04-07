@@ -27,7 +27,10 @@ private:
     QFormLayout *formLayout;
     QLineEdit *editId;
     QLineEdit *editName;
-    QLineEdit *editInstructor;
+    QHBoxLayout *teacherLayout;
+    QComboBox *comboTeacher;
+    QCompleter *teacherCompleter;
+    QPushButton *btnAddTeacher;
     QComboBox *comboCredits;
     QGroupBox *timeGroup;
     QVBoxLayout *timeSlotsLayout;

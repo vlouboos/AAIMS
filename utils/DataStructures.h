@@ -55,7 +55,7 @@ namespace aaims {
             QUuid uuid;
             QString id;
             QString name;
-            QString teacher;
+            QUuid teacher;
             int credit = 0;
             uint8_t status = 0;
             QList<LessonTime> times;
@@ -75,7 +75,7 @@ namespace aaims {
                 course.uuid = uuid;
                 course.id = json.value("id").toString();
                 course.name = json.value("name").toString();
-                course.teacher = json.value("teacher").toString();
+                course.teacher = QUuid::fromString(json.value("teacher").toString());
                 course.credit = json.value("credit").toInt();
                 course.status = json.value("status").toInt();
                 QList<LessonTime> times;
@@ -91,7 +91,7 @@ namespace aaims {
                 return {
                     {"id", id},
                     {"name", name},
-                    {"teacher", teacher},
+                    {"teacher", teacher.toString(QUuid::WithoutBraces)},
                     {"credit", credit},
                     {"status", status},
                     {"times", t}

@@ -4,10 +4,17 @@
 
 #include "AddCourseDialog.h"
 
+#include <QCompleter>
 #include <QFormLayout>
+#include <QFutureWatcher>
 #include <QMessageBox>
 #include <QLabel>
 #include <QGroupBox>
+#include <QProgressDialog>
+#include <qtconcurrentrun.h>
+
+#include "../managements/AccountManager.h"
+#include "../managements/CourseManager.h"
 
 AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     mainLayout = new QVBoxLayout(this);
@@ -16,14 +23,40 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
 
     editId = new QLineEdit(this);
     editName = new QLineEdit(this);
-    editInstructor = new QLineEdit(this);
+
+    teacherLayout = new QHBoxLayout();
+
+    comboTeacher = new QComboBox(this);
+    const auto &teachers = aaims::manager::account::get_teachers();
+    for (auto it = teachers.begin(); it != teachers.end(); ++it) {
+        QString display = QString("%1(%2)").arg((*it)->name, (*it)->department);
+        comboTeacher->addItem(display, (*it)->uuid);
+    }
+    comboTeacher->setEditable(true);
+    comboTeacher->setPlaceholderText("例如: 张三");
+    comboTeacher->setInsertPolicy(QComboBox::NoInsert);
+
+    teacherCompleter = new QCompleter(comboTeacher->model());
+    teacherCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    teacherCompleter->setFilterMode(Qt::MatchContains);
+    teacherCompleter->setCompletionMode(QCompleter::InlineCompletion);
+
+    comboTeacher->setCompleter(teacherCompleter);
+
+    btnAddTeacher = new QPushButton("+", this);
+    btnAddTeacher->setStyleSheet("padding: 0; margin: 0;");
+    btnAddTeacher->setObjectName("AddElement");
+    btnAddTeacher->setFixedSize(24, 24);
+
+    teacherLayout->addWidget(comboTeacher);
+    teacherLayout->addWidget(btnAddTeacher);
 
     comboCredits = new QComboBox(this);
     for (int i = 1; i <= 4; i++) comboCredits->addItem(QString::number(i) + " 学分", i);
 
     formLayout->addRow("课程编号:", editId);
     formLayout->addRow("课程名称:", editName);
-    formLayout->addRow("授课教师:", editInstructor);
+    formLayout->addRow("授课教师:", teacherLayout);
     formLayout->addRow("学分:", comboCredits);
 
     timeGroup = new QGroupBox("上课时间", this);
@@ -55,7 +88,37 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     connect(w, &TimeSlot::removeRequested, this, [this, w] { removeSlot(w); });
     connect(btnSave, &QPushButton::clicked, this, [this] {
         if (validateForm()) {
-            accept();
+            auto *pd = new QProgressDialog("正在添加...", nullptr, 0, 0, this); // NOLINT
+            pd->setWindowModality(Qt::WindowModal);
+            pd->show();
+            const auto course = std::make_shared<Course>();
+
+            TeacherAccount *teacher = aaims::manager::account::get_teachers()[comboTeacher->currentData().value<
+                QUuid>()];
+            if (teacher->is_class_master()) {
+                QMessageBox::warning(this, "输入错误", "该老师已经是另一班级的班主任！");
+                return;
+            }
+            course->id = editId->text().trimmed();
+            course->name = editName->text().trimmed();
+            course->teacher = teacher->uuid;
+            course->credit = comboCredits->currentData().value<int>();
+            course->status = Course::ACCEPTING;
+            for (const auto &x: slotWidgets) {
+                course->times.append(x->toData());
+            }
+            aaims::manager::course::add(course);
+            teacher->teachingClasses.append(course->uuid);
+            const auto future = QtConcurrent::run([] { return aaims::manager::course::save(); });
+            const auto watcher = new QFutureWatcher<bool>(this); // NOLINT
+            connect(watcher, &QFutureWatcher<bool>::finished, this, [this, pd, watcher] {
+                pd->close();
+                pd->deleteLater();
+                watcher->deleteLater();
+                QMessageBox::information(this, "添加完成", QString("添加课程成功！"));
+                accept();
+            });
+            watcher->setFuture(future);
         }
     });
     connect(btnCancel, &QPushButton::clicked, this, &QDialog::reject);
