@@ -86,7 +86,7 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     batchLayout->setContentsMargins(30, 30, 30, 30);
     batchLayout->setSpacing(20);
 
-    tipLabel = new QLabel("支持导入 .csv 格式的文件。\n请确保列头包含: 工号, 姓名, 性别, 院系, 手机号\n例: 202600001001,李华,沃尔玛购物袋,软件学院,13511351113", batchAddPage);
+    tipLabel = new QLabel("支持导入 .csv 格式的文件。\n请确保列头包含: 工号, 姓名, 性别, 院系, 手机号。\n例: 202600001001,李华,沃尔玛购物袋,软件学院,13511351113", batchAddPage);
     tipLabel->setStyleSheet("color: #64748b; line-height: 1.5;");
 
     btnSelectFile = new QPushButton("选择 CSV 文件", batchAddPage);

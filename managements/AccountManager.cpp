@@ -7,6 +7,8 @@
 
 #include "AccountManager.h"
 
+#include "ClassManager.h"
+#include "CourseManager.h"
 #include "../utils/AsyncJsonIO.h"
 
 using namespace aaims::io;
@@ -65,6 +67,19 @@ namespace aaims::manager::account {
                 }
                 if (acc->is_admin()) {
                     admins[uuid] = acc.get();
+                }
+            }
+            for (const auto &teacher: teachers) {
+                for (const auto &courseUuid: teacher->courses) {
+                    for (const auto &course = course::get_courses()[courseUuid]; const auto &[weekStart, weekEnd, dayOfWeek, startTime, duration]: course->times) {
+                        int mask = 0;
+                        for (int i = weekStart; i <= weekEnd; ++i) {
+                            mask |= 1 << (i - 1);
+                        }
+                        for (int i = 0; i < duration; i++) {
+                            teacher->occupied[dayOfWeek - 1][startTime + i] |= mask;
+                        }
+                    }
                 }
             }
         });

@@ -22,10 +22,11 @@ namespace aaims {
             constexpr static int ENDED = 0b1000;
 
             struct LessonTime {
-                inline static const QString TIME_TABLE[] = {
+                inline static const QStringList TIME_TABLE = {
                     "8:00", "8:45", "9:55", "10:40", "11:25", "12:40", "13:25", "14:30", "15:15", "16:25", "17:10",
                     "17:55", "19:30", "20:15", "21:00"
                 };
+                inline static const QStringList DAY_OF_WEEK_TABLE = {"周日", "周一", "周二", "周三", "周四", "周五", "周六"};
                 int weekStart;
                 int weekEnd;
                 int dayOfWeek;
@@ -225,11 +226,40 @@ namespace aaims {
         };
 
         struct TeacherAccount : PersonAccount {
-            QList<QUuid> teachingClasses;
+            QList<QUuid> courses;
             QString department;
             QUuid managingClass = EMPTY_UUID;
+            int occupied[7][15]{};
 
-            [[nodiscard]] bool is_occupied() const { return !teachingClasses.isEmpty() || managingClass != EMPTY_UUID; }
+            [[nodiscard]] bool is_occupied() const { return !courses.isEmpty() || managingClass != EMPTY_UUID; }
+
+            [[nodiscard]] bool free(const QList<Course::LessonTime> &times) {
+                return std::ranges::all_of(times, [this](const auto &data) {
+                    int mask = 0;
+                    for (int i = data.weekStart; i <= data.weekEnd; ++i) {
+                        mask |= 1 << (i - 1);
+                    }
+                    for (int i = 0; i < data.duration; i++) {
+                        if (occupied[data.dayOfWeek - 1][data.startTime + i] & mask) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+            }
+
+            void addCourse(const Course *const &course) {
+                courses.append(course->uuid);
+                for (const auto &[weekStart, weekEnd, dayOfWeek, startTime, duration]: course->times) {
+                    int mask = 0;
+                    for (int i = weekStart; i <= weekEnd; ++i) {
+                        mask |= 1 << (i - 1);
+                    }
+                    for (int i = 0; i < duration; i++) {
+                        occupied[dayOfWeek - 1][startTime + i] |= mask;
+                    }
+                }
+            }
 
             [[nodiscard]] static TeacherAccount fromJson(const QUuid &uuid, const QJsonObject &json) {
                 TeacherAccount t;
@@ -245,14 +275,14 @@ namespace aaims {
                     t.managingClass = QUuid::fromString(json.value("managingClass").toString());
                 }
                 for (const QJsonArray lessons = json.value("lessons").toArray(); const auto &x: lessons) {
-                    t.teachingClasses.append(QUuid::fromString(x.toString()));
+                    t.courses.append(QUuid::fromString(x.toString()));
                 }
                 return t;
             }
 
             [[nodiscard]] QJsonObject toJson() const override {
                 QJsonArray lessonData;
-                for (const auto &uuid: teachingClasses) {
+                for (const auto &uuid: courses) {
                     lessonData.append(uuid.toString(QUuid::WithoutBraces));
                 }
                 return {

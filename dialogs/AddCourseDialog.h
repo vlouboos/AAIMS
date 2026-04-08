@@ -8,6 +8,7 @@
 #pragma once
 #include <qformlayout.h>
 #include <qgroupbox.h>
+#include <QLabel>
 #include <QLineEdit>
 
 #include "StyledDialog.h"
@@ -19,11 +20,17 @@ class AddCourseDialog : public StyledDialog {
 public:
     explicit AddCourseDialog(QWidget *parent = nullptr);
 
+private:
+    [[nodiscard]] QPair<unsigned long long, unsigned long long> importFromCsv() const;
+
 private slots:
     void onAddSlotClicked();
 
 private:
     QVBoxLayout *mainLayout;
+    QTabWidget *tabWidget;
+    QWidget *singleAddPage;
+    QVBoxLayout *singleLayout;
     QFormLayout *formLayout;
     QLineEdit *editId;
     QLineEdit *editName;
@@ -40,6 +47,13 @@ private:
     QHBoxLayout *btnLayout;
     QPushButton *btnCancel;
     QPushButton *btnSave;
+    QWidget *batchAddPage;
+    QVBoxLayout *batchLayout;
+    QLabel *tipLabel;
+    QLabel *fileStatusLabel;
+    QPushButton *btnSelectFile;
+    QPushButton *btnConfirmBatch;
+    QString selectedFilePath;
 
     bool validateForm();
 

@@ -103,7 +103,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
     batchLayout->setContentsMargins(30, 30, 30, 30);
     batchLayout->setSpacing(20);
 
-    tipLabel = new QLabel("支持导入 .csv 格式的文件。\n请确保列头包含: 年级、班级名字、院系、班主任\n例: 2025,软工R4,软件学院,李华(数学与信息学院)", batchAddPage);
+    tipLabel = new QLabel("支持导入 .csv 格式的文件。\n请确保列头包含: 年级、班级名字、院系、班主任。\n例: 2025,软工R4,软件学院,李华(数学与信息学院)", batchAddPage);
     tipLabel->setStyleSheet("color: #64748b; line-height: 1.5;");
 
     btnSelectFile = new QPushButton("选择 CSV 文件", batchAddPage);
@@ -214,7 +214,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                     pd->close();
                     pd->deleteLater();
                     watcher->deleteLater();
-                    QMessageBox::information(this, "添加完成", QString("添加教师成功！"));
+                    QMessageBox::information(this, "添加完成", QString("添加班级成功！"));
                     accept();
                 });
                 watcher->setFuture(future);
@@ -258,16 +258,16 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
         }
 
         QStringList fields = line.split(",");
-        if (fields.size() < 5) {
+        if (fields.size() < 4) {
             failed++;
             continue;
         }
 
         const QString grade = fields[0].trimmed();
         const QString name = fields[1].trimmed();
-        const QString dept = fields[3].trimmed();
-        const QString master = fields[4].trimmed();
-        if (grade.isEmpty() || name.isEmpty()) {
+        const QString dept = fields[2].trimmed();
+        const QString master = fields[3].trimmed();
+        if (grade.isEmpty() || name.isEmpty() || dept.isEmpty() || master.isEmpty()) {
             failed++;
             continue;
         }

@@ -93,7 +93,7 @@ AddStudentDialog::AddStudentDialog(QWidget *parent) : StyledDialog(parent) {
     batchLayout->setSpacing(20);
 
     tipLabel = new QLabel(
-        "支持导入 .csv 格式的文件。\n请确保列头包含: 学号, 姓名, 性别, 班级, 宿舍号(占位可选), 手机号\n例: 202525220433,嫩叠,武装直升机,2025软工R4,,手机号",
+        "支持导入 .csv 格式的文件。\n请确保列头包含: 学号, 姓名, 性别, 班级, 宿舍号(占位可选), 手机号。\n例: 202525220433,嫩叠,武装直升机,2025软工R4,,手机号",
         batchAddPage);
     tipLabel->setStyleSheet("color: #64748b; line-height: 1.5;");
 
@@ -237,7 +237,7 @@ QPair<unsigned long long, unsigned long long> AddStudentDialog::importFromCsv() 
         }
 
         QStringList fields = line.split(",");
-        if (fields.size() < 5) {
+        if (fields.size() < 6) {
             failed++;
             continue;
         }

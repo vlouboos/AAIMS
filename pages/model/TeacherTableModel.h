@@ -53,9 +53,9 @@ public:
                 case Username: return t->username;
                 case Name: return t->name;
                 case Department: return t->department;
-                case Lessons: return t->teachingClasses.isEmpty()
+                case Lessons: return t->courses.isEmpty()
                                          ? "暂无授课"
-                                         : QString("%1 门课程").arg(t->teachingClasses.size());
+                                         : QString("%1 门课程").arg(t->courses.size());
                 case Status: return t->is_occupied() ? "授课中/班主任" : "空闲";
                 default: return {};
             }

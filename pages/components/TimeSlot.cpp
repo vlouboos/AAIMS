@@ -10,7 +10,7 @@ TimeSlot::TimeSlot(const Course::LessonTime &l, QWidget *parent) : QWidget(paren
     layout = new QHBoxLayout(this);
 
     comboDay = new QComboBox(this);
-    comboDay->addItems({"周一", "周二", "周三", "周四", "周五", "周六", "周日"});
+    comboDay->addItems(Course::LessonTime::DAY_OF_WEEK_TABLE);
 
     comboStart = new QComboBox(this);
     for (int i = 0; i < 15; ++i) {
