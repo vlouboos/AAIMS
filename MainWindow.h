@@ -14,6 +14,7 @@
 #include "pages/AdminCoursePage.h"
 #include "pages/AdminStudentPage.h"
 #include "pages/AdminTeacherPage.h"
+#include "pages/TeacherClassPage.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -48,10 +49,11 @@ private:
     QPushButton *userMenuBtn;
     QStackedWidget *contentStack;
     AdminDashboardPage *adminDashboardPage;
-    AdminTeacherPage *teacherPage;
-    AdminStudentPage *studentPage;
-    AdminClassPage *classPage;
-    AdminCoursePage *coursePage;
+    AdminTeacherPage *adminTeacherPage;
+    AdminStudentPage *adminStudentPage;
+    AdminClassPage *adminClassPage;
+    AdminCoursePage *adminCoursePage;
+    TeacherClassPage *teacherClassPage;
     CloseReason closeReason = CloseReason::Exit;
 
 protected:

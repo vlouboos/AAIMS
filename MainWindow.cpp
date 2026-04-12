@@ -55,6 +55,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         btnCourses = new QPushButton("课程", sidebarWidget);
         btnCourses->setProperty("class", "category-button");
         btnCourses->setCheckable(true);
+    } else if (loggedAccount->is_teacher()) {
+        btnCourses = new QPushButton("课程", sidebarWidget);
+        btnCourses->setProperty("class", "category-button");
+        btnCourses->setCheckable(true);
     }
 
     sidebarLayout->addWidget(logoLabel);
@@ -122,16 +126,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     if (loggedAccount->is_master() || loggedAccount->is_admin()) {
         adminDashboardPage = new AdminDashboardPage(contentStack);
-        teacherPage = new AdminTeacherPage(contentStack);
-        studentPage = new AdminStudentPage(contentStack);
-        classPage = new AdminClassPage(contentStack);
-        coursePage = new AdminCoursePage(contentStack);
+        adminTeacherPage = new AdminTeacherPage(contentStack);
+        adminStudentPage = new AdminStudentPage(contentStack);
+        adminClassPage = new AdminClassPage(contentStack);
+        adminCoursePage = new AdminCoursePage(contentStack);
 
         contentStack->addWidget(adminDashboardPage);
-        contentStack->addWidget(teacherPage);
-        contentStack->addWidget(studentPage);
-        contentStack->addWidget(classPage);
-        contentStack->addWidget(coursePage);
+        contentStack->addWidget(adminTeacherPage);
+        contentStack->addWidget(adminStudentPage);
+        contentStack->addWidget(adminClassPage);
+        contentStack->addWidget(adminCoursePage);
+    } else if (loggedAccount->is_teacher()) {
+        teacherClassPage = new TeacherClassPage(contentStack);
+
+        contentStack->addWidget(teacherClassPage);
     }
 
     rightLayout->addWidget(headerWidget);

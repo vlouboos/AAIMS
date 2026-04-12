@@ -32,13 +32,14 @@ namespace aaims {
                 int dayOfWeek;
                 int startTime;
                 int duration;
+                QString location;
 
                 ~LessonTime() = default;
 
                 static LessonTime fromJson(const QJsonObject &json) {
                     return {
                         json.value("weekStart").toInt(), json.value("weekEnd").toInt(), json.value("day").toInt(),
-                        json.value("start").toInt(), json.value("duration").toInt()
+                        json.value("start").toInt(), json.value("duration").toInt(), json.value("location").toString()
                     };
                 }
 
@@ -48,7 +49,8 @@ namespace aaims {
                         {"weekEnd", weekEnd},
                         {"day", dayOfWeek},
                         {"start", startTime},
-                        {"duration", duration}
+                        {"duration", duration},
+                        {"location", location}
                     };
                 }
             };
@@ -250,7 +252,7 @@ namespace aaims {
 
             void addCourse(const Course *const &course) {
                 courses.append(course->uuid);
-                for (const auto &[weekStart, weekEnd, dayOfWeek, startTime, duration]: course->times) {
+                for (const auto &[weekStart, weekEnd, dayOfWeek, startTime, duration, location]: course->times) {
                     int mask = 0;
                     for (int i = weekStart; i <= weekEnd; ++i) {
                         mask |= 1 << (i - 1);

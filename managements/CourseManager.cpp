@@ -44,9 +44,9 @@ namespace aaims::manager::course {
     bool save() {
         const QString path = QCoreApplication::applicationDirPath() + "/data/courses.json";
         QJsonObject json;
-        for (const auto &key : courses.keys()) {
-            QUuid uuid = key;
-            QJsonObject course = courses[key]->toJson();
+        for (const auto &c : courses) {
+            QUuid uuid = c->uuid;
+            QJsonObject course = c->toJson();
             json.insert(uuid.toString(QUuid::WithoutBraces), course);
         }
         return io::save(path, json);

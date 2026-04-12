@@ -78,6 +78,10 @@ if (WIN32)
             pages/AdminCoursePage.cpp
             pages/AdminCoursePage.h
             pages/model/CourseTableModel.h
+            pages/TeacherClassPage.cpp
+            pages/TeacherClassPage.h
+            pages/components/TimetableWidget.cpp
+            pages/components/TimetableWidget.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -140,6 +144,10 @@ else ()
             pages/AdminCoursePage.cpp
             pages/AdminCoursePage.h
             pages/model/CourseTableModel.h
+            pages/TeacherClassPage.cpp
+            pages/TeacherClassPage.h
+            pages/components/TimetableWidget.cpp
+            pages/components/TimetableWidget.h
     )
 endif ()
 

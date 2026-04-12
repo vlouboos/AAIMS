@@ -10,7 +10,7 @@ DistributionRing::DistributionRing(QWidget *parent) : QWidget(parent) {
     setMouseTracking(true);
 }
 
-void DistributionRing::setData(const <DistributionItem> &i) {
+void DistributionRing::setData(const QList<DistributionItem> &i) {
     items = i;
     totalCount = 0;
     for (const auto &item: i) {
