@@ -62,6 +62,8 @@ namespace aaims {
             int credit = 0;
             uint8_t status = 0;
             QList<LessonTime> times;
+            QList<QUuid> students;
+            QList<QUuid> classes;
 
             ~Course() = default;
 

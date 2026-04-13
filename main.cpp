@@ -8,13 +8,16 @@
 #include "dialogs/AccountLoginDialog.h"
 #include "dialogs/oobeDialog.h"
 #include "managements/AccountManager.h"
-#include "MainWindow.h"
 #include "managements/ClassManager.h"
+#include "managements/CourseManager.h"
+#include "MainWindow.h"
 
 int main(int argc, char *argv[]) {
     const QApplication a(argc, argv);
     QApplication::setApplicationName("AAIMS");
 
+    qInfo() << "Loading courses...";
+    aaims::manager::course::init();
     qInfo() << "Loading departments & classes...";
     aaims::manager::classes::init();
     qInfo() << "Loading accounts...";
