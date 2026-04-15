@@ -30,7 +30,7 @@ void TimetableCanvas::setCurrentWeek(const int week) {
     update();
 }
 
-int TimetableCanvas::getColorIndex(const QString& courseId) const {
+long long TimetableCanvas::getColorIndex(const QString& courseId) const {
     return qAbs(static_cast<int>(qHash(courseId))) % colors.size();
 }
 
@@ -109,25 +109,27 @@ TimetableWidget::TimetableWidget(QWidget *parent) : QWidget(parent) {
 
     topBar = new QWidget(this);
     topBar->setStyleSheet("background-color: white; border-bottom: 1px solid #e5e7eb;");
+
     topLayout = new QHBoxLayout(topBar);
 
     btnPrev = new QPushButton("<", this);
-    labelWeek = new QLabel("全部", this);
-    btnNext = new QPushButton(">", this);
-
     btnPrev->setFixedSize(32, 32);
-    btnNext->setFixedSize(32, 32);
+
+    labelWeek = new QLabel("全部", this);
     labelWeek->setMinimumWidth(80);
     labelWeek->setAlignment(Qt::AlignCenter);
+
+    btnNext = new QPushButton(">", this);
+    btnNext->setFixedSize(32, 32);
 
     topLayout->addWidget(btnPrev);
     topLayout->addWidget(labelWeek);
     topLayout->addWidget(btnNext);
     topLayout->addStretch();
 
-    scrollArea = new QScrollArea(this);
     canvas = new TimetableCanvas(this);
 
+    scrollArea = new QScrollArea(this);
     scrollArea->setWidget(canvas);
     scrollArea->setWidgetResizable(false);
     scrollArea->setFrameShape(QFrame::NoFrame);

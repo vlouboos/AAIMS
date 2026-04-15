@@ -20,6 +20,7 @@ namespace aaims::manager::course {
                 courses[uuid] = std::make_shared<Course>(Course::fromJson(uuid, json.value(key).toObject()));
             }
         });
+        qInfo() << "Loaded" << courses.size() << "courses.";
     }
 
     QString add(const std::shared_ptr<Course> &course) {

@@ -9,6 +9,7 @@
 #include <QProgressDialog>
 #include <QtConcurrentRun>
 
+#include "AddClassDialog.h"
 #include "AddDepartmentDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
@@ -125,9 +126,11 @@ AddStudentDialog::AddStudentDialog(QWidget *parent) : StyledDialog(parent) {
     applyStyles();
 
     connect(btnAdd, &QPushButton::clicked, [this] {
-        if (AddDepartmentDialog dialog; dialog.exec() == Accepted) {
+        if (AddClassDialog dialog; dialog.exec() == Accepted) {
             classCombo->clear();
-            classCombo->addItems(aaims::manager::classes::get_departments());
+            for (const auto &x: aaims::manager::classes::get_all_ptr()) {
+                classCombo->addItem(x->grade + x->name, x->uuid);
+            }
         }
     });
 

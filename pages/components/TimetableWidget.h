@@ -42,7 +42,7 @@ private:
     QList<aaims::model::Course> allCourses;
     QVector<CourseColor> colors;
 
-    int getColorIndex(const QString &courseId) const;
+    [[nodiscard]] long long getColorIndex(const QString &courseId) const;
 };
 
 class TimetableWidget : public QWidget {

@@ -23,6 +23,7 @@ public:
         Department,
         MemberCount,
         Master,
+        Courses,
         Actions
     };
 
@@ -46,7 +47,7 @@ public:
     [[nodiscard]] QVariant data(const QModelIndex &index, const int role) const override {
         if (!index.isValid() || index.row() >= classes.size()) return {};
 
-        Classes *cls = aaims::manager::classes::get_classes()[classes[index.row()]].get();
+        Class *cls = aaims::manager::classes::get_classes()[classes[index.row()]].get();
 
         if (!cls) return {};
 
@@ -59,6 +60,7 @@ public:
                 case Grade: return cls->grade;
                 case Department: return cls->department;
                 case MemberCount: return cls->students.size();
+                case Courses: return cls->courses.size();
                 case Master: return m;
                 default: return {};
             }
@@ -74,7 +76,7 @@ public:
     [[nodiscard]] QVariant
     headerData(const int section, const Qt::Orientation orientation, const int role) const override {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-            static const QStringList headers = {"班名", "年级", "所属院系", "人数", "班主任", "操作"};
+            static const QStringList headers = {"班名", "年级", "所属院系", "人数", "班主任", "课程数", "操作"};
             return headers[section];
         }
         return {};

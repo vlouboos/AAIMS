@@ -72,7 +72,7 @@ TeacherDetailDialog::TeacherDetailDialog(TeacherAccount *account,
     tableLayout->addRow("手机号码:", editPhoneNumber);
 
     if (account->is_class_master()) {
-        Classes *cls = aaims::manager::classes::get_classes()[account->managingClass].get();
+        Class *cls = aaims::manager::classes::get_classes()[account->managingClass].get();
         tableLayout->addRow("身份:", new QLabel(QString(cls->grade).append(cls->name).append("班主任"), this));
     }
 

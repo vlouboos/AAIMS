@@ -23,9 +23,10 @@ public:
         Number,
         Name,
         Teacher,
-        Credit,
         Size,
-        Status
+        Credit,
+        Status,
+        Actions
     };
 
     explicit CourseTableModel(QObject *parent = nullptr) : QAbstractTableModel(parent) {
@@ -42,7 +43,7 @@ public:
     }
 
     [[nodiscard]] int columnCount([[maybe_unused]] const QModelIndex &parent) const override {
-        return 6;
+        return 7;
     }
 
     [[nodiscard]] QVariant data(const QModelIndex &index, const int role) const override {
@@ -55,7 +56,7 @@ public:
         const TeacherAccount *const t = aaims::manager::account::get_teachers()[course->teacher];
         unsigned long long size = course->students.size();
         for (const auto x: course->classes) {
-            const Classes *const cls = aaims::manager::classes::get_classes()[x].get();
+            const Class *const cls = aaims::manager::classes::get_classes()[x].get();
             size += cls->students.size();
         }
         if (role == Qt::DisplayRole) {
@@ -63,8 +64,8 @@ public:
                 case Number: return course->id;
                 case Name: return course->name;
                 case Teacher: return QString("%1(%2)").arg(t->name, t->department);
-                case Size: return QString("%1(%2名重修/自选+%3个班级)").arg(size, course->students.size(),
-                                                                    course->classes.size());
+                case Size: return QString("%1(%2名重修/自选+%3个班级)").arg(size).arg(course->students.size())
+                            .arg(course->classes.size());
                 case Credit: return course->credit;
                 case Status: return course->is_accepting()
                                         ? "选课中"
@@ -77,7 +78,7 @@ public:
             }
         }
 
-        if (role == Qt::ForegroundRole && index.column() == Status) {
+        if (role == Qt::ForegroundRole && index.column() == Actions) {
             return course->is_accepting() || course->is_qualifying() || course->is_ended()
                        ? QColor(0x2563eb)
                        : QColor(0x64748b);
@@ -93,7 +94,7 @@ public:
     [[nodiscard]] QVariant
     headerData(const int section, const Qt::Orientation orientation, const int role) const override {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-            static const QStringList headers = {"课程编号", "课程名", "教师", "人数", "学分", "状态"};
+            static const QStringList headers = {"课程编号", "课程名", "教师", "人数", "学分", "状态", "操作"};
             return headers[section];
         }
         return {};

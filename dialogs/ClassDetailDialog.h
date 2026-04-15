@@ -9,6 +9,7 @@
 #include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QScrollArea>
 
 #include "StyledDialog.h"
 #include "../utils/DataStructures.h"
@@ -17,7 +18,7 @@ class ClassDetailDialog : public StyledDialog {
     Q_OBJECT
 
 public:
-    explicit ClassDetailDialog(aaims::model::Classes *classes, QWidget *parent = nullptr);
+    explicit ClassDetailDialog(aaims::model::Class *cls, QWidget *parent = nullptr);
 
 private slots:
     void onSaveButtonClicked();
@@ -36,10 +37,14 @@ private:
     QCompleter *completerMaster;
     QComboBox *comboMaster;
     QPushButton *btnAddTeacher;
+    QVBoxLayout *coursesLayout;
+    QLabel *coursesLabel;
+    QHBoxLayout *coursesEditLayout;
+    QScrollArea *courses;
     QHBoxLayout *btnLayout;
     QPushButton *btnSave;
     QPushButton *btnCancel;
-    aaims::model::Classes *cls;
+    aaims::model::Class *cls;
 };
 
 

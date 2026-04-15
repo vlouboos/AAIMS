@@ -11,7 +11,7 @@
 
 namespace {
     QList<QString> departments;
-    QHash<QUuid, std::shared_ptr<aaims::model::Classes> > all_classes;
+    QHash<QUuid, std::shared_ptr<aaims::model::Class> > all_classes;
 }
 
 namespace aaims::manager::classes {
@@ -55,27 +55,30 @@ namespace aaims::manager::classes {
                 addDepartment(department_list);
             }
         });
+        qInfo() << "Loaded" << departments.size() << "departments.";
         path = QCoreApplication::applicationDirPath() + "/data/classes.json";
         io::load(path, [](const QJsonObject &json) {
             for (const auto &key: json.keys()) {
                 QUuid uuid = QUuid::fromString(key);
-                all_classes[uuid] = std::make_shared<model::Classes>(
-                    model::Classes::fromJson(uuid, json.value(key).toObject()));
+                all_classes[uuid] = std::make_shared<model::Class>(
+                    model::Class::fromJson(uuid, json.value(key).toObject()));
             }
         });
+        qInfo() << "Loaded" << all_classes.size() << "classes.";
     }
 
-    QHash<QUuid, std::shared_ptr<model::Classes> > get_classes() {
+    QHash<QUuid, std::shared_ptr<model::Class> > get_classes() {
         return all_classes;
     }
 
-    QString add(const std::shared_ptr<model::Classes> &cls) {
+    QString add(const std::shared_ptr<model::Class> &cls) {
         if (!cls) return "内部错误";
         QUuid uuid;
         do {
             uuid = QUuid::createUuid();
         } while (all_classes.contains(uuid));
         all_classes[uuid] = cls;
+        cls->uuid = uuid;
         return "";
     }
 
@@ -93,8 +96,8 @@ namespace aaims::manager::classes {
         return io::save(path, root);
     }
 
-    QVector<model::Classes *> get_all_ptr() {
-        QVector<model::Classes *> classes;
+    QVector<model::Class *> get_all_ptr() {
+        QVector<model::Class *> classes;
         classes.reserve(all_classes.size());
         for (auto &cls: all_classes) {
             classes.emplace_back(cls.get());

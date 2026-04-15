@@ -29,15 +29,15 @@ namespace aaims::manager::classes {
 
     void init();
 
-    QHash<QUuid, std::shared_ptr<model::Classes> > get_classes();
+    QHash<QUuid, std::shared_ptr<model::Class> > get_classes();
 
-    QString add(const std::shared_ptr<model::Classes> &cls);
+    QString add(const std::shared_ptr<model::Class> &cls);
 
     void removeClass(const QUuid &uuid);
 
     bool saveClasses();
 
-    QVector<model::Classes *> get_all_ptr();
+    QVector<model::Class *> get_all_ptr();
 }
 
 #endif //AAIMS_CLASSMANAGER_H

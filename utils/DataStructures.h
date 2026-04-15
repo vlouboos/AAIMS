@@ -120,30 +120,30 @@ namespace aaims {
             int retake = 0;
         };
 
-        struct Classes {
+        struct Class {
             QUuid uuid;
             QString grade;
             QString name;
             QUuid master;
             QString department;
-            QList<QUuid> lessons;
+            QList<QUuid> courses;
             QList<QUuid> students;
 
-            virtual ~Classes() = default;
+            virtual ~Class() = default;
 
             [[nodiscard]] bool isEmpty() const {
                 return students.isEmpty();
             }
 
-            static Classes fromJson(const QUuid &uuid, const QJsonObject &json) {
-                Classes cls;
+            static Class fromJson(const QUuid &uuid, const QJsonObject &json) {
+                Class cls;
                 cls.uuid = uuid;
                 cls.grade = json.value("grade").toString();
                 cls.name = json.value("name").toString();
                 cls.master = QUuid::fromString(json.value("master").toString());
                 cls.department = json.value("department").toString();
-                for (const auto &x: json.value("lessons").toArray()) {
-                    cls.lessons.append(QUuid::fromString(x.toString()));
+                for (const auto &x: json.value("courses").toArray()) {
+                    cls.courses.append(QUuid::fromString(x.toString()));
                 }
                 for (const auto &x: json.value("students").toArray()) {
                     cls.students.append(QUuid::fromString(x.toString()));
@@ -152,9 +152,9 @@ namespace aaims {
             }
 
             [[nodiscard]] virtual QJsonObject toJson() const {
-                QJsonArray lessons_array;
-                for (const auto &lesson: lessons) {
-                    lessons_array.append(lesson.toString(QUuid::WithoutBraces));
+                QJsonArray courses_array;
+                for (const auto &course: courses) {
+                    courses_array.append(course.toString(QUuid::WithoutBraces));
                 }
                 QJsonArray students_array;
                 for (const auto &student: students) {
@@ -165,7 +165,7 @@ namespace aaims {
                     {"name", name},
                     {"master", master.toString(QUuid::WithoutBraces)},
                     {"department", department},
-                    {"lessons", lessons_array},
+                    {"courses", courses_array},
                     {"students", students_array}
                 };
             }
@@ -237,7 +237,7 @@ namespace aaims {
 
             [[nodiscard]] bool is_occupied() const { return !courses.isEmpty() || managingClass != EMPTY_UUID; }
 
-            [[nodiscard]] bool free(const QList<Course::LessonTime> &times) {
+            [[nodiscard]] bool is_occupied(const QList<Course::LessonTime> &times) {
                 return std::ranges::all_of(times, [this](const auto &data) {
                     int mask = 0;
                     for (int i = data.weekStart; i <= data.weekEnd; ++i) {
@@ -245,10 +245,10 @@ namespace aaims {
                     }
                     for (int i = 0; i < data.duration; i++) {
                         if (occupied[data.dayOfWeek - 1][data.startTime + i] & mask) {
-                            return false;
+                            return true;
                         }
                     }
-                    return true;
+                    return false;
                 });
             }
 

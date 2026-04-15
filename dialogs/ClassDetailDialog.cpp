@@ -16,8 +16,8 @@
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
 
-ClassDetailDialog::ClassDetailDialog(Classes *classes,
-                                     QWidget *parent) : StyledDialog(parent), cls(classes) {
+ClassDetailDialog::ClassDetailDialog(Class *cls,
+                                     QWidget *parent) : StyledDialog(parent), cls(cls) {
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
     setFixedSize(450, 320);
     mainLayout = new QVBoxLayout(this);
@@ -31,10 +31,10 @@ ClassDetailDialog::ClassDetailDialog(Classes *classes,
     tableLayout->setSpacing(15);
 
     editName = new QLineEdit(this);
-    editName->setText(classes->name);
+    editName->setText(cls->name);
 
     editGrade = new QLineEdit(this);
-    editGrade->setText(classes->grade);
+    editGrade->setText(cls->grade);
     editGrade->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]*$"), this));
 
     deptLayout = new QHBoxLayout();
@@ -48,8 +48,8 @@ ClassDetailDialog::ClassDetailDialog(Classes *classes,
     comboDept->addItems(aaims::manager::classes::get_departments());
     comboDept->setEditable(true);
     comboDept->setPlaceholderText("请选择学院");
-    if (aaims::manager::classes::get_departments().contains(classes->department)) {
-        comboDept->setCurrentText(classes->department);
+    if (aaims::manager::classes::get_departments().contains(cls->department)) {
+        comboDept->setCurrentText(cls->department);
     }
     comboDept->setInsertPolicy(QComboBox::NoInsert);
     comboDept->setCompleter(completerDept);
@@ -79,8 +79,8 @@ ClassDetailDialog::ClassDetailDialog(Classes *classes,
     }
     comboMaster->setEditable(true);
     comboMaster->setPlaceholderText("例如: 张三");
-    if (teachers.contains(classes->master)) {
-        const TeacherAccount *t = teachers[classes->master];
+    if (teachers.contains(cls->master)) {
+        const TeacherAccount *t = teachers[cls->master];
         comboMaster->setCurrentText(QString("%1(%2)").arg(t->name, t->department));
     }
     comboMaster->setInsertPolicy(QComboBox::NoInsert);
@@ -94,10 +94,23 @@ ClassDetailDialog::ClassDetailDialog(Classes *classes,
     masterLayout->addWidget(comboMaster);
     masterLayout->addWidget(btnAddTeacher);
 
+    coursesLayout = new QVBoxLayout();
+
+    coursesLabel = new QLabel(QString("%1").arg(cls->courses.size()), this);
+
+    coursesEditLayout = new QHBoxLayout();
+
+    courses = new QScrollArea();
+    // TODO: Add a course list, double-click to show detail of the courses, to which the add button is right.
+
+    coursesLayout->addWidget(coursesLabel);
+    coursesLayout->addLayout(coursesEditLayout);
+
     tableLayout->addRow("班级名称:", editName);
     tableLayout->addRow("年级:", editGrade);
     tableLayout->addRow("院系:", deptLayout);
     tableLayout->addRow("班主任:", masterLayout);
+    tableLayout->addRow("班级课程:", coursesLayout);
 
     btnLayout = new QHBoxLayout();
     btnLayout->setSpacing(12);

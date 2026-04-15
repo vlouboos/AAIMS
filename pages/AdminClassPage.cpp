@@ -95,7 +95,7 @@ AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
     });
 
     connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
-        if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
+        if (Class *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
             proxyModel->mapToSource(index))].get()) {
             if (ClassDetailDialog dialog(cls, this); dialog.exec() == QDialog::Accepted) {
                 reloadData();
@@ -104,7 +104,7 @@ AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
     });
 
     connect(delegate, &OperationDelegate::confirmDelete, [this](const QModelIndex &index) {
-        if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
+        if (Class *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
             proxyModel->mapToSource(index))].get()) {
             if (!cls->isEmpty()) {
                 QMessageBox::critical(this, "非法操作", "该教师有课程或是班主任，请先转移课程或转移班级！", QMessageBox::Ok);
@@ -135,7 +135,7 @@ AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
     });
 
     connect(tableView, &QTableView::doubleClicked, [this](const QModelIndex &index) {
-                if (Classes *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
+                if (Class *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
                     proxyModel->mapToSource(index))].get()) {
                     if (ClassDetailDialog dialog(cls, this); dialog.exec() == QDialog::Accepted) {
                         reloadData();

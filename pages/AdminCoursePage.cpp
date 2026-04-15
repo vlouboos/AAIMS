@@ -67,8 +67,8 @@ AdminCoursePage::AdminCoursePage(QWidget *parent) : QWidget(parent) {
     header->setStretchLastSection(false);
     header->setSectionResizeMode(0, QHeaderView::Fixed);
     header->setSectionResizeMode(1, QHeaderView::Fixed);
-    header->setSectionResizeMode(2, QHeaderView::Stretch);
-    header->setSectionResizeMode(3, QHeaderView::Stretch);
+    header->setSectionResizeMode(2, QHeaderView::Fixed);
+    header->setSectionResizeMode(3, QHeaderView::Fixed);
     header->setSectionResizeMode(4, QHeaderView::Fixed);
     header->setSectionResizeMode(5, QHeaderView::Fixed);
 
@@ -76,9 +76,11 @@ AdminCoursePage::AdminCoursePage(QWidget *parent) : QWidget(parent) {
     tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     tableView->setColumnWidth(0, 120);
     tableView->setColumnWidth(1, 120);
-    tableView->setColumnWidth(4, 100);
-    tableView->setColumnWidth(5, 120);
-    tableView->setItemDelegateForColumn(5, delegate);
+    tableView->setColumnWidth(2, 200);
+    tableView->setColumnWidth(3, 200);
+    tableView->setColumnWidth(4, 60);
+    tableView->setColumnWidth(5, 100);
+    tableView->setItemDelegateForColumn(6, delegate);
 
     mainLayout->addWidget(tableView);
 

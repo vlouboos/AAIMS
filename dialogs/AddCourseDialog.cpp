@@ -136,6 +136,7 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
         if (validateForm()) {
             auto *pd = new QProgressDialog("正在添加...", nullptr, 0, 0, this); // NOLINT
             pd->setWindowModality(Qt::WindowModal);
+            pd->setWindowFlag(Qt::Popup);
             pd->show();
             const auto course = std::make_shared<Course>();
 
@@ -146,7 +147,9 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
             for (const auto &x: slotWidgets) {
                 courses.append(x->toData());
             }
-            if (teacher->free(courses)) {
+            if (teacher->is_occupied(courses)) {
+                pd->close();
+                pd->deleteLater();
                 QMessageBox::warning(this, "输入错误", "该教师已有课程时间与当前课程冲突！");
                 return;
             }
@@ -177,6 +180,7 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
 
         auto *pd = new QProgressDialog("正在导入...", nullptr, 0, 0, this); // NOLINT
         pd->setWindowModality(Qt::WindowModal);
+        pd->setWindowFlag(Qt::Popup);
         pd->show();
 
         const auto &future = QtConcurrent::run(&AddCourseDialog::importFromCsv, this);
@@ -192,6 +196,8 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
 
         watcher->setFuture(future);
     });
+
+    onAddSlotClicked(); // Don't forget
 }
 
 QPair<unsigned long long, unsigned long long> AddCourseDialog::importFromCsv() const {
@@ -241,27 +247,33 @@ QPair<unsigned long long, unsigned long long> AddCourseDialog::importFromCsv() c
         QList<Course::LessonTime> timeList;
         for (QStringList timeStringList = times.split(";"); const auto &time: timeStringList) {
             QStringList timeVal = time.trimmed().split(":");
-            if (timeVal.size() < 5) continue;
+            if (timeVal.size() < 6) continue;
             const QString startWeek = timeVal[0].trimmed();
             const QString endWeek = timeVal[1].trimmed();
             const QString dayOfWeek = timeVal[2].trimmed();
             const QString startTime = timeVal[3].trimmed();
             const QString duration = timeVal[4].trimmed();
+            const QString location = timeVal[5].trimmed();
             timeList.append({
-                startTime.toInt(), endWeek.toInt(), dayOfWeek.toInt(), startWeek.toInt() - 1, duration.toInt()
+                startTime.toInt(), endWeek.toInt(), dayOfWeek.toInt(), startWeek.toInt() - 1, duration.toInt(), location
             });
         }
-        if ((*it)->free(timeList)) {
+        if ((*it)->is_occupied(timeList)) {
             failed++;
             continue;
         }
         auto course = std::make_shared<Course>();
+        course->id = id;
+        course->name = name;
+        course->teacher = (*it)->uuid;
+        course->credit = credit.toInt();
+        course->status = Course::ACCEPTING;
+        course->times = timeList;
         if (const QString result = aaims::manager::course::add(course); !result.isEmpty()) {
             failed++;
             continue;
         }
-        (*it)->status |= Account::CLASS_MASTER;
-        (*it)->managingClass = course->uuid;
+        (*it)->courses.append(course->uuid);
         succeed++;
     }
     aaims::manager::course::save(); // This is synchronized!!!

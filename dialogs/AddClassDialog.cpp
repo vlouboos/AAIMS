@@ -15,7 +15,7 @@
 #include "../managements/ClassManager.h"
 
 AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
-    setWindowTitle("新增教师账号");
+    setWindowTitle("新增班级");
     setFixedSize(450, 380);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
     mainLayout = new QVBoxLayout(this);
@@ -190,7 +190,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                     QMessageBox::warning(this, "输入错误", "该老师已经是另一班级的班主任！");
                     return;
                 }
-                const auto cls = std::make_shared<Classes>();
+                const auto cls = std::make_shared<Class>();
                 cls->grade = gradeEdit->text().trimmed();
                 cls->name = nameEdit->text().trimmed();
                 cls->department = deptCombo->currentText().trimmed();
@@ -272,7 +272,7 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
             continue;
         }
         if (auto classes = aaims::manager::classes::get_all_ptr(); std::ranges::any_of(
-            classes, [grade, name, dept](const Classes *cls) {
+            classes, [grade, name, dept](const Class *cls) {
                 return cls->grade == grade && cls->name == name && cls->department == dept;
             })) {
             failed++;
@@ -293,7 +293,7 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
         if (!aaims::manager::classes::get_departments().contains(dept)) {
             aaims::manager::classes::addDepartment({dept});
         }
-        auto cls = std::make_shared<Classes>();
+        auto cls = std::make_shared<Class>();
         cls->grade = grade;
         cls->name = name;
         cls->department = dept;
