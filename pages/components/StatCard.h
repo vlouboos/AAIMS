@@ -17,6 +17,8 @@ public:
     StatCard(const QString &title, long long value, const QString &iconPath, const QColor &themeColor,
              QWidget *parent = nullptr);
 
+    void setValue(const QString &value) const;
+
 private:
     QGraphicsDropShadowEffect *shadow;
     QHBoxLayout *mainLayout;

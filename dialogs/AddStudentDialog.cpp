@@ -185,7 +185,9 @@ AddStudentDialog::AddStudentDialog(QWidget *parent) : StyledDialog(parent) {
                     return;
                 }
                 cls->students.append(student->uuid);
-                const auto future = aaims::manager::account::saveAsync();;
+                const auto future = QtConcurrent::run([] {
+                    return aaims::manager::classes::saveClasses() && aaims::manager::account::save();
+                });
 
                 auto *watcher = new QFutureWatcher<void>(this); // NOLINT
 
@@ -274,6 +276,7 @@ QPair<unsigned long long, unsigned long long> AddStudentDialog::importFromCsv() 
         student->female = isFemale;
         student->status = 0;
         student->currentClass = (*it)->uuid;
+        (*it)->students.append(student->uuid);
         student->dormitory = dormitory;
         student->phoneNumber = phone;
 
@@ -284,6 +287,7 @@ QPair<unsigned long long, unsigned long long> AddStudentDialog::importFromCsv() 
         (*it)->students.append(student->uuid);
         succeed++;
     }
+    aaims::manager::classes::saveClasses();
     aaims::manager::classes::saveDepartments();
     aaims::manager::account::save(); // This is synchronized!!!
 

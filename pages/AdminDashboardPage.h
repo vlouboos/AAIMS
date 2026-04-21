@@ -5,11 +5,10 @@
 #ifndef AAIMS_ADMINDASHBOARDPAGE_H
 #define AAIMS_ADMINDASHBOARDPAGE_H
 
-#include <QLabel>
-#include <QVBoxLayout>
 #include <QWidget>
 
 #include "components/DistributionRing.h"
+#include "components/StatCard.h"
 
 class AdminDashboardPage : public QWidget {
     Q_OBJECT
@@ -17,15 +16,23 @@ class AdminDashboardPage : public QWidget {
 public:
     explicit AdminDashboardPage(QWidget *parent = nullptr);
 
+    void update() const;
+
 private:
     QVBoxLayout *mainLayout;
     QLabel *welcomeLabel;
     QGridLayout *statsGrid;
-    DistributionRing * distRing;
-    QFrame * distributionContainer;
-    QVBoxLayout * distributionLayout;
-    QLabel * titleLabel;
-    QHBoxLayout * centerLayout;
+    DistributionRing *distRing;
+    QFrame *distributionContainer;
+    QVBoxLayout *distributionLayout;
+    QLabel *titleLabel;
+    QHBoxLayout *centerLayout;
+    StatCard *cardTotal;
+    StatCard *cardAdmin;
+    StatCard *cardTeacher;
+    StatCard *cardStudent;
+    StatCard *cardDepartments;
+    StatCard *cardClasses;
 };
 
 

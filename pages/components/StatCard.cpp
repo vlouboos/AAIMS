@@ -52,3 +52,7 @@ StatCard::StatCard(const QString &title, const long long value, const QString &i
     mainLayout->addWidget(textContainer);
     mainLayout->addStretch();
 }
+
+void StatCard::setValue(const QString &value) const {
+    valueLabel->setText(value);
+}

@@ -121,7 +121,8 @@ void StudentDetailDialog::onSaveButtonClicked() {
         return;
     }
     const auto &clsUuid = comboClass->currentData().value<QUuid>();
-    if (const auto *cls = aaims::manager::classes::get_classes()[clsUuid].get(); !cls) {
+    auto *cls = aaims::manager::classes::get_classes()[clsUuid].get();
+    if (!cls) {
         QMessageBox::warning(this, "输入错误", "请选择班级！");
         return;
     }
@@ -135,6 +136,8 @@ void StudentDetailDialog::onSaveButtonClicked() {
     pd->setWindowModality(Qt::WindowModal);
     pd->show();
     account->name = editName->text().trimmed();
+    aaims::manager::classes::get_classes()[account->currentClass]->students.removeOne(account->uuid);
+    cls->students.append(account->uuid);
     account->currentClass = clsUuid;
     account->phoneNumber = editPhoneNumber->text().trimmed();
     switch (comboStatus->currentIndex()) {
@@ -166,7 +169,9 @@ void StudentDetailDialog::onSaveButtonClicked() {
         }
         default: break;
     }
-    const auto future = QtConcurrent::run([] { return aaims::manager::account::save(); });
+    const auto future = QtConcurrent::run([] {
+        return aaims::manager::classes::saveClasses() && aaims::manager::account::save();
+    });
     auto watcher = new QFutureWatcher<bool>(this); // NOLINT
     connect(watcher, &QFutureWatcherBase::finished, [this, pd, watcher] {
         pd->close();
