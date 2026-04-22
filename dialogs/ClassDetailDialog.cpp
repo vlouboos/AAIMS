@@ -10,16 +10,20 @@
 #include <QProgressDialog>
 #include <QLineEdit>
 #include <qtconcurrentrun.h>
+#include <QListWidget>
+#include <ranges>
 
 #include "AddDepartmentDialog.h"
 #include "AddTeacherDialog.h"
+#include "ClassAddCourseDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
+#include "../managements/CourseManager.h"
 
 ClassDetailDialog::ClassDetailDialog(Class *cls,
-                                     QWidget *parent) : StyledDialog(parent), cls(cls) {
+                                     QWidget *parent) : StyledDialog(parent), cls(cls), workingCourses(cls->courses) {
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
-    setFixedSize(450, 320);
+    setFixedSize(450, 500);
     mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(15, 15, 15, 15);
     mainLayout->setAlignment(Qt::AlignCenter);
@@ -96,12 +100,47 @@ ClassDetailDialog::ClassDetailDialog(Class *cls,
 
     coursesLayout = new QVBoxLayout();
 
-    coursesLabel = new QLabel(QString("%1").arg(cls->courses.size()), this);
+    coursesLabel = new QLabel(QString("共%1个课程").arg(cls->courses.size()), this);
+    coursesLabel->setMaximumHeight(40);
 
     coursesEditLayout = new QHBoxLayout();
+    coursesEditLayout->setAlignment(Qt::AlignTop);
 
     courses = new QScrollArea();
-    // TODO: Add a course list, double-click to show detail of the courses, to which the add button is right.
+
+    courseList = new QListWidget();
+
+    const auto &allCourses = aaims::manager::course::get_courses();
+    for (const auto &courseUuid: cls->courses) {
+        if (allCourses.contains(courseUuid)) {
+            const auto &course = allCourses[courseUuid];
+            const auto item = new QListWidgetItem(QString("%1-%2").arg(course->id, course->name)); // NOLINT
+            item->setData(Qt::UserRole, courseUuid);
+            courseList->addItem(item);
+        }
+    }
+
+    courses->setWidget(courseList);
+    courses->setWidgetResizable(true);
+
+    courseBtnLayout = new QVBoxLayout();
+
+    btnAddCourse = new QPushButton("+", this);
+    btnAddCourse->setStyleSheet("padding: 0; margin: 0;");
+    btnAddCourse->setObjectName("AddElement");
+    btnAddCourse->setFixedSize(24, 24);
+
+    btnRemoveCourse = new QPushButton("-", this);
+    btnRemoveCourse->setStyleSheet("padding: 0; margin: 0;");
+    btnRemoveCourse->setObjectName("AddElement");
+    btnRemoveCourse->setFixedSize(24, 24);
+    btnRemoveCourse->setEnabled(false);
+
+    courseBtnLayout->addWidget(btnAddCourse);
+    courseBtnLayout->addWidget(btnRemoveCourse);
+
+    coursesEditLayout->addWidget(courses);
+    coursesEditLayout->addLayout(courseBtnLayout);
 
     coursesLayout->addWidget(coursesLabel);
     coursesLayout->addLayout(coursesEditLayout);
@@ -146,6 +185,47 @@ ClassDetailDialog::ClassDetailDialog(Class *cls,
                 comboMaster->addItem(display, (*it)->uuid);
             }
         }
+    });
+    connect(btnAddCourse, &QPushButton::clicked, [this] {
+        if (ClassAddCourseDialog dialog(this->workingCourses, this); dialog.exec() == Accepted) {
+            const auto added = dialog.getAddedCourses();
+            const auto &all_courses = aaims::manager::course::get_courses();
+            for (const auto &uuid: added) {
+                this->workingCourses.append(uuid);
+                const auto &course = all_courses[uuid];
+                auto *item = new QListWidgetItem(QString("%1-%2").arg(course->id, course->name)); // NOLINT
+                item->setData(Qt::UserRole, uuid);
+                courseList->addItem(item);
+            }
+            coursesLabel->setText(QString("共%1个课程").arg(this->workingCourses.size()));
+        }
+    });
+    connect(btnRemoveCourse, &QPushButton::clicked, [this] {
+        const auto selectedItems = courseList->selectedItems();
+        if (selectedItems.isEmpty()) {
+            return;
+        }
+        if (QMessageBox::warning(this, "确定", "确定要删除选中的课程吗？", QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+            for (const auto item : std::ranges::reverse_view(selectedItems)) {
+                const auto uuid = item->data(Qt::UserRole).value<QUuid>();
+                this->workingCourses.removeAll(uuid);
+                delete courseList->takeItem(courseList->row(item));
+            }
+            btnRemoveCourse->setEnabled(false);
+            coursesLabel->setText(QString("共%1个课程").arg(this->workingCourses.size()));
+        }
+    });
+    connect(courseList, &QListWidget::itemSelectionChanged, [this] {
+        btnRemoveCourse->setEnabled(!courseList->selectedItems().isEmpty());
+    });
+    connect(courseList, &QListWidget::itemDoubleClicked, [this, allCourses](const QListWidgetItem *item) {
+        const auto uuid = item->data(Qt::UserRole).value<QUuid>();
+        const auto &course = allCourses[uuid];
+        const auto &teacher_accounts = aaims::manager::account::get_teachers();
+        const auto &teacher = teacher_accounts[course->teacher];
+        const QString info = QString("课程编号: %1\n课程名称: %2\n教师: %3\n学分: %4")
+                .arg(course->id, course->name, teacher->name, QString::number(course->credit));
+        QMessageBox::information(this, "课程详情", info);
     });
     connect(btnSave, &QPushButton::clicked, this, &ClassDetailDialog::onSaveButtonClicked);
     connect(btnCancel, &QPushButton::clicked, this, &QDialog::reject);
@@ -193,6 +273,28 @@ void ClassDetailDialog::onSaveButtonClicked() {
     cls->grade = grade;
     cls->department = department;
     cls->master = newUuid;
+
+    // Update bidirectional relationship between class and courses
+    const auto &allCoursesRef = aaims::manager::course::get_courses();
+    const auto previousCourses = cls->courses;
+
+    // Remove class from courses that are no longer assigned
+    for (const auto &courseUuid : previousCourses) {
+        if (!workingCourses.contains(courseUuid) && allCoursesRef.contains(courseUuid)) {
+            allCoursesRef[courseUuid]->classes.removeAll(cls->uuid);
+        }
+    }
+
+    // Add class to courses that are newly assigned
+    for (const auto &courseUuid : workingCourses) {
+        if (!previousCourses.contains(courseUuid) && allCoursesRef.contains(courseUuid)) {
+            if (!allCoursesRef[courseUuid]->classes.contains(cls->uuid)) {
+                allCoursesRef[courseUuid]->classes.append(cls->uuid);
+            }
+        }
+    }
+
+    cls->courses = workingCourses;
     const auto future = QtConcurrent::run([] {
         return aaims::manager::classes::saveClasses() &&
                aaims::manager::account::save();

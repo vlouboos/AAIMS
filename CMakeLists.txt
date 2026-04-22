@@ -82,6 +82,8 @@ if (WIN32)
             pages/TeacherClassPage.h
             pages/components/TimetableWidget.cpp
             pages/components/TimetableWidget.h
+            dialogs/ClassAddCourseDialog.cpp
+            dialogs/ClassAddCourseDialog.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -148,6 +150,8 @@ else ()
             pages/TeacherClassPage.h
             pages/components/TimetableWidget.cpp
             pages/components/TimetableWidget.h
+            dialogs/ClassAddCourseDialog.cpp
+            dialogs/ClassAddCourseDialog.h
     )
 endif ()
 

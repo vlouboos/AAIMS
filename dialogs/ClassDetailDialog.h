@@ -5,11 +5,16 @@
 #ifndef AAIMS_CLASSDETAILDIALOG_H
 #define AAIMS_CLASSDETAILDIALOG_H
 
-#include <QFormLayout>
-#include <QComboBox>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QScrollArea>
+#include <QListWidget>
+#include <QPushButton>
+#include <QCompleter>
+#include <QComboBox>
+#include <QFormLayout>
 
 #include "StyledDialog.h"
 #include "../utils/DataStructures.h"
@@ -41,11 +46,12 @@ private:
     QLabel *coursesLabel;
     QHBoxLayout *coursesEditLayout;
     QScrollArea *courses;
+    QListWidget *courseList;
+    QPushButton *btnAddCourse;
     QHBoxLayout *btnLayout;
     QPushButton *btnSave;
     QPushButton *btnCancel;
     aaims::model::Class *cls;
 };
-
 
 #endif //AAIMS_CLASSDETAILDIALOG_H

@@ -61,6 +61,7 @@ namespace aaims {
             QUuid teacher;
             int credit = 0;
             uint8_t status = 0;
+            QString semester; // TODO: Make it work
             QList<LessonTime> times;
             QList<QUuid> students;
             QList<QUuid> classes;
