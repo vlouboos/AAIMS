@@ -171,25 +171,21 @@ StudentDetailDialog::StudentDetailDialog(StudentAccount *account, QWidget *paren
         }
     });
 
-    connect(btnAddCourse, &QPushButton::clicked, [this, account] {
+    connect(btnAddCourse, &QPushButton::clicked, [this, allCourses] {
         // Build list of courses NOT eligible for this student
         QList<QUuid> ineligibleCourses;
-        const auto &allCourses = aaims::manager::course::get_courses();
-        const auto &studentClass = aaims::manager::classes::get_classes()[account->currentClass];
-
         for (const auto &[courseUuid, course] : allCourses.asKeyValueRange()) {
             // Check if student is eligible for this course based on assignment rule
-            if (!isStudentEligibleForCourse(account, course, studentClass.get())) {
+            if (!isStudentEligibleForCourse(course)) {
                 ineligibleCourses.append(courseUuid);
             }
         }
 
         // Pass workingCourses + ineligible courses to hide them from selection
-        QList<QUuid> restrictedCourses = this->workingCourses + ineligibleCourses;
+        const QList<QUuid> restrictedCourses = this->workingCourses + ineligibleCourses;
 
         if (ClassAddCourseDialog dialog(restrictedCourses, this); dialog.exec() == Accepted) {
-            const auto added = dialog.getAddedCourses();
-            for (const auto &uuid: added) {
+            for (const auto added = dialog.getAddedCourses(); const auto &uuid: added) {
                 this->workingCourses.append(uuid);
                 const auto &course = allCourses[uuid];
                 auto *item = new QListWidgetItem(QString("%1-%2").arg(course->id, course->name)); // NOLINT
@@ -290,7 +286,7 @@ void StudentDetailDialog::onSaveButtonClicked() {
     // Update student's lesson list
     account->lessons.clear();
     for (const auto &courseUuid: workingCourses) {
-        account->lessons.append(aaims::model::CourseStatus{courseUuid, 0});
+        account->lessons.append(CourseStatus{courseUuid, 0});
     }
 
     switch (comboStatus->currentIndex()) {
@@ -337,47 +333,20 @@ void StudentDetailDialog::onSaveButtonClicked() {
     watcher->setFuture(future);
 }
 
-bool StudentDetailDialog::isStudentEligibleForCourse(aaims::model::StudentAccount *student,
-                                                     const std::shared_ptr<aaims::model::Course> &course,
-                                                     aaims::model::Class *studentClass) {
+bool StudentDetailDialog::isStudentEligibleForCourse(const std::shared_ptr<Course> &course) const {
     using namespace aaims::model;
-
+    using namespace aaims::manager;
     const auto &rule = course->assignmentRule;
-
-    switch (rule.type) {
-        case Course::AssignmentRule::NONE:
-            return false; // Not assigned to anyone
-
-        case Course::AssignmentRule::ALL_STUDENTS:
-            return true; // Available to all students
-
-        case Course::AssignmentRule::ALL_DEPARTMENT: {
-            // Check if student's class belongs to the target department
-            return studentClass && studentClass->department == rule.targetDepartment;
-        }
-
-        case Course::AssignmentRule::ALL_CLASS:
-            // Check if student is in the target class
-            return student->currentClass == rule.targetClass;
-
-        case Course::AssignmentRule::SPECIFIC_STUDENTS:
-            // Check if student is in the specific list
-            return rule.specificStudents.contains(student->uuid);
-
-        case Course::AssignmentRule::GENDER_DEPARTMENT: {
-            // Check if student's class is in target department AND matches gender
-            if (!studentClass || studentClass->department != rule.targetDepartment) {
-                return false;
-            }
-            return student->female == rule.isFemale;
-        }
-
-        case Course::AssignmentRule::GENDER_SCHOOL:
-            // Check if student matches the gender
-            return student->female == rule.isFemale;
-
-        default:
-            return false;
+    const auto &cls = classes::get_classes()[account->currentClass];
+    if (!cls.get()) return false;
+    if (rule.specific_single()) {
+        return rule.specificStudents.contains(account->uuid);
     }
+    if (rule.specific_department() && !rule.targetDepartments.contains(cls->department)) return false;
+    if (rule.specific_class() && !rule.targetClasses.contains(cls->uuid)) return false;
+    if (rule.specific_gender() && account->female != rule.isFemale) return false;
+    if (rule.specific_grade() && !rule.targetGrades.contains(cls->grade)) return false;
+    // TODO: Major
+    return true;
 }
 

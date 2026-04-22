@@ -31,6 +31,29 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
 
     formLayout = new QFormLayout();
 
+    comboSemester = new QComboBox(singleAddPage);
+    QDate currentDate = QDate::currentDate();
+    int currentYear = currentDate.year();
+    int currentMonth = currentDate.month();
+    int targetYear = currentYear;
+    int targetTerm = currentMonth >= 8 || currentMonth == 1 ? 1 : 2;
+    if (currentMonth > 8) {
+        targetYear += 1;
+    }
+    const QString defaultData = QString("%1-%2").arg(targetYear).arg(targetTerm);
+    for (int y = currentYear; y <= currentYear + 2; ++y) {
+        const QString textAutumn = QString("%1-%2学年 秋季学期").arg(y).arg(y + 1);
+        const QString dataAutumn = QString("%1-1").arg(y);
+        comboSemester->addItem(textAutumn, dataAutumn);
+        const QString textSpring = QString("%1-%2学年 春季学期").arg(y).arg(y + 1);
+        const QString dataSpring = QString("%1-2").arg(y);
+        comboSemester->addItem(textSpring, dataSpring);
+    }
+
+    if (int defaultIndex = comboSemester->findData(defaultData); defaultIndex != -1) {
+        comboSemester->setCurrentIndex(defaultIndex);
+    }
+
     editId = new QLineEdit(singleAddPage);
     editName = new QLineEdit(singleAddPage);
 
@@ -147,7 +170,7 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
             for (const auto &x: slotWidgets) {
                 courses.append(x->toData());
             }
-            if (teacher->is_occupied(courses)) {
+            if (teacher->is_occupied(comboSemester->currentData().value<QString>(), courses)) {
                 pd->close();
                 pd->deleteLater();
                 QMessageBox::warning(this, "输入错误", "该教师已有课程时间与当前课程冲突！");
@@ -215,7 +238,7 @@ QPair<unsigned long long, unsigned long long> AddCourseDialog::importFromCsv() c
         }
 
         QStringList fields = line.split(",");
-        if (fields.size() < 5) {
+        if (fields.size() < 6) {
             failed++;
             continue;
         }
@@ -223,8 +246,9 @@ QPair<unsigned long long, unsigned long long> AddCourseDialog::importFromCsv() c
         const QString id = fields[0].trimmed();
         const QString name = fields[1].trimmed();
         const QString teacher = fields[2].trimmed();
-        const QString credit = fields[3].trimmed();
-        const QString times = fields[4].trimmed();
+        const QString semester = fields[3].trimmed();
+        const QString credit = fields[4].trimmed();
+        const QString times = fields[5].trimmed();
         if (id.isEmpty() || name.isEmpty() || teacher.isEmpty() || credit.isEmpty() || times.isEmpty()) {
             failed++;
             continue;
@@ -258,7 +282,7 @@ QPair<unsigned long long, unsigned long long> AddCourseDialog::importFromCsv() c
                 startTime.toInt(), endWeek.toInt(), dayOfWeek.toInt(), startWeek.toInt() - 1, duration.toInt(), location
             });
         }
-        if ((*it)->is_occupied(timeList)) {
+        if ((*it)->is_occupied(semester, timeList)) {
             failed++;
             continue;
         }

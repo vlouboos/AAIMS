@@ -77,7 +77,7 @@ namespace aaims::manager::account {
                             mask |= 1 << (i - 1);
                         }
                         for (int i = 0; i < duration; i++) {
-                            teacher->occupied[dayOfWeek - 1][startTime + i] |= mask;
+                            teacher->occupied[course->semester][dayOfWeek - 1][startTime + i] |= mask;
                         }
                     }
                 }

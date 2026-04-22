@@ -25,10 +25,6 @@ private slots:
     void onSaveButtonClicked();
 
 private:
-    // Helper to check if student is eligible for a course based on assignment rules
-    static bool isStudentEligibleForCourse(aaims::model::StudentAccount *student,
-                                          const std::shared_ptr<aaims::model::Course> &course,
-                                          aaims::model::Class *studentClass);
     QVBoxLayout *mainLayout;
     QLabel *headerLabel;
     QFormLayout *tableLayout;
@@ -54,6 +50,9 @@ private:
     QPushButton *btnCancel;
     aaims::model::StudentAccount *account;
     QList<QUuid> workingCourses;
+
+    // Helper to check if student is eligible for a course based on assignment rules
+    bool isStudentEligibleForCourse(const std::shared_ptr<aaims::model::Course> &course) const;
 };
 
 #endif //AAIMS_STUDENTDETAILDIALOG_H

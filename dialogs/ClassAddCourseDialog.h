@@ -22,30 +22,35 @@ class ClassAddCourseDialog : public StyledDialog {
 
 public:
     explicit ClassAddCourseDialog(const QList<QUuid> &currentCourses, QWidget *parent = nullptr);
-    QList<QUuid> getAddedCourses() const;
+
+    [[nodiscard]] QList<QUuid> getAddedCourses() const;
 
 private slots:
     void filterCourses();
+
     void onAddButtonClicked();
+
     void onDeleteButtonClicked(const QUuid &uuid);
 
 private:
-    void populateAvailable();
-    void addToAddedList(const QUuid &uuid);
-
+    QVBoxLayout *mainLayout;
     QLineEdit *searchEdit;
     QListWidget *availableList;
     QPushButton *btnAdd;
     QScrollArea *addedArea;
     QWidget *addedWidget;
     QVBoxLayout *addedLayout;
+    QHBoxLayout *btnLayout;
     QPushButton *btnOk;
     QPushButton *btnCancel;
-
     QList<QUuid> addedCourses;
     QList<QUuid> currentCourses;
     QMap<QUuid, QHBoxLayout *> addedLayouts;
-    QHash<QUuid, std::shared_ptr<aaims::model::Course>> allCourses;
+    QHash<QUuid, std::shared_ptr<aaims::model::Course> > allCourses;
+
+    void populateAvailable();
+
+    void addToAddedList(const QUuid &uuid);
 };
 
 #endif // AAIMS_CLASSADDCOURSEDIALOG_H

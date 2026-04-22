@@ -32,6 +32,7 @@ private:
     QWidget *singleAddPage;
     QVBoxLayout *singleLayout;
     QFormLayout *formLayout;
+    QComboBox *comboSemester;
     QLineEdit *editId;
     QLineEdit *editName;
     QHBoxLayout *teacherLayout;

@@ -4,13 +4,12 @@
 
 #include "ClassAddCourseDialog.h"
 
-#include <QHBoxLayout>
+#include <QBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QScrollArea>
-#include <QVBoxLayout>
 
 #include "../managements/CourseManager.h"
 
@@ -20,7 +19,7 @@ ClassAddCourseDialog::ClassAddCourseDialog(const QList<QUuid> &currentCourses, Q
     resize(500, 600);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
 
-    auto *mainLayout = new QVBoxLayout(this);
+    mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(15, 15, 15, 15);
 
     searchEdit = new QLineEdit(this);
@@ -39,7 +38,7 @@ ClassAddCourseDialog::ClassAddCourseDialog(const QList<QUuid> &currentCourses, Q
     addedArea->setWidget(addedWidget);
     addedArea->setWidgetResizable(true);
 
-    auto *btnLayout = new QHBoxLayout();
+    btnLayout = new QHBoxLayout();
     btnOk = new QPushButton("确定", this);
     btnCancel = new QPushButton("取消", this);
     connect(btnOk, &QPushButton::clicked, this, &QDialog::accept);
@@ -65,7 +64,7 @@ void ClassAddCourseDialog::populateAvailable() {
             if (searchText.isEmpty() ||
                 course->id.contains(searchText, Qt::CaseInsensitive) ||
                 course->name.contains(searchText, Qt::CaseInsensitive)) {
-                auto *item = new QListWidgetItem(QString("%1-%2").arg(course->id, course->name));
+                auto *item = new QListWidgetItem(QString("%1-%2").arg(course->id, course->name)); // NOLINT
                 item->setData(Qt::UserRole, uuid);
                 availableList->addItem(item);
             }
@@ -78,9 +77,8 @@ void ClassAddCourseDialog::filterCourses() {
 }
 
 void ClassAddCourseDialog::onAddButtonClicked() {
-    const auto selectedItems = availableList->selectedItems();
-    for (auto *item : selectedItems) {
-        QUuid uuid = item->data(Qt::UserRole).value<QUuid>();
+    for (const auto selectedItems = availableList->selectedItems(); const auto *item : selectedItems) {
+        const auto &uuid = item->data(Qt::UserRole).value<QUuid>();
         addedCourses.append(uuid);
         addToAddedList(uuid);
         delete availableList->takeItem(availableList->row(item));
@@ -90,9 +88,9 @@ void ClassAddCourseDialog::onAddButtonClicked() {
 void ClassAddCourseDialog::addToAddedList(const QUuid &uuid) {
     const auto &course = allCourses[uuid];
     auto *hLayout = new QHBoxLayout();
-    auto *label = new QLabel(QString("%1-%2").arg(course->id, course->name));
-    auto *btnDelete = new QPushButton("删除");
-    connect(btnDelete, &QPushButton::clicked, [this, uuid]() { onDeleteButtonClicked(uuid); });
+    auto *label = new QLabel(QString("%1-%2").arg(course->id, course->name)); // NOLINT
+    auto *btnDelete = new QPushButton("删除"); // NOLINT
+    connect(btnDelete, &QPushButton::clicked, [this, uuid] { onDeleteButtonClicked(uuid); });
     hLayout->addWidget(label);
     hLayout->addWidget(btnDelete);
     addedLayout->addLayout(hLayout);

@@ -206,7 +206,7 @@ ClassDetailDialog::ClassDetailDialog(Class *cls,
             return;
         }
         if (QMessageBox::warning(this, "确定", "确定要删除选中的课程吗？", QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
-            for (const auto item : std::ranges::reverse_view(selectedItems)) {
+            for (const auto item: std::ranges::reverse_view(selectedItems)) {
                 const auto uuid = item->data(Qt::UserRole).value<QUuid>();
                 this->workingCourses.removeAll(uuid);
                 delete courseList->takeItem(courseList->row(item));
@@ -279,14 +279,14 @@ void ClassDetailDialog::onSaveButtonClicked() {
     const auto previousCourses = cls->courses;
 
     // Remove class from courses that are no longer assigned
-    for (const auto &courseUuid : previousCourses) {
+    for (const auto &courseUuid: previousCourses) {
         if (!workingCourses.contains(courseUuid) && allCoursesRef.contains(courseUuid)) {
             allCoursesRef[courseUuid]->classes.removeAll(cls->uuid);
         }
     }
 
     // Add class to courses that are newly assigned
-    for (const auto &courseUuid : workingCourses) {
+    for (const auto &courseUuid: workingCourses) {
         if (!previousCourses.contains(courseUuid) && allCoursesRef.contains(courseUuid)) {
             if (!allCoursesRef[courseUuid]->classes.contains(cls->uuid)) {
                 allCoursesRef[courseUuid]->classes.append(cls->uuid);
@@ -297,6 +297,7 @@ void ClassDetailDialog::onSaveButtonClicked() {
     cls->courses = workingCourses;
     const auto future = QtConcurrent::run([] {
         return aaims::manager::classes::saveClasses() &&
+               aaims::manager::course::save() &&
                aaims::manager::account::save();
     });
     auto watcher = new QFutureWatcher<bool>(this); // NOLINT

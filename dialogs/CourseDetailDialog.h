@@ -2,28 +2,23 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef AAIMS_CLASSDETAILDIALOG_H
-#define AAIMS_CLASSDETAILDIALOG_H
+#ifndef AAIMS_COURSEDETAILDIALOG_H
+#define AAIMS_COURSEDETAILDIALOG_H
 
-#include <QLabel>
-#include <QLineEdit>
-#include <QScrollArea>
-#include <QListWidget>
-#include <QPushButton>
 #include <QComboBox>
 #include <QFormLayout>
+#include <QLabel>
+#include <QListWidget>
+#include <QPushButton>
+#include <QScrollArea>
 
 #include "StyledDialog.h"
-#include "../utils/DataStructures.h"
 
-class ClassDetailDialog : public StyledDialog {
+class CourseDetailDialog : public StyledDialog {
     Q_OBJECT
 
 public:
-    explicit ClassDetailDialog(aaims::model::Class *cls, QWidget *parent = nullptr);
-
-private slots:
-    void onSaveButtonClicked();
+    explicit CourseDetailDialog(QWidget *parent = nullptr);
 
 private:
     QVBoxLayout *mainLayout;
@@ -50,8 +45,8 @@ private:
     QHBoxLayout *btnLayout;
     QPushButton *btnSave;
     QPushButton *btnCancel;
-    aaims::model::Class *cls;
-    QList<QUuid> workingCourses;
 };
 
-#endif //AAIMS_CLASSDETAILDIALOG_H
+
+
+#endif //AAIMS_COURSEDETAILDIALOG_H

@@ -55,8 +55,9 @@ namespace aaims {
                 }
 
                 uint8_t status = 0;
-                QString targetDepartment;
-                QUuid targetClass;
+                QList<QString> targetDepartments;
+                QList<QUuid> targetClasses;
+                QList<QString> targetGrades;
                 bool isFemale = false;
                 QList<QUuid> specificStudents;
             };
@@ -78,7 +79,8 @@ namespace aaims {
 
                 static LessonTime fromJson(const QJsonObject &json) {
                     return {
-                        json.value("weekStart").toInt(), json.value("weekEnd").toInt(), json.value("day").toInt(),
+                        json.value("weekStart").toInt(),
+                        json.value("weekEnd").toInt(), json.value("day").toInt(),
                         json.value("start").toInt(), json.value("duration").toInt(), json.value("location").toString()
                     };
                 }
@@ -101,7 +103,7 @@ namespace aaims {
             QUuid teacher;
             int credit = 0;
             uint8_t status = 0;
-            QString semester; // TODO: Make it work
+            QString semester;
             QList<LessonTime> times;
             QList<QUuid> students;
             QList<QUuid> classes;
@@ -124,21 +126,37 @@ namespace aaims {
                 course.name = json.value("name").toString();
                 course.teacher = QUuid::fromString(json.value("teacher").toString());
                 course.credit = json.value("credit").toInt();
+                course.semester = json.value("semester").toString();
                 course.status = json.value("status").toInt();
-                QList<LessonTime> times;
                 for (const auto &t: json.value("times").toArray()) {
-                    times.emplace_back(LessonTime::fromJson(t.toObject()));
+                    course.times.emplace_back(LessonTime::fromJson(t.toObject()));
+                }
+                for (const auto &t: json.value("classes").toArray()) {
+                    course.classes.emplace_back(QUuid::fromString(t.toString()));
+                }
+                for (const auto &t: json.value("students").toArray()) {
+                    course.students.emplace_back(QUuid::fromString(t.toString()));
                 }
 
                 // Parse assignment rule only if course is in ACCEPTING status
                 if (course.is_accepting()) {
                     const auto &ruleObj = json.value("assignmentRule").toObject();
                     course.assignmentRule.status = ruleObj.value("status").toInt();
-                    if (course.assignmentRule.specific_department())
-                        course.assignmentRule.targetDepartment = ruleObj.value("targetDepartment").toString();
-                    if (course.assignmentRule.specific_class())
-                        course.assignmentRule.targetClass = QUuid::fromString(
-                            ruleObj.value("targetClass").toString());
+                    if (course.assignmentRule.specific_department()) {
+                        for (const auto &did: ruleObj.value("specificDepartments").toArray()) {
+                            course.assignmentRule.targetDepartments.append(did.toString());
+                        }
+                    }
+                    if (course.assignmentRule.specific_class()) {
+                        for (const auto &cid: ruleObj.value("specificClasses").toArray()) {
+                            course.assignmentRule.targetClasses.append(QUuid::fromString(cid.toString()));
+                        }
+                    }
+                    if (course.assignmentRule.specific_grade()) {
+                        for (const auto &gid: ruleObj.value("specificGrades").toArray()) {
+                            course.assignmentRule.targetGrades.append(gid.toString());
+                        }
+                    }
                     if (course.assignmentRule.specific_gender())
                         course.assignmentRule.isFemale = ruleObj.value("isFemale").toBool();
                     // TODO: Add "major" as an element of classes
@@ -155,25 +173,48 @@ namespace aaims {
             [[nodiscard]] QJsonObject toJson() const {
                 QJsonArray t;
                 for (const auto &x: this->times) { t.append(x.toJson()); }
+                QJsonArray c;
+                for (const auto &x: this->classes) { c.append(x.toString(QUuid::WithoutBraces)); }
+                QJsonArray s;
+                for (const auto &x: this->students) { s.append(x.toString(QUuid::WithoutBraces)); }
 
                 QJsonObject result{
                     {"id", id},
                     {"name", name},
                     {"teacher", teacher.toString(QUuid::WithoutBraces)},
                     {"credit", credit},
+                    {"semester", semester},
                     {"status", status},
-                    {"times", t}
+                    {"times", t},
+                    {"classes", c},
+                    {"students", s}
                 };
 
                 // Only store assignment rule if course is in ACCEPTING status
                 if (status & ACCEPTING) {
                     QJsonObject ruleObj;
                     ruleObj["status"] = assignmentRule.status;
-                    if (assignmentRule.specific_department())
-                        ruleObj["targetDepartment"] = assignmentRule.targetDepartment;
-                    if (assignmentRule.specific_class())
-                        ruleObj["targetClass"] = assignmentRule.targetClass.toString(
-                            QUuid::WithoutBraces);
+                    if (assignmentRule.specific_department()) {
+                        QJsonArray specificDepartments;
+                        for (const auto &did: assignmentRule.targetDepartments) {
+                            specificDepartments.append(did);
+                        }
+                        ruleObj["specificDepartments"] = specificDepartments;
+                    }
+                    if (assignmentRule.specific_class()) {
+                        QJsonArray specificClasses;
+                        for (const auto &sid: assignmentRule.targetClasses) {
+                            specificClasses.append(sid.toString(QUuid::WithoutBraces));
+                        }
+                        ruleObj["specificClasses"] = specificClasses;
+                    }
+                    if (assignmentRule.specific_grade()) {
+                        QJsonArray specificGrades;
+                        for (const auto &gid: assignmentRule.targetGrades) {
+                            specificGrades.append(gid);
+                        }
+                        ruleObj["specificGrades"] = specificGrades;
+                    }
                     if (assignmentRule.specific_gender()) ruleObj["isFemale"] = assignmentRule.isFemale;
                     if (assignmentRule.specific_single()) {
                         QJsonArray specificStudents;
@@ -318,18 +359,21 @@ namespace aaims {
             QList<QUuid> courses;
             QString department;
             QUuid managingClass = EMPTY_UUID;
-            int occupied[7][15]{};
+            QHash<QString, QVector<QVector<int> > > occupied;
 
             [[nodiscard]] bool is_occupied() const { return !courses.isEmpty() || managingClass != EMPTY_UUID; }
 
-            [[nodiscard]] bool is_occupied(const QList<Course::LessonTime> &times) {
-                return std::ranges::all_of(times, [this](const auto &data) {
+            [[nodiscard]] bool is_occupied(const QString &semester, const QList<Course::LessonTime> &times) {
+                if (!occupied.contains(semester)) {
+                    return false;
+                }
+                return std::ranges::all_of(times, [this, semester](const auto &data) {
                     int mask = 0;
                     for (int i = data.weekStart; i <= data.weekEnd; ++i) {
                         mask |= 1 << (i - 1);
                     }
                     for (int i = 0; i < data.duration; i++) {
-                        if (occupied[data.dayOfWeek - 1][data.startTime + i] & mask) {
+                        if (occupied[semester][data.dayOfWeek - 1][data.startTime + i] & mask) {
                             return true;
                         }
                     }
@@ -339,13 +383,17 @@ namespace aaims {
 
             void addCourse(const Course *const &course) {
                 courses.append(course->uuid);
-                for (const auto &[weekStart, weekEnd, dayOfWeek, startTime, duration, location]: course->times) {
+                if (!occupied.contains(course->semester)) {
+                    occupied[course->semester].resize(7, QVector<int>(15, 0));
+                }
+                for (const auto &[weekStart, weekEnd, dayOfWeek, startTime, duration, location]: course->
+                     times) {
                     int mask = 0;
                     for (int i = weekStart; i <= weekEnd; ++i) {
                         mask |= 1 << (i - 1);
                     }
                     for (int i = 0; i < duration; i++) {
-                        occupied[dayOfWeek - 1][startTime + i] |= mask;
+                        occupied[course->semester][dayOfWeek - 1][startTime + i] |= mask;
                     }
                 }
             }
