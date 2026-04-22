@@ -8,20 +8,22 @@
 #include <QHBoxLayout>
 #include <QProgressDialog>
 #include <QValidator>
-#include <QPushButton>
 #include <qtconcurrentrun.h>
+#include <ranges>
 
 #include "AddClassDialog.h"
+#include "ClassAddCourseDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
+#include "../managements/CourseManager.h"
 
 StudentDetailDialog::StudentDetailDialog(StudentAccount *account, QWidget *parent) : StyledDialog(parent),
     account(account) {
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
-    setFixedSize(450, 350);
+    setFixedSize(500, 600);
     mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(15, 15, 15, 15);
-    mainLayout->setAlignment(Qt::AlignCenter);
+    mainLayout->setAlignment(Qt::AlignTop);
 
     headerLabel = new QLabel("编辑学生信息", this);
     headerLabel->setStyleSheet("font-size: 20px; font-weight: 700; color: #0f172a;");
@@ -86,6 +88,61 @@ StudentDetailDialog::StudentDetailDialog(StudentAccount *account, QWidget *paren
     tableLayout->addRow("宿舍:", editRoom);
     tableLayout->addRow("手机号码:", editPhoneNumber);
 
+    // Initialize workingCourses from student's lessons
+    for (const auto &[courseUuid, retake]: account->lessons) {
+        workingCourses.append(courseUuid);
+    }
+
+    // Courses section
+    coursesLayout = new QVBoxLayout();
+
+    coursesLabel = new QLabel(QString("共%1个课程").arg(workingCourses.size()), this);
+    coursesLabel->setMaximumHeight(40);
+
+    coursesEditLayout = new QHBoxLayout();
+    coursesEditLayout->setAlignment(Qt::AlignTop);
+
+    courses = new QScrollArea();
+
+    courseList = new QListWidget();
+
+    const auto &allCourses = aaims::manager::course::get_courses();
+    for (const auto &[courseUuid, retake]: account->lessons) {
+        if (allCourses.contains(courseUuid)) {
+            const auto &course = allCourses[courseUuid];
+            const auto item = new QListWidgetItem(QString("%1-%2").arg(course->id, course->name)); // NOLINT
+            item->setData(Qt::UserRole, courseUuid);
+            courseList->addItem(item);
+        }
+    }
+
+    courses->setWidget(courseList);
+    courses->setWidgetResizable(true);
+
+    courseBtnLayout = new QVBoxLayout();
+
+    btnAddCourse = new QPushButton("+", this);
+    btnAddCourse->setStyleSheet("padding: 0; margin: 0;");
+    btnAddCourse->setObjectName("AddElement");
+    btnAddCourse->setFixedSize(24, 24);
+
+    btnRemoveCourse = new QPushButton("-", this);
+    btnRemoveCourse->setStyleSheet("padding: 0; margin: 0;");
+    btnRemoveCourse->setObjectName("AddElement");
+    btnRemoveCourse->setFixedSize(24, 24);
+    btnRemoveCourse->setEnabled(false);
+
+    courseBtnLayout->addWidget(btnAddCourse);
+    courseBtnLayout->addWidget(btnRemoveCourse);
+
+    coursesEditLayout->addWidget(courses);
+    coursesEditLayout->addLayout(courseBtnLayout);
+
+    coursesLayout->addWidget(coursesLabel);
+    coursesLayout->addLayout(coursesEditLayout);
+
+    tableLayout->addRow("选修课程:", coursesLayout);
+
     btnLayout = new QHBoxLayout();
     btnLayout->setSpacing(12);
 
@@ -108,9 +165,72 @@ StudentDetailDialog::StudentDetailDialog(StudentAccount *account, QWidget *paren
     connect(btnAdd, &QPushButton::clicked, [this] {
         if (AddClassDialog dialog(this); dialog.exec() == Accepted) {
             comboClass->clear();
-            comboClass->addItems(aaims::manager::classes::get_departments());
+            for (const auto &x: aaims::manager::classes::get_all_ptr()) {
+                comboClass->addItem(x->grade + x->name, x->uuid);
+            }
         }
     });
+
+    connect(btnAddCourse, &QPushButton::clicked, [this, account] {
+        // Build list of courses NOT eligible for this student
+        QList<QUuid> ineligibleCourses;
+        const auto &allCourses = aaims::manager::course::get_courses();
+        const auto &studentClass = aaims::manager::classes::get_classes()[account->currentClass];
+
+        for (const auto &[courseUuid, course] : allCourses.asKeyValueRange()) {
+            // Check if student is eligible for this course based on assignment rule
+            if (!isStudentEligibleForCourse(account, course, studentClass.get())) {
+                ineligibleCourses.append(courseUuid);
+            }
+        }
+
+        // Pass workingCourses + ineligible courses to hide them from selection
+        QList<QUuid> restrictedCourses = this->workingCourses + ineligibleCourses;
+
+        if (ClassAddCourseDialog dialog(restrictedCourses, this); dialog.exec() == Accepted) {
+            const auto added = dialog.getAddedCourses();
+            for (const auto &uuid: added) {
+                this->workingCourses.append(uuid);
+                const auto &course = allCourses[uuid];
+                auto *item = new QListWidgetItem(QString("%1-%2").arg(course->id, course->name)); // NOLINT
+                item->setData(Qt::UserRole, uuid);
+                courseList->addItem(item);
+            }
+            coursesLabel->setText(QString("共%1个课程").arg(this->workingCourses.size()));
+        }
+    });
+
+    connect(btnRemoveCourse, &QPushButton::clicked, [this] {
+        const auto selectedItems = courseList->selectedItems();
+        if (selectedItems.isEmpty()) {
+            return;
+        }
+        if (QMessageBox::warning(this, "确定", "确定要删除选中的课程吗？", QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+            for (const auto item: std::ranges::reverse_view(selectedItems)) {
+                const auto uuid = item->data(Qt::UserRole).value<QUuid>();
+                this->workingCourses.removeAll(uuid);
+                delete courseList->takeItem(courseList->row(item));
+            }
+            btnRemoveCourse->setEnabled(false);
+            coursesLabel->setText(QString("共%1个课程").arg(this->workingCourses.size()));
+        }
+    });
+
+    connect(courseList, &QListWidget::itemSelectionChanged, [this] {
+        btnRemoveCourse->setEnabled(!courseList->selectedItems().isEmpty());
+    });
+
+    connect(courseList, &QListWidget::itemDoubleClicked, [this](const QListWidgetItem *item) {
+        const auto uuid = item->data(Qt::UserRole).value<QUuid>();
+        const auto &all_courses = aaims::manager::course::get_courses();
+        const auto &course = all_courses[uuid];
+        const auto &teacher_accounts = aaims::manager::account::get_teachers();
+        const auto &teacher = teacher_accounts[course->teacher];
+        const QString info = QString("课程编号: %1\n课程名称: %2\n教师: %3\n学分: %4")
+                .arg(course->id, course->name, teacher->name, QString::number(course->credit));
+        QMessageBox::information(this, "课程详情", info);
+    });
+
     connect(btnSave, &QPushButton::clicked, this, &StudentDetailDialog::onSaveButtonClicked);
     connect(btnCancel, &QPushButton::clicked, this, &QDialog::reject);
 }
@@ -140,6 +260,39 @@ void StudentDetailDialog::onSaveButtonClicked() {
     cls->students.append(account->uuid);
     account->currentClass = clsUuid;
     account->phoneNumber = editPhoneNumber->text().trimmed();
+
+    // Update course enrollment
+    const auto &allCoursesRef = aaims::manager::course::get_courses();
+    const auto previousCourseIds = [this]() {
+        QList<QUuid> ids;
+        for (const auto &[uuid, retake]: account->lessons) {
+            ids.append(uuid);
+        }
+        return ids;
+    }();
+
+    // Remove student from courses that are no longer selected
+    for (const auto &courseUuid: previousCourseIds) {
+        if (!workingCourses.contains(courseUuid) && allCoursesRef.contains(courseUuid)) {
+            allCoursesRef[courseUuid]->students.removeAll(account->uuid);
+        }
+    }
+
+    // Add student to courses that are newly selected
+    for (const auto &courseUuid: workingCourses) {
+        if (!previousCourseIds.contains(courseUuid) && allCoursesRef.contains(courseUuid)) {
+            if (!allCoursesRef[courseUuid]->students.contains(account->uuid)) {
+                allCoursesRef[courseUuid]->students.append(account->uuid);
+            }
+        }
+    }
+
+    // Update student's lesson list
+    account->lessons.clear();
+    for (const auto &courseUuid: workingCourses) {
+        account->lessons.append(aaims::model::CourseStatus{courseUuid, 0});
+    }
+
     switch (comboStatus->currentIndex()) {
         case 0: {
             if (account->is_suspended()) aaims::manager::account::get_suspended_students().remove(account->uuid);
@@ -170,15 +323,61 @@ void StudentDetailDialog::onSaveButtonClicked() {
         default: break;
     }
     const auto future = QtConcurrent::run([] {
-        return aaims::manager::classes::saveClasses() && aaims::manager::account::save();
+        return aaims::manager::classes::saveClasses() && aaims::manager::course::save() &&
+               aaims::manager::account::save();
     });
     auto watcher = new QFutureWatcher<bool>(this); // NOLINT
     connect(watcher, &QFutureWatcherBase::finished, [this, pd, watcher] {
         pd->close();
         pd->deleteLater();
         watcher->deleteLater();
-        QMessageBox::information(this, "保存完成", QString("保存班级成功！"));
+        QMessageBox::information(this, "保存完成", QString("保存学生信息成功！"));
         accept();
     });
     watcher->setFuture(future);
 }
+
+bool StudentDetailDialog::isStudentEligibleForCourse(aaims::model::StudentAccount *student,
+                                                     const std::shared_ptr<aaims::model::Course> &course,
+                                                     aaims::model::Class *studentClass) {
+    using namespace aaims::model;
+
+    const auto &rule = course->assignmentRule;
+
+    switch (rule.type) {
+        case Course::AssignmentRule::NONE:
+            return false; // Not assigned to anyone
+
+        case Course::AssignmentRule::ALL_STUDENTS:
+            return true; // Available to all students
+
+        case Course::AssignmentRule::ALL_DEPARTMENT: {
+            // Check if student's class belongs to the target department
+            return studentClass && studentClass->department == rule.targetDepartment;
+        }
+
+        case Course::AssignmentRule::ALL_CLASS:
+            // Check if student is in the target class
+            return student->currentClass == rule.targetClass;
+
+        case Course::AssignmentRule::SPECIFIC_STUDENTS:
+            // Check if student is in the specific list
+            return rule.specificStudents.contains(student->uuid);
+
+        case Course::AssignmentRule::GENDER_DEPARTMENT: {
+            // Check if student's class is in target department AND matches gender
+            if (!studentClass || studentClass->department != rule.targetDepartment) {
+                return false;
+            }
+            return student->female == rule.isFemale;
+        }
+
+        case Course::AssignmentRule::GENDER_SCHOOL:
+            // Check if student matches the gender
+            return student->female == rule.isFemale;
+
+        default:
+            return false;
+    }
+}
+

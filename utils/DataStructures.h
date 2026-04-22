@@ -21,6 +21,46 @@ namespace aaims {
             constexpr static int STARTED = 0b100;
             constexpr static int ENDED = 0b1000;
 
+            // Assignment rule for distributing courses to students
+            struct AssignmentRule {
+                constexpr static int DEPARTMENT = 0b1;
+                constexpr static int CLASS = 0b10;
+                constexpr static int GENDER = 0b100;
+                constexpr static int GRADE = 0b1000;
+                constexpr static int MAJOR = 0b10000;
+                constexpr static int SINGLE = 0b100000;
+
+                [[nodiscard]] bool specific_department() const {
+                    return (status & DEPARTMENT) != 0;
+                }
+
+                [[nodiscard]] bool specific_class() const {
+                    return (status & CLASS) != 0;
+                }
+
+                [[nodiscard]] bool specific_gender() const {
+                    return (status & GENDER) != 0;
+                }
+
+                [[nodiscard]] bool specific_grade() const {
+                    return (status & GRADE) != 0;
+                }
+
+                [[nodiscard]] bool specific_major() const {
+                    return (status & MAJOR) != 0;
+                }
+
+                [[nodiscard]] bool specific_single() const {
+                    return (status & SINGLE) != 0;
+                }
+
+                uint8_t status = 0;
+                QString targetDepartment;
+                QUuid targetClass;
+                bool isFemale = false;
+                QList<QUuid> specificStudents;
+            };
+
             struct LessonTime {
                 inline static const QStringList TIME_TABLE = {
                     "8:00", "8:45", "9:55", "10:40", "11:25", "12:40", "13:25", "14:30", "15:15", "16:25", "17:10",
@@ -65,6 +105,7 @@ namespace aaims {
             QList<LessonTime> times;
             QList<QUuid> students;
             QList<QUuid> classes;
+            AssignmentRule assignmentRule; // Rule for determining which students can select this course
 
             ~Course() = default;
 
@@ -88,13 +129,34 @@ namespace aaims {
                 for (const auto &t: json.value("times").toArray()) {
                     times.emplace_back(LessonTime::fromJson(t.toObject()));
                 }
+
+                // Parse assignment rule only if course is in ACCEPTING status
+                if (course.is_accepting()) {
+                    const auto &ruleObj = json.value("assignmentRule").toObject();
+                    course.assignmentRule.status = ruleObj.value("status").toInt();
+                    if (course.assignmentRule.specific_department())
+                        course.assignmentRule.targetDepartment = ruleObj.value("targetDepartment").toString();
+                    if (course.assignmentRule.specific_class())
+                        course.assignmentRule.targetClass = QUuid::fromString(
+                            ruleObj.value("targetClass").toString());
+                    if (course.assignmentRule.specific_gender())
+                        course.assignmentRule.isFemale = ruleObj.value("isFemale").toBool();
+                    // TODO: Add "major" as an element of classes
+                    if (course.assignmentRule.specific_single()) {
+                        for (const auto &sid: ruleObj.value("specificStudents").toArray()) {
+                            course.assignmentRule.specificStudents.append(QUuid::fromString(sid.toString()));
+                        }
+                    }
+                }
+
                 return course;
             }
 
             [[nodiscard]] QJsonObject toJson() const {
                 QJsonArray t;
                 for (const auto &x: this->times) { t.append(x.toJson()); }
-                return {
+
+                QJsonObject result{
                     {"id", id},
                     {"name", name},
                     {"teacher", teacher.toString(QUuid::WithoutBraces)},
@@ -102,6 +164,28 @@ namespace aaims {
                     {"status", status},
                     {"times", t}
                 };
+
+                // Only store assignment rule if course is in ACCEPTING status
+                if (status & ACCEPTING) {
+                    QJsonObject ruleObj;
+                    ruleObj["status"] = assignmentRule.status;
+                    if (assignmentRule.specific_department())
+                        ruleObj["targetDepartment"] = assignmentRule.targetDepartment;
+                    if (assignmentRule.specific_class())
+                        ruleObj["targetClass"] = assignmentRule.targetClass.toString(
+                            QUuid::WithoutBraces);
+                    if (assignmentRule.specific_gender()) ruleObj["isFemale"] = assignmentRule.isFemale;
+                    if (assignmentRule.specific_single()) {
+                        QJsonArray specificStudents;
+                        for (const auto &sid: assignmentRule.specificStudents) {
+                            specificStudents.append(sid.toString(QUuid::WithoutBraces));
+                        }
+                        ruleObj["specificStudents"] = specificStudents;
+                    }
+                    result["assignmentRule"] = ruleObj;
+                }
+
+                return result;
             }
         };
 

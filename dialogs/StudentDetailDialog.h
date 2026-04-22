@@ -9,6 +9,8 @@
 #include <QCompleter>
 #include <QFormLayout>
 #include <QLabel>
+#include <QListWidget>
+#include <QScrollArea>
 
 #include "StyledDialog.h"
 #include "../utils/DataStructures.h"
@@ -23,6 +25,10 @@ private slots:
     void onSaveButtonClicked();
 
 private:
+    // Helper to check if student is eligible for a course based on assignment rules
+    static bool isStudentEligibleForCourse(aaims::model::StudentAccount *student,
+                                          const std::shared_ptr<aaims::model::Course> &course,
+                                          aaims::model::Class *studentClass);
     QVBoxLayout *mainLayout;
     QLabel *headerLabel;
     QFormLayout *tableLayout;
@@ -35,10 +41,19 @@ private:
     QComboBox *comboStatus;
     QLineEdit *editRoom;
     QLineEdit *editPhoneNumber;
+    QVBoxLayout *coursesLayout;
+    QLabel *coursesLabel;
+    QHBoxLayout *coursesEditLayout;
+    QScrollArea *courses;
+    QListWidget *courseList;
+    QVBoxLayout *courseBtnLayout;
+    QPushButton *btnAddCourse;
+    QPushButton *btnRemoveCourse;
     QHBoxLayout *btnLayout;
     QPushButton *btnSave;
     QPushButton *btnCancel;
     aaims::model::StudentAccount *account;
+    QList<QUuid> workingCourses;
 };
 
 #endif //AAIMS_STUDENTDETAILDIALOG_H
