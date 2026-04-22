@@ -36,22 +36,35 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     int currentYear = currentDate.year();
     int currentMonth = currentDate.month();
     int targetYear = currentYear;
-    int targetTerm = currentMonth >= 8 || currentMonth == 1 ? 1 : 2;
+    int targetTerm = currentMonth >= 9 || currentMonth == 1 ? 1 : 2;
     if (currentMonth > 8) {
         targetYear += 1;
     }
     const QString defaultData = QString("%1-%2").arg(targetYear).arg(targetTerm);
-    for (int y = currentYear; y <= currentYear + 2; ++y) {
-        const QString textAutumn = QString("%1-%2学年 秋季学期").arg(y).arg(y + 1);
-        const QString dataAutumn = QString("%1-1").arg(y);
-        comboSemester->addItem(textAutumn, dataAutumn);
-        const QString textSpring = QString("%1-%2学年 春季学期").arg(y).arg(y + 1);
-        const QString dataSpring = QString("%1-2").arg(y);
-        comboSemester->addItem(textSpring, dataSpring);
+    if (targetTerm == 1) {
+        for (int y = currentYear; y <= currentYear + 2; ++y) {
+            const QString textAutumn = QString("%1-%2学年 秋季学期").arg(y).arg(y + 1);
+            const QString dataAutumn = QString("%1-1").arg(y);
+            comboSemester->addItem(textAutumn, dataAutumn);
+            const QString textSpring = QString("%1-%2学年 春季学期").arg(y).arg(y + 1);
+            const QString dataSpring = QString("%1-2").arg(y);
+            comboSemester->addItem(textSpring, dataSpring);
+        }
+    } else {
+        for (int y = currentYear; y <= currentYear + 2; ++y) {
+            if (y != currentYear) {
+                const QString textAutumn = QString("%1-%2学年 秋季学期").arg(y - 1).arg(y);
+                const QString dataAutumn = QString("%1-1").arg(y);
+                comboSemester->addItem(textAutumn, dataAutumn);
+            }
+            const QString textSpring = QString("%1-%2学年 春季学期").arg(y - 1).arg(y);
+            const QString dataSpring = QString("%1-2").arg(y);
+            comboSemester->addItem(textSpring, dataSpring);
+        }
     }
 
     if (int defaultIndex = comboSemester->findData(defaultData); defaultIndex != -1) {
-        comboSemester->setCurrentIndex(defaultIndex);
+        comboSemester->setCurrentIndex(defaultIndex + 1); // Default set to next semester.
     }
 
     editId = new QLineEdit(singleAddPage);
@@ -87,6 +100,7 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     comboCredits = new QComboBox(singleAddPage);
     for (int i = 1; i <= 4; i++) comboCredits->addItem(QString::number(i) + " 学分", i);
 
+    formLayout->addRow("学期:", comboSemester);
     formLayout->addRow("课程编号:", editId);
     formLayout->addRow("课程名称:", editName);
     formLayout->addRow("授课教师:", teacherLayout);
@@ -122,7 +136,7 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     batchLayout->setSpacing(20);
 
     tipLabel = new QLabel(
-        "支持导入 .csv 格式的文件。\n请确保列头包含: 编号, 名字, 教师, 学分, 上课时间。\n时间格式: 起始周:结束周:周i:第j节:上k节时。\n多个时间用分号“;”间隔，周日为“0”，8:00为“1”。\n例: HM#1,高等数学,李华(数学与信息学院),2,1:16:1:1:2;1:16:3:1:2",
+        "支持导入 .csv 格式的文件。\n请确保列头包含: 编号, 名字, 教师, 学分, 学期, 上课时间。\n时间格式: 起始周:结束周:周i:第j节:上k节时。\n多个时间用分号“;”间隔，周日为“0”，8:00为“1”。\n例: HM#1,高等数学,李华(数学与信息学院),2,2026-1,1:16:1:1:2;1:16:3:1:2",
         batchAddPage);
     tipLabel->setStyleSheet("color: #64748b; line-height: 1.5;");
 
