@@ -47,11 +47,14 @@ private:
     QHBoxLayout *coursesEditLayout;
     QScrollArea *courses;
     QListWidget *courseList;
+    QVBoxLayout * courseBtnLayout;
     QPushButton *btnAddCourse;
+    QPushButton *btnRemoveCourse;
     QHBoxLayout *btnLayout;
     QPushButton *btnSave;
     QPushButton *btnCancel;
     aaims::model::Class *cls;
+    QList<QUuid> workingCourses;
 };
 
 #endif //AAIMS_CLASSDETAILDIALOG_H

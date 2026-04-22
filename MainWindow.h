@@ -15,6 +15,7 @@
 #include "pages/AdminStudentPage.h"
 #include "pages/AdminTeacherPage.h"
 #include "pages/TeacherClassPage.h"
+#include "pages/TeacherDashboardPage.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -53,6 +54,7 @@ private:
     AdminStudentPage *adminStudentPage;
     AdminClassPage *adminClassPage;
     AdminCoursePage *adminCoursePage;
+    TeacherDashboardPage *teacherDashboardPage;
     TeacherClassPage *teacherClassPage;
     CloseReason closeReason = CloseReason::Exit;
 

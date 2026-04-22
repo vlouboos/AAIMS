@@ -110,6 +110,10 @@ AdminCoursePage::AdminCoursePage(QWidget *parent) : QWidget(parent) {
     connect(delegate, &OperationDelegate::confirmDelete, [this](const QModelIndex &index) {
         if (Course *course = aaims::manager::course::get_courses()[tableModel->getCourse(
             proxyModel->mapToSource(index))].get()) {
+            if (!course->students.isEmpty() || !course->classes.isEmpty()) {
+                QMessageBox::warning(this, "无法删除", "该课程已被学生选修或被班级选中，无法删除！", QMessageBox::Ok);
+                return;
+            }
             const auto result = QMessageBox::warning(this, "危险操作",
                                                      QString("确定要删除课程 %1 (%2) 吗？\n该操作不可撤销！").arg(
                                                          course->name, course->id),

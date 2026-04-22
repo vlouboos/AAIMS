@@ -137,8 +137,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         contentStack->addWidget(adminClassPage);
         contentStack->addWidget(adminCoursePage);
     } else if (loggedAccount->is_teacher()) {
+        teacherDashboardPage = new TeacherDashboardPage(contentStack);
         teacherClassPage = new TeacherClassPage(contentStack);
 
+        contentStack->addWidget(teacherDashboardPage);
         contentStack->addWidget(teacherClassPage);
     }
 
@@ -195,6 +197,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             btnTeachers->setChecked(false);
             btnStudents->setChecked(false);
             btnClasses->setChecked(false);
+            btnCourses->setChecked(true);
+        });
+    } else if (loggedAccount->is_teacher()) {
+        connect(btnDashboard, &QPushButton::clicked, [this] {
+            contentStack->setCurrentIndex(0);
+            pageTitleLabel->setText("仪表盘");
+            btnDashboard->setChecked(true);
+            btnCourses->setChecked(false);
+        });
+        connect(btnCourses, &QPushButton::clicked, [this] {
+            contentStack->setCurrentIndex(1);
+            pageTitleLabel->setText("课程");
+            btnDashboard->setChecked(false);
             btnCourses->setChecked(true);
         });
     }
