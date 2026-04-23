@@ -9,6 +9,7 @@
 #include <QStackedWidget>
 #include <qlabel.h>
 
+#include "pages/AdminAuthPage.h"
 #include "pages/AdminDashboardPage.h"
 #include "pages/AdminClassPage.h"
 #include "pages/AdminCoursePage.h"
@@ -39,6 +40,7 @@ private:
     QPushButton *btnStudents;
     QPushButton *btnClasses;
     QPushButton *btnCourses;
+    QPushButton *btnAuth;
     QWidget *rightContainer;
     QVBoxLayout *rightLayout;
     QWidget *headerWidget;
@@ -54,6 +56,7 @@ private:
     AdminStudentPage *adminStudentPage;
     AdminClassPage *adminClassPage;
     AdminCoursePage *adminCoursePage;
+    AdminAuthPage *adminAuthPage;
     TeacherDashboardPage *teacherDashboardPage;
     TeacherClassPage *teacherClassPage;
     CloseReason closeReason = CloseReason::Exit;

@@ -7,6 +7,8 @@
 
 #include <QApplication>
 
+#include "AccountManager.h"
+
 namespace {
     QHash<QUuid, std::shared_ptr<Course>> courses;
 }
@@ -35,6 +37,8 @@ namespace aaims::manager::course {
     }
 
     void remove(const Course *course) {
+        TeacherAccount *teacher = account::get_teachers()[course->teacher];
+        teacher->courses.removeOne(course->uuid);
         courses.remove(course->uuid);
     }
 

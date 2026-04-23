@@ -88,6 +88,9 @@ if (WIN32)
             pages/TeacherDashboardPage.h
             dialogs/CourseDetailDialog.cpp
             dialogs/CourseDetailDialog.h
+            pages/AdminAuthPage.cpp
+            pages/AdminAuthPage.h
+            pages/model/AuthTabelModel.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -160,6 +163,9 @@ else ()
             pages/TeacherDashboardPage.h
             dialogs/CourseDetailDialog.cpp
             dialogs/CourseDetailDialog.h
+            pages/AdminAuthPage.cpp
+            pages/AdminAuthPage.h
+            pages/model/AuthTabelModel.h
     )
 endif ()
 

@@ -130,12 +130,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         adminStudentPage = new AdminStudentPage(contentStack);
         adminClassPage = new AdminClassPage(contentStack);
         adminCoursePage = new AdminCoursePage(contentStack);
+        adminAuthPage = new AdminAuthPage(contentStack);
 
         contentStack->addWidget(adminDashboardPage);
         contentStack->addWidget(adminTeacherPage);
         contentStack->addWidget(adminStudentPage);
         contentStack->addWidget(adminClassPage);
         contentStack->addWidget(adminCoursePage);
+        contentStack->addWidget(adminAuthPage);
     } else if (loggedAccount->is_teacher()) {
         teacherDashboardPage = new TeacherDashboardPage(contentStack);
         teacherClassPage = new TeacherClassPage(contentStack);

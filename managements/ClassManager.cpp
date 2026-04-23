@@ -6,6 +6,8 @@
 
 #include <qcoreapplication.h>
 
+#include "AccountManager.h"
+#include "CourseManager.h"
 #include "../utils/AsyncJsonIO.h"
 #include "../utils/DataStructures.h"
 
@@ -67,11 +69,11 @@ namespace aaims::manager::classes {
         qInfo() << "Loaded" << all_classes.size() << "classes.";
     }
 
-    QHash<QUuid, std::shared_ptr<model::Class> > get_classes() {
+    QHash<QUuid, std::shared_ptr<Class> > get_classes() {
         return all_classes;
     }
 
-    QString add(const std::shared_ptr<model::Class> &cls) {
+    QString add(const std::shared_ptr<Class> &cls) {
         if (!cls) return "内部错误";
         QUuid uuid;
         do {
@@ -83,6 +85,14 @@ namespace aaims::manager::classes {
     }
 
     void removeClass(const QUuid &uuid) {
+        using namespace aaims::model;
+        const Class *cls = all_classes[uuid].get();
+        TeacherAccount *teacher = account::get_teachers()[cls->master];
+        teacher->managingClass = EMPTY_UUID;
+        for (const auto &course: cls->courses) {
+            const auto c = course::get_courses()[course];
+            c->classes.removeAll(uuid);
+        }
         all_classes.remove(uuid);
     }
 
@@ -96,8 +106,8 @@ namespace aaims::manager::classes {
         return io::save(path, root);
     }
 
-    QVector<model::Class *> get_all_ptr() {
-        QVector<model::Class *> classes;
+    QVector<Class *> get_all_ptr() {
+        QVector<Class *> classes;
         classes.reserve(all_classes.size());
         for (auto &cls: all_classes) {
             classes.emplace_back(cls.get());

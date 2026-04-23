@@ -2,10 +2,9 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef AAIMS_CLASSTABLEMODEL_H
-#define AAIMS_CLASSTABLEMODEL_H
+#ifndef AAIMS_AUTHTABELMODEL_H
+#define AAIMS_AUTHTABELMODEL_H
 
-#include <QAbstractTableModel>
 #include <QVector>
 #include <QPointer>
 
@@ -18,12 +17,10 @@ class ClassTableModel : public QAbstractTableModel {
 
 public:
     enum Column {
+        Id,
         Name,
-        Grade,
-        Department,
-        MemberCount,
-        Master,
-        Courses,
+        Role,
+        Banned,
         Actions
     };
 
@@ -41,27 +38,22 @@ public:
     }
 
     [[nodiscard]] int columnCount([[maybe_unused]] const QModelIndex &parent) const override {
-        return 7;
+        return 5;
     }
 
     [[nodiscard]] QVariant data(const QModelIndex &index, const int role) const override {
         if (!index.isValid() || index.row() >= classes.size()) return {};
 
-        Class *cls = aaims::manager::classes::get_classes()[classes[index.row()]].get();
+        Account *account = aaims::manager::account::all()[classes[index.row()]].get();
 
-        if (!cls) return {};
-
-        const TeacherAccount *master = aaims::manager::account::get_teachers()[cls->master];
-        QString m = master ? master->name : "错误";
+        if (!account) return {};
 
         if (role == Qt::DisplayRole) {
             switch (index.column()) {
-                case Name: return cls->name;
-                case Grade: return cls->grade;
-                case Department: return cls->department;
-                case MemberCount: return cls->students.size();
-                case Master: return m;
-                case Courses: return cls->courses.size();
+                case Id: return account->username;
+                case Name: return account->name;
+                case Role: return account->is_master() ? "主管理员" : account->is_admin() ? "管理员" : account->is_teacher() ? "教师" : "学生";
+                case Banned: return "否"; // Not planned
                 default: return {};
             }
         }
@@ -76,7 +68,7 @@ public:
     [[nodiscard]] QVariant
     headerData(const int section, const Qt::Orientation orientation, const int role) const override {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
-            static const QStringList headers = {"班名", "年级", "所属院系", "人数", "班主任", "课程数", "操作"};
+            static const QStringList headers = {"用户名", "姓名", "身份", "是否封禁", "操作"};
             return headers[section];
         }
         return {};
@@ -90,4 +82,4 @@ private:
     QList<QUuid> classes;
 };
 
-#endif //AAIMS_CLASSTABLEMODEL_H
+#endif //AAIMS_AUTHTABELMODEL_H

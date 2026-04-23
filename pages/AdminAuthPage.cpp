@@ -2,20 +2,19 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#include "AdminClassPage.h"
+#include "AdminAuthPage.h"
 
 #include <QFutureWatcher>
+#include <QHeaderView>
 #include <QProgressDialog>
-#include <qtconcurrentrun.h>
 
 #include "../dialogs/AddClassDialog.h"
 #include "../dialogs/ClassDetailDialog.h"
 #include "../managements/ClassManager.h"
-#include "../managements/CourseManager.h"
 #include "delegate/OperationDelegate.h"
 #include "model/FilterProxyModel.h"
 
-AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
+AdminAuthPage::AdminAuthPage(QWidget *parent) : QWidget(parent) {
     tableModel = new ClassTableModel(this);
     proxyModel = new FilterProxyModel(this);
     proxyModel->setSourceModel(tableModel);
@@ -37,18 +36,13 @@ AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
     titleContainer->addWidget(subtitleLabel);
 
     searchEdit = new QLineEdit(this);
-    searchEdit->setPlaceholderText("搜索班级名字、院系...");
+    searchEdit->setPlaceholderText("搜索账号用户名、姓名...");
     searchEdit->setFixedWidth(280);
     searchEdit->setObjectName("SearchEdit");
-
-    btnAddClass = new QPushButton("+ 新增班级", this);
-    btnAddClass->setCursor(Qt::PointingHandCursor);
-    btnAddClass->setObjectName("AddElement");
 
     headerLayout->addLayout(titleContainer);
     headerLayout->addStretch();
     headerLayout->addWidget(searchEdit);
-    headerLayout->addWidget(btnAddClass);
 
     mainLayout->addLayout(headerLayout);
 
@@ -70,15 +64,12 @@ AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
     header->setSectionResizeMode(2, QHeaderView::Stretch);
     header->setSectionResizeMode(3, QHeaderView::Stretch);
     header->setSectionResizeMode(4, QHeaderView::Fixed);
-    header->setSectionResizeMode(5, QHeaderView::Fixed);
 
     auto *delegate = new OperationDelegate(this);
     tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     tableView->setColumnWidth(0, 120);
     tableView->setColumnWidth(1, 120);
-    tableView->setColumnWidth(4, 100);
-    tableView->setColumnWidth(5, 120);
-    tableView->setItemDelegateForColumn(5, delegate);
+    tableView->setColumnWidth(4, 120);
 
     mainLayout->addWidget(tableView);
 
@@ -88,12 +79,6 @@ AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
 
     connect(searchEdit, &QLineEdit::textChanged, [this](const QString &text) {
         proxyModel->setFilterFixedString(text);
-    });
-
-    connect(btnAddClass, &QPushButton::clicked, [this] {
-        if (AddClassDialog dialog(this); dialog.exec() == QDialog::Accepted) {
-            reloadData();
-        }
     });
 
     connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
@@ -109,7 +94,7 @@ AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
         if (Class *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
             proxyModel->mapToSource(index))].get()) {
             if (!cls->isEmpty()) {
-                QMessageBox::critical(this, "非法操作", "该班级学生不为空！", QMessageBox::Ok);
+                QMessageBox::critical(this, "非法操作", "该教师有课程或是班主任，请先转移课程或转移班级！", QMessageBox::Ok);
                 return;
             }
             const auto result = QMessageBox::warning(this, "危险操作",
@@ -122,14 +107,14 @@ AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
                 pd->setWindowModality(Qt::WindowModal);
                 pd->show();
                 aaims::manager::classes::removeClass(cls->uuid);
-                const auto future = QtConcurrent::run([] { return aaims::manager::classes::saveClasses() && aaims::manager::course::save() && aaims::manager::account::save(); });
+                reloadData();
+                const auto future = aaims::manager::account::saveAsync();
                 auto watcher = new QFutureWatcher<bool>(this); // NOLINT
                 connect(watcher, &QFutureWatcherBase::finished, [this, pd, watcher] {
                     pd->close();
                     pd->deleteLater();
                     watcher->deleteLater();
-                    reloadData();
-                    QMessageBox::information(this, "删除完成", QString("删除班级成功！"));
+                    QMessageBox::information(this, "删除完成", QString("删除教师成功！"));
                 });
                 watcher->setFuture(future);
             }
@@ -150,8 +135,8 @@ AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
 }
 
 
-void AdminClassPage::reloadData() const {
+void AdminAuthPage::reloadData() const {
     tableModel->setClasss(aaims::manager::classes::get_classes().keys());
     proxyModel->sort(0);
-    subtitleLabel->setText(QString("管理系统内共 %1 个班级").arg(tableModel->rowCount(QModelIndex())));
+    subtitleLabel->setText(QString("管理系统内共 %1 个账号").arg(tableModel->rowCount(QModelIndex())));
 }
