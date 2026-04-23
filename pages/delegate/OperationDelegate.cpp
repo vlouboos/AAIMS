@@ -54,7 +54,6 @@ bool OperationDelegate::editorEvent(QEvent *event, [[maybe_unused]] QAbstractIte
         } else if (QRect(x + 36, y, 24, 24).contains(me->pos())) {
             emit confirmDelete(index);
         }
-        prevIndex = index;
         return true;
     }
     return false;

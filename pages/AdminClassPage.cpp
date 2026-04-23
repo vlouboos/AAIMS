@@ -151,7 +151,7 @@ AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
 
 
 void AdminClassPage::reloadData() const {
-    tableModel->setClasss(aaims::manager::classes::get_classes().keys());
+    tableModel->setClasses(aaims::manager::classes::get_classes().keys());
     proxyModel->sort(0);
     subtitleLabel->setText(QString("管理系统内共 %1 个班级").arg(tableModel->rowCount(QModelIndex())));
 }

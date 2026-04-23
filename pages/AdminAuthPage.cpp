@@ -11,11 +11,13 @@
 #include "../dialogs/AddClassDialog.h"
 #include "../dialogs/ClassDetailDialog.h"
 #include "../managements/ClassManager.h"
+#include "../utils/Sha256Util.h"
+#include "delegate/AuthDelegate.h"
 #include "delegate/OperationDelegate.h"
 #include "model/FilterProxyModel.h"
 
 AdminAuthPage::AdminAuthPage(QWidget *parent) : QWidget(parent) {
-    tableModel = new ClassTableModel(this);
+    tableModel = new AuthTableModel(this);
     proxyModel = new FilterProxyModel(this);
     proxyModel->setSourceModel(tableModel);
     mainLayout = new QVBoxLayout(this);
@@ -65,11 +67,12 @@ AdminAuthPage::AdminAuthPage(QWidget *parent) : QWidget(parent) {
     header->setSectionResizeMode(3, QHeaderView::Stretch);
     header->setSectionResizeMode(4, QHeaderView::Fixed);
 
-    auto *delegate = new OperationDelegate(this);
+    auto *delegate = new AuthDelegate(this);
     tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     tableView->setColumnWidth(0, 120);
     tableView->setColumnWidth(1, 120);
     tableView->setColumnWidth(4, 120);
+    tableView->setItemDelegateForColumn(4, delegate);
 
     mainLayout->addWidget(tableView);
 
@@ -81,40 +84,29 @@ AdminAuthPage::AdminAuthPage(QWidget *parent) : QWidget(parent) {
         proxyModel->setFilterFixedString(text);
     });
 
-    connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
-        if (Class *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
+    connect(delegate, &AuthDelegate::confirmReset, [this](const QModelIndex &index) {
+        if (Account *account = aaims::manager::account::all()[tableModel->getAccount(
             proxyModel->mapToSource(index))].get()) {
-            if (ClassDetailDialog dialog(cls, this); dialog.exec() == QDialog::Accepted) {
-                reloadData();
-            }
-        }
-    });
-
-    connect(delegate, &OperationDelegate::confirmDelete, [this](const QModelIndex &index) {
-        if (Class *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
-            proxyModel->mapToSource(index))].get()) {
-            if (!cls->isEmpty()) {
-                QMessageBox::critical(this, "非法操作", "该教师有课程或是班主任，请先转移课程或转移班级！", QMessageBox::Ok);
+            if (account->is_master()) {
+                QMessageBox::warning(this, "无法重置", "无法重置主管理员的密码！", QMessageBox::Ok);
                 return;
             }
-            const auto result = QMessageBox::warning(this, "危险操作",
-                                                     QString("确定要删除班级 %1 (%2) 吗？\n该操作不可撤销！").arg(
-                                                         cls->name, cls->grade),
-                                                     QMessageBox::Yes | QMessageBox::No);
-
-            if (result == QMessageBox::Yes) {
-                auto *pd = new QProgressDialog("正在删除...", nullptr, 0, 0, this); // NOLINT
+            if (account->uuid == aaims::manager::account::logged->uuid) {
+                QMessageBox::warning(this, "无法重置", "无法重置自己的密码！", QMessageBox::Ok);
+                return;
+            }
+            if (QMessageBox::warning(this, "确认", "确认重置该用户的密码？", QMessageBox::Yes | QMessageBox::No) ==
+                QMessageBox::Yes) {
+                auto *pd = new QProgressDialog("正在重置...", nullptr, 0, 0, this); // NOLINT
                 pd->setWindowModality(Qt::WindowModal);
                 pd->show();
-                aaims::manager::classes::removeClass(cls->uuid);
-                reloadData();
+                account->password = Sha256Util::hash("123456");
                 const auto future = aaims::manager::account::saveAsync();
                 auto watcher = new QFutureWatcher<bool>(this); // NOLINT
                 connect(watcher, &QFutureWatcherBase::finished, [this, pd, watcher] {
                     pd->close();
-                    pd->deleteLater();
                     watcher->deleteLater();
-                    QMessageBox::information(this, "删除完成", QString("删除教师成功！"));
+                    QMessageBox::information(this, "重置完成", QString("重置密码成功！新密码为 123456"));
                 });
                 watcher->setFuture(future);
             }
@@ -122,7 +114,7 @@ AdminAuthPage::AdminAuthPage(QWidget *parent) : QWidget(parent) {
     });
 
     connect(tableView, &QTableView::doubleClicked, [this](const QModelIndex &index) {
-                if (Class *cls = aaims::manager::classes::get_classes()[tableModel->getClass(
+                if (Class *cls = aaims::manager::classes::get_classes()[tableModel->getAccount(
                     proxyModel->mapToSource(index))].get()) {
                     if (ClassDetailDialog dialog(cls, this); dialog.exec() == QDialog::Accepted) {
                         reloadData();
@@ -136,7 +128,7 @@ AdminAuthPage::AdminAuthPage(QWidget *parent) : QWidget(parent) {
 
 
 void AdminAuthPage::reloadData() const {
-    tableModel->setClasss(aaims::manager::classes::get_classes().keys());
+    tableModel->setAccounts(aaims::manager::account::all().keys());
     proxyModel->sort(0);
     subtitleLabel->setText(QString("管理系统内共 %1 个账号").arg(tableModel->rowCount(QModelIndex())));
 }

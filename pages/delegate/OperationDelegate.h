@@ -5,7 +5,6 @@
 #ifndef AAIMS_GUI_TEACHEROPERATIONDELEGATE_H
 #define AAIMS_GUI_TEACHEROPERATIONDELEGATE_H
 
-#include <QElapsedTimer>
 #include <QStyledItemDelegate>
 #include <QtSvg/QSvgRenderer>
 #include <QPainter>
@@ -19,6 +18,7 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
+protected:
     bool editorEvent(QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option,
                      const QModelIndex &index) override;
 
@@ -29,7 +29,6 @@ signals:
 
 private:
     QSvgRenderer *renderers[2] = {};
-    QElapsedTimer clickTimer;
     QModelIndex prevIndex;
 
     static void drawIconContainer(QPainter *painter, const QRect &rect, const QColor &color, QSvgRenderer *renderer);

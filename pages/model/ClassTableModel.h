@@ -30,7 +30,7 @@ public:
     explicit ClassTableModel(QObject *parent = nullptr) : QAbstractTableModel(parent) {
     }
 
-    void setClasss(const QList<QUuid> &newData) {
+    void setClasses(const QList<QUuid> &newData) {
         beginResetModel();
         classes = newData;
         endResetModel();

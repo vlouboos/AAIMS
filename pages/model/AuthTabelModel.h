@@ -5,14 +5,10 @@
 #ifndef AAIMS_AUTHTABELMODEL_H
 #define AAIMS_AUTHTABELMODEL_H
 
-#include <QVector>
-#include <QPointer>
-
 #include "../../managements/AccountManager.h"
-#include "../../managements/ClassManager.h"
 #include "../../utils/DataStructures.h"
 
-class ClassTableModel : public QAbstractTableModel {
+class AuthTableModel : public QAbstractTableModel {
     Q_OBJECT
 
 public:
@@ -24,17 +20,17 @@ public:
         Actions
     };
 
-    explicit ClassTableModel(QObject *parent = nullptr) : QAbstractTableModel(parent) {
+    explicit AuthTableModel(QObject *parent = nullptr) : QAbstractTableModel(parent) {
     }
 
-    void setClasss(const QList<QUuid> &newData) {
+    void setAccounts(const QList<QUuid> &newData) {
         beginResetModel();
-        classes = newData;
+        accounts = newData;
         endResetModel();
     }
 
     [[nodiscard]] int rowCount([[maybe_unused]] const QModelIndex &parent) const override {
-        return classes.size(); // NOLINT
+        return accounts.size(); // NOLINT
     }
 
     [[nodiscard]] int columnCount([[maybe_unused]] const QModelIndex &parent) const override {
@@ -42,9 +38,9 @@ public:
     }
 
     [[nodiscard]] QVariant data(const QModelIndex &index, const int role) const override {
-        if (!index.isValid() || index.row() >= classes.size()) return {};
+        if (!index.isValid() || index.row() >= accounts.size()) return {};
 
-        Account *account = aaims::manager::account::all()[classes[index.row()]].get();
+        Account *account = aaims::manager::account::all()[accounts[index.row()]].get();
 
         if (!account) return {};
 
@@ -74,12 +70,12 @@ public:
         return {};
     }
 
-    QUuid getClass(const QModelIndex &index) {
-        return classes[index.row()];
+    QUuid getAccount(const QModelIndex &index) {
+        return accounts[index.row()];
     }
 
 private:
-    QList<QUuid> classes;
+    QList<QUuid> accounts;
 };
 
 #endif //AAIMS_AUTHTABELMODEL_H

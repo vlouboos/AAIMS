@@ -12,7 +12,7 @@
 #include <QTableView>
 #include <QWidget>
 
-#include "model/ClassTableModel.h"
+#include "model/AuthTabelModel.h"
 
 class AdminAuthPage : public QWidget {
     Q_OBJECT
@@ -30,7 +30,7 @@ private:
     QLabel *subtitleLabel;
     QLineEdit *searchEdit;
     QTableView *tableView;
-    ClassTableModel *tableModel;
+    AuthTableModel *tableModel;
     QSortFilterProxyModel *proxyModel;
 
 };

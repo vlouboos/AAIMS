@@ -91,6 +91,8 @@ if (WIN32)
             pages/AdminAuthPage.cpp
             pages/AdminAuthPage.h
             pages/model/AuthTabelModel.h
+            pages/delegate/AuthDelegate.cpp
+            pages/delegate/AuthDelegate.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -166,6 +168,8 @@ else ()
             pages/AdminAuthPage.cpp
             pages/AdminAuthPage.h
             pages/model/AuthTabelModel.h
+            pages/delegate/AuthDelegate.cpp
+            pages/delegate/AuthDelegate.h
     )
 endif ()
 
