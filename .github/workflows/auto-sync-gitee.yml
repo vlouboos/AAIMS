@@ -17,6 +17,6 @@ jobs:
           account_type: user
           clone_style: "https"
           debug: true
-          force_update: true
+          force_update: false
           white_list: "AAIMS"
           timeout: '600s'
