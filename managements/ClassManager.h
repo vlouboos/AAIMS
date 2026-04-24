@@ -31,6 +31,8 @@ namespace aaims::manager::classes {
 
     QHash<QUuid, std::shared_ptr<model::Class> > get_classes();
 
+    QHash<QUuid, std::shared_ptr<model::Major> > get_majors();
+
     QString add(const std::shared_ptr<model::Class> &cls);
 
     void removeClass(const QUuid &uuid);

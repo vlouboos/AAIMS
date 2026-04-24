@@ -13,7 +13,8 @@
 
 namespace {
     QList<QString> departments;
-    QHash<QUuid, std::shared_ptr<aaims::model::Class> > all_classes;
+    QHash<QUuid, std::shared_ptr<Major> > majors;
+    QHash<QUuid, std::shared_ptr<Class> > all_classes;
 }
 
 namespace aaims::manager::classes {
@@ -58,12 +59,20 @@ namespace aaims::manager::classes {
             }
         });
         qInfo() << "Loaded" << departments.size() << "departments.";
+        path = QCoreApplication::applicationDirPath() + "/data/majors.json";
+        io::load(path, [](const QJsonObject &json) {
+            for (const auto &key: json.asKeyValueRange()) {
+                QUuid uuid = QUuid::fromString(key.first);
+                majors[uuid] = std::make_shared<Major>(Major::fromJson(json.value(key).toObject()));
+            }
+        });
+        qInfo() << "Loaded" << all_classes.size() << "majors.";
         path = QCoreApplication::applicationDirPath() + "/data/classes.json";
         io::load(path, [](const QJsonObject &json) {
             for (const auto &key: json.keys()) {
                 QUuid uuid = QUuid::fromString(key);
-                all_classes[uuid] = std::make_shared<model::Class>(
-                    model::Class::fromJson(uuid, json.value(key).toObject()));
+                all_classes[uuid] = std::make_shared<Class>(
+                    Class::fromJson(uuid, json.value(key).toObject()));
             }
         });
         qInfo() << "Loaded" << all_classes.size() << "classes.";
@@ -71,6 +80,10 @@ namespace aaims::manager::classes {
 
     QHash<QUuid, std::shared_ptr<Class> > get_classes() {
         return all_classes;
+    }
+
+    QHash<QUuid, std::shared_ptr<Major> > get_majors() {
+        return majors;
     }
 
     QString add(const std::shared_ptr<Class> &cls) {

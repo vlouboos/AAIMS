@@ -55,11 +55,12 @@ namespace aaims {
                 }
 
                 uint8_t status = 0;
-                QList<QString> targetDepartments;
-                QList<QUuid> targetClasses;
-                QList<QString> targetGrades;
+                QVector<QString> targetDepartments;
+                QVector<QUuid> targetClasses;
+                QVector<QString> targetGrades;
+                QVector<QUuid> targetMajors;
                 bool isFemale = false;
-                QList<QUuid> specificStudents;
+                QVector<QUuid> specificStudents;
             };
 
             struct LessonTime {
@@ -159,7 +160,11 @@ namespace aaims {
                     }
                     if (course.assignmentRule.specific_gender())
                         course.assignmentRule.isFemale = ruleObj.value("isFemale").toBool();
-                    // TODO: Add "major" as an element of classes
+                    if (course.assignmentRule.specific_major()) {
+                        for (const auto &mid: ruleObj.value("specificMajors").toArray()) {
+                            course.assignmentRule.targetMajors.append(QUuid::fromString(mid.toString()));
+                        }
+                    }
                     if (course.assignmentRule.specific_single()) {
                         for (const auto &sid: ruleObj.value("specificStudents").toArray()) {
                             course.assignmentRule.specificStudents.append(QUuid::fromString(sid.toString()));
@@ -216,6 +221,13 @@ namespace aaims {
                         ruleObj["specificGrades"] = specificGrades;
                     }
                     if (assignmentRule.specific_gender()) ruleObj["isFemale"] = assignmentRule.isFemale;
+                    if (assignmentRule.specific_major()) {
+                        QJsonArray specificMajors;
+                        for (const auto &mid: assignmentRule.targetMajors) {
+                            specificMajors.append(mid.toString());
+                        }
+                        ruleObj["specificMajors"] = specificMajors;
+                    }
                     if (assignmentRule.specific_single()) {
                         QJsonArray specificStudents;
                         for (const auto &sid: assignmentRule.specificStudents) {
@@ -246,12 +258,33 @@ namespace aaims {
             int retake = 0;
         };
 
+        struct Major {
+            QUuid uuid;
+            QString name;
+            QString department;
+
+            static Major fromJson(const QUuid &uuid, const QJsonObject &json) {
+                Major major;
+                major.uuid = uuid;
+                major.name = json.value("name").toString();
+                major.department = json.value("department").toString();
+                return major;
+            }
+
+            [[nodiscard]] QJsonObject toJson() const {
+                return {
+                    {"name", name},
+                    {"department", department}
+                };
+            }
+        };
+
         struct Class {
             QUuid uuid;
             QString grade;
             QString name;
             QUuid master;
-            QString department;
+            QUuid major;
             QList<QUuid> courses;
             QList<QUuid> students;
 
@@ -267,7 +300,7 @@ namespace aaims {
                 cls.grade = json.value("grade").toString();
                 cls.name = json.value("name").toString();
                 cls.master = QUuid::fromString(json.value("master").toString());
-                cls.department = json.value("department").toString();
+                cls.major = QUuid::fromString(json.value("major").toString());
                 for (const auto &x: json.value("courses").toArray()) {
                     cls.courses.append(QUuid::fromString(x.toString()));
                 }
@@ -290,7 +323,7 @@ namespace aaims {
                     {"grade", grade},
                     {"name", name},
                     {"master", master.toString(QUuid::WithoutBraces)},
-                    {"department", department},
+                    {"major", major.toString(QUuid::WithoutBraces)},
                     {"courses", courses_array},
                     {"students", students_array}
                 };

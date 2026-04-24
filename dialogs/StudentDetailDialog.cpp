@@ -339,14 +339,15 @@ bool StudentDetailDialog::isStudentEligibleForCourse(const std::shared_ptr<Cours
     const auto &rule = course->assignmentRule;
     const auto &cls = classes::get_classes()[account->currentClass];
     if (!cls.get()) return false;
+    const auto &major = classes::get_majors()[cls->major];
     if (rule.specific_single()) {
         return rule.specificStudents.contains(account->uuid);
     }
-    if (rule.specific_department() && !rule.targetDepartments.contains(cls->department)) return false;
+    if (rule.specific_department() && !rule.targetDepartments.contains(major->department)) return false;
     if (rule.specific_class() && !rule.targetClasses.contains(cls->uuid)) return false;
     if (rule.specific_gender() && account->female != rule.isFemale) return false;
     if (rule.specific_grade() && !rule.targetGrades.contains(cls->grade)) return false;
-    // TODO: Major
+    if (rule.specific_major() && !rule.targetMajors.contains(major->uuid)) return false;
     return true;
 }
 
