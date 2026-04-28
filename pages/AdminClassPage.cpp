@@ -71,14 +71,15 @@ AdminClassPage::AdminClassPage(QWidget *parent) : QWidget(parent) {
     header->setSectionResizeMode(3, QHeaderView::Stretch);
     header->setSectionResizeMode(4, QHeaderView::Fixed);
     header->setSectionResizeMode(5, QHeaderView::Fixed);
+    header->setSectionResizeMode(6, QHeaderView::Fixed);
 
     auto *delegate = new OperationDelegate(this);
     tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     tableView->setColumnWidth(0, 120);
     tableView->setColumnWidth(1, 120);
     tableView->setColumnWidth(4, 100);
-    tableView->setColumnWidth(5, 120);
-    tableView->setItemDelegateForColumn(5, delegate);
+    tableView->setColumnWidth(6, 120);
+    tableView->setItemDelegateForColumn(6, delegate);
 
     mainLayout->addWidget(tableView);
 

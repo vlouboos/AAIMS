@@ -116,7 +116,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     comboStatus->addItem("筛选中", Course::QUALIFYING);
     comboStatus->addItem("已开课", Course::STARTED);
     comboStatus->addItem("已结课", Course::ENDED);
-    comboStatus->setCurrentIndex(course->status);
+    comboStatus->setCurrentIndex(course->status == Course::ACCEPTING ? 0 : course->status == Course::QUALIFYING ? 1 : course->status == Course::STARTED ? 2 : 3);
 
     formLayout->addRow("学期:", comboSemester);
     formLayout->addRow("课程编号:", editId);
@@ -198,7 +198,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
                 pd->close();
                 pd->deleteLater();
                 watcher->deleteLater();
-                QMessageBox::information(this, "修改完成", QString("添加课程成功！"));
+                QMessageBox::information(this, "修改完成", QString("保存课程成功！"));
                 accept();
             });
             watcher->setFuture(future);

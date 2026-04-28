@@ -294,6 +294,7 @@ void ClassDetailDialog::onSaveButtonClicked() {
         if (!previousCourses.contains(courseUuid) && allCoursesRef.contains(courseUuid)) {
             if (!allCoursesRef[courseUuid]->classes.contains(cls->uuid)) {
                 allCoursesRef[courseUuid]->classes.append(cls->uuid);
+                if (allCoursesRef[courseUuid]->status != Course::ENDED) allCoursesRef[courseUuid]->status = Course::STARTED;
             }
         }
     }
