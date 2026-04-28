@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QLineEdit>
 
+#include "AddClassDialog.h"
 #include "StyledDialog.h"
 #include "../pages/components/TimeSlot.h"
 
@@ -40,6 +41,7 @@ private:
     QCompleter *teacherCompleter;
     QPushButton *btnAddTeacher;
     QComboBox *comboCredits;
+    QPushButton *onlineCheck;
     QGroupBox *timeGroup;
     QVBoxLayout *timeSlotsLayout;
     QVBoxLayout *groupLayout;

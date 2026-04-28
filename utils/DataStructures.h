@@ -105,6 +105,7 @@ namespace aaims {
             int credit = 0;
             uint8_t status = 0;
             QString semester;
+            bool online = false;
             QList<LessonTime> times;
             QList<QUuid> students;
             QList<QUuid> classes;
@@ -129,6 +130,7 @@ namespace aaims {
                 course.credit = json.value("credit").toInt();
                 course.semester = json.value("semester").toString();
                 course.status = json.value("status").toInt();
+                course.online = json.value("online").toBool();
                 for (const auto &t: json.value("times").toArray()) {
                     course.times.emplace_back(LessonTime::fromJson(t.toObject()));
                 }
@@ -190,6 +192,7 @@ namespace aaims {
                     {"credit", credit},
                     {"semester", semester},
                     {"status", status},
+                    {"online", online},
                     {"times", t},
                     {"classes", c},
                     {"students", s}

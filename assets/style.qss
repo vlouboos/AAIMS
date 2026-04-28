@@ -252,3 +252,11 @@ QLineEdit#SearchEdit {
 QLineEdit#SearchEdit:focus {
     border: 1px solid #2563eb;
 }
+QPushButton#CheckBox {
+    border-radius: 6px;
+    border: 3px solid #e2e8f0;
+}
+QPushButton#CheckBox:checked {
+    background-color: #2563eb;
+    color: white;
+}

@@ -108,8 +108,8 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     teacherLayout->addWidget(btnAddTeacher);
 
     comboCredits = new QComboBox(this);
-    comboCredits->addItems({"1", "2", "3", "4", "5", "6"});
-    comboCredits->setCurrentText(QString::number(course->credit));
+    for (int i = 1; i <= 6; i++) comboCredits->addItem(QString::number(i) + " 学分", i);
+    comboCredits->setCurrentIndex(course->credit);
 
     comboStatus = new QComboBox(this);
     comboStatus->addItem("选课中", Course::ACCEPTING);
