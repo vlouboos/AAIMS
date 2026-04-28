@@ -34,6 +34,7 @@ AdminDashboardPage::AdminDashboardPage(QWidget *parent) : QWidget(parent) {
     cardStudent = new StatCard("在校学生", studentCount, ":/assets/graduation-cap.svg", QColor(0x3b82f6));
     cardDepartments = new StatCard("院系数量", teacherCount, ":/assets/briefcase.svg", QColor(0xf59e0b));
     cardClasses = new StatCard("班级数量", studentCount, ":/assets/classes.svg", QColor(0x10b981));
+    cardMajors = new StatCard("专业数量", studentCount, ":/assets/graduation-cap.svg", QColor(0x3b82f6));
 
     statsGrid->addWidget(cardTotal, 0, 0);
     statsGrid->addWidget(cardAdmin, 0, 1);
@@ -41,6 +42,7 @@ AdminDashboardPage::AdminDashboardPage(QWidget *parent) : QWidget(parent) {
     statsGrid->addWidget(cardStudent, 0, 3);
     statsGrid->addWidget(cardDepartments, 1, 0);
     statsGrid->addWidget(cardClasses, 1, 1);
+    statsGrid->addWidget(cardMajors, 1, 2);
 
     distributionContainer = new QFrame(this);
     distributionContainer->setStyleSheet("background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;");
@@ -55,13 +57,6 @@ AdminDashboardPage::AdminDashboardPage(QWidget *parent) : QWidget(parent) {
 
     distRing = new DistributionRing(distributionContainer);
 
-    const QList<DistributionItem> data = {
-        {"在校学生", studentCount, QColor(0x3b82f6)},
-        {"教师", teacherCount, QColor(0x10b981)},
-        {"管理员", adminCount, QColor(0xf59e0b)}
-    };
-    distRing->setData(data);
-
     centerLayout = new QHBoxLayout();
     centerLayout->addStretch();
     centerLayout->addWidget(distRing);
@@ -75,6 +70,7 @@ AdminDashboardPage::AdminDashboardPage(QWidget *parent) : QWidget(parent) {
     mainLayout->addWidget(distributionContainer);
 
     mainLayout->addStretch();
+    update();
 }
 
 void AdminDashboardPage::update() const {
@@ -84,12 +80,14 @@ void AdminDashboardPage::update() const {
     const long long studentCount = account::get_working_students().size();
     const long long departmentsCount = classes::get_departments().size();
     const long long classesCount = classes::get_departments().size();
+    const long long majorsCount = classes::get_majors().size();
     cardTotal->setValue(QString::number(total));
     cardAdmin->setValue(QString::number(adminCount));
     cardTeacher->setValue(QString::number(teacherCount));
     cardStudent->setValue(QString::number(studentCount));
     cardDepartments->setValue(QString::number(departmentsCount));
     cardClasses->setValue(QString::number(classesCount));
+    cardMajors->setValue(QString::number(majorsCount));
     const QList<DistributionItem> data = {
         {"在校学生", studentCount, QColor(0x3b82f6)},
         {"教师", teacherCount, QColor(0x10b981)},

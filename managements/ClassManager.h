@@ -31,9 +31,13 @@ namespace aaims::manager::classes {
 
     QString add(const std::shared_ptr<model::Class> &cls);
 
-    void addMajor(const std::shared_ptr<model::Major> &major);
+    QString addMajor(const std::shared_ptr<model::Major> &major);
 
     bool saveMajors();
+
+    model::Major *findMajorByUuid(const QUuid &uuid);
+
+    model::Major *findMajorByName(const QString &name);
 }
 
 #endif //AAIMS_CLASSMANAGER_H

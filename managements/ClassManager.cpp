@@ -15,6 +15,7 @@ namespace {
     QList<QString> departments;
     QHash<QUuid, std::shared_ptr<Major> > majors;
     QHash<QUuid, std::shared_ptr<Class> > all_classes;
+    QHash<QString, QUuid> majors_by_name;
 }
 
 namespace aaims::manager::classes {
@@ -97,13 +98,16 @@ namespace aaims::manager::classes {
         return "";
     }
 
-    void addMajor(const std::shared_ptr<Major> &major) {
+    QString addMajor(const std::shared_ptr<Major> &major) {
+        if (!major) return "内部错误";
         QUuid uuid;
         do {
             uuid = QUuid::createUuid();
         } while (majors.contains(uuid));
         majors[uuid] = major;
+        majors_by_name[major->name] = uuid;
         major->uuid = uuid;
+        return "";
     }
 
     bool saveMajors() {
@@ -114,6 +118,14 @@ namespace aaims::manager::classes {
             root.insert(uuid.toString(QUuid::WithoutBraces), it.value()->toJson());
         }
         return io::save(path, root);
+    }
+
+    Major *findMajorByUuid(const QUuid &uuid) {
+        return majors.contains(uuid) ? majors[uuid].get() : nullptr;
+    }
+
+    Major *findMajorByName(const QString &name) {
+        return majors_by_name.contains(name) ? findMajorByUuid(majors_by_name[name]) : nullptr;
     }
 
     void removeClass(const QUuid &uuid) {

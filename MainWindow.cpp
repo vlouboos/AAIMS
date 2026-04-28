@@ -166,6 +166,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     if (loggedAccount->is_master() || loggedAccount->is_admin()) {
         connect(btnDashboard, &QPushButton::clicked, [this] {
             contentStack->setCurrentIndex(0);
+            adminDashboardPage->update();
             pageTitleLabel->setText("仪表盘");
             btnDashboard->setChecked(true);
             btnTeachers->setChecked(false);

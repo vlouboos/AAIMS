@@ -140,7 +140,7 @@ AdminCoursePage::AdminCoursePage(QWidget *parent) : QWidget(parent) {
     });
 
     connect(tableView, &QTableView::doubleClicked, [this](const QModelIndex &index) {
-        if (const Course *course = aaims::manager::course::get_courses()[tableModel->getCourse(
+        if (Course *course = aaims::manager::course::get_courses()[tableModel->getCourse(
             proxyModel->mapToSource(index))].get()) {
             if (CourseDetailDialog dialog(course, this); dialog.exec() == QDialog::Accepted) {
                 reloadData();

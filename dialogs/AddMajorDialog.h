@@ -8,6 +8,7 @@
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QLabel>
 
 #include "StyledDialog.h"
 
@@ -18,15 +19,26 @@ class AddMajorDialog : public StyledDialog {
 public:
     explicit AddMajorDialog(QWidget *parent = nullptr);
 
+    QPair<unsigned long long, unsigned long long> importFromCsv() const;
+
 private:
     QVBoxLayout *mainLayout;
-    QFormLayout *formLayout;
-    QLineEdit *editName;
+    QTabWidget *tabWidget;
+    QWidget *singleAddPage;
+    QFormLayout *singleLayout;
+    QLineEdit *nameEdit;
     QHBoxLayout *deptLayout;
-    QCompleter *deptCompleter;
+    QCompleter *completer;
     QComboBox *deptCombo;
     QPushButton *btnAddDept;
-    QPushButton *btnConfirm;
+    QPushButton *btnConfirmSingle;
+    QWidget *batchAddPage;
+    QVBoxLayout *batchLayout;
+    QLabel *tipLabel;
+    QLabel *fileStatusLabel;
+    QPushButton *btnSelectFile;
+    QPushButton *btnConfirmBatch;
+    QString selectedFilePath;
 };
 
 

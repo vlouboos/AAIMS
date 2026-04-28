@@ -6,8 +6,6 @@
 
 #include <QCompleter>
 #include <QFutureWatcher>
-#include <QLineEdit>
-#include <QMessageBox>
 #include <QProgressDialog>
 #include <qtconcurrentrun.h>
 
@@ -150,6 +148,14 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     mainLayout->addLayout(btnLayout);
 
     applyStyles();
+
+    for (const auto &x : course->times) {
+        const auto w = new TimeSlot(x, this);
+        // Strange, IDK why it keeps stupid clangD.
+        connect(w, &TimeSlot::removeRequested, this, [this, w] { removeSlot(w); });
+        timeSlotsLayout->addWidget(w);
+        slotWidgets.append(w);
+    }
 
     connect(btnSave, &QPushButton::clicked, this, [this, course] {
         if (validateForm()) {

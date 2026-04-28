@@ -33,6 +33,7 @@ private:
     StatCard *cardStudent;
     StatCard *cardDepartments;
     StatCard *cardClasses;
+    StatCard *cardMajors;
 };
 
 
