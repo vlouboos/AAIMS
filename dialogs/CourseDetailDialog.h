@@ -38,6 +38,7 @@ private:
     QCompleter *teacherCompleter;
     QPushButton *btnAddTeacher;
     QComboBox *comboCredits;
+    QComboBox *comboStatus;
     QGroupBox *timeGroup;
     QVBoxLayout *timeSlotsLayout;
     QVBoxLayout *groupLayout;
@@ -46,6 +47,7 @@ private:
     QHBoxLayout *btnLayout;
     QPushButton *btnSave;
     QPushButton *btnCancel;
+    Course *course;
 };
 
 

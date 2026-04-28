@@ -15,7 +15,7 @@
 #include "../managements/CourseManager.h"
 #include "../utils/DataStructures.h"
 
-CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : StyledDialog(parent) {
+CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : StyledDialog(parent), course(course) {
     setWindowTitle("课程详情");
     resize(500, 400);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
@@ -111,11 +111,19 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     comboCredits->addItems({"1", "2", "3", "4", "5", "6"});
     comboCredits->setCurrentText(QString::number(course->credit));
 
+    comboStatus = new QComboBox(this);
+    comboStatus->addItem("选课中", Course::ACCEPTING);
+    comboStatus->addItem("筛选中", Course::QUALIFYING);
+    comboStatus->addItem("已开课", Course::STARTED);
+    comboStatus->addItem("已结课", Course::ENDED);
+    comboStatus->setCurrentIndex(course->status);
+
     formLayout->addRow("学期:", comboSemester);
     formLayout->addRow("课程编号:", editId);
     formLayout->addRow("课程名称:", editName);
     formLayout->addRow("授课教师:", teacherLayout);
     formLayout->addRow("学分:", comboCredits);
+    formLayout->addRow("课程状态:", comboStatus);
 
     btnLayout = new QHBoxLayout();
     btnLayout->setSpacing(12);
@@ -159,7 +167,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
 
     connect(btnSave, &QPushButton::clicked, this, [this, course] {
         if (validateForm()) {
-            auto *pd = new QProgressDialog("正在添加...", nullptr, 0, 0, this); // NOLINT
+            auto *pd = new QProgressDialog("正在保存...", nullptr, 0, 0, this); // NOLINT
             pd->setWindowModality(Qt::WindowModal);
             pd->setWindowFlag(Qt::Popup);
             pd->show();
@@ -180,7 +188,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
             course->name = editName->text().trimmed();
             course->teacher = teacher->uuid;
             course->credit = comboCredits->currentData().value<int>();
-            course->status = Course::ACCEPTING;
+            course->status = comboStatus->currentData().value<int>();
             course->times.clear();
             course->times.append(courses);
             teacher->courses.append(course->uuid);
@@ -190,7 +198,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
                 pd->close();
                 pd->deleteLater();
                 watcher->deleteLater();
-                QMessageBox::information(this, "添加完成", QString("添加课程成功！"));
+                QMessageBox::information(this, "修改完成", QString("添加课程成功！"));
                 accept();
             });
             watcher->setFuture(future);
@@ -238,7 +246,10 @@ bool CourseDetailDialog::validateForm() {
         QMessageBox::warning(this, "错误", "课程名称不能为空");
         return false;
     }
-
+    if (!course->classes.empty() && comboStatus->currentData().value<int>() != Course::STARTED && comboStatus->currentData().value<int>() != Course::ENDED) {
+        QMessageBox::warning(this, "错误", "已分配班级的课程状态只能为“已开课”或“已结束”！");
+        return false;
+    }
     // [0-6][0-14]
     int occupied[7][15];
     return std::ranges::all_of(slotWidgets, [this, &occupied](const auto w) {
