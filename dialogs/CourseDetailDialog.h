@@ -39,6 +39,7 @@ private:
     QPushButton *btnAddTeacher;
     QComboBox *comboCredits;
     QComboBox *comboStatus;
+    QPushButton *onlineCheck;
     QGroupBox *timeGroup;
     QVBoxLayout *timeSlotsLayout;
     QVBoxLayout *groupLayout;

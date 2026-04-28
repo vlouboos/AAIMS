@@ -111,6 +111,12 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     for (int i = 1; i <= 6; i++) comboCredits->addItem(QString::number(i) + " 学分", i);
     comboCredits->setCurrentIndex(course->credit);
 
+    onlineCheck =  new QPushButton(this);
+    onlineCheck->setObjectName("CheckBox");
+    onlineCheck->setCheckable(true);
+    onlineCheck->setFixedSize(24, 24);
+    onlineCheck->setChecked(course->online);
+
     comboStatus = new QComboBox(this);
     comboStatus->addItem("选课中", Course::ACCEPTING);
     comboStatus->addItem("筛选中", Course::QUALIFYING);
@@ -123,6 +129,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     formLayout->addRow("课程名称:", editName);
     formLayout->addRow("授课教师:", teacherLayout);
     formLayout->addRow("学分:", comboCredits);
+    formLayout->addRow("线上:", onlineCheck);
     formLayout->addRow("课程状态:", comboStatus);
 
     btnLayout = new QHBoxLayout();
@@ -216,6 +223,10 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
             }
         }
     });
+
+    connect(onlineCheck, &QPushButton::clicked, this, [this] {
+        if (!onlineCheck->isChecked() && slotWidgets.empty()) onAddSlotClicked();
+    });
 }
 
 void CourseDetailDialog::onAddSlotClicked() {
@@ -227,8 +238,8 @@ void CourseDetailDialog::onAddSlotClicked() {
 }
 
 void CourseDetailDialog::removeSlot(TimeSlot *slot) {
-    if (slotWidgets.size() <= 1) {
-        QMessageBox::warning(this, "提示", "至少需要保留一个上课时间段！");
+    if (slotWidgets.size() <= 1 && !onlineCheck->isChecked()) {
+        QMessageBox::warning(this, "提示", "线下课至少需要保留一个上课时间段！");
         return;
     }
 
