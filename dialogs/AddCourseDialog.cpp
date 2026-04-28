@@ -14,6 +14,7 @@
 #include <QProgressDialog>
 #include <qtconcurrentrun.h>
 
+#include "AddTeacherDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/CourseManager.h"
 
@@ -232,6 +233,17 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
         });
 
         watcher->setFuture(future);
+    });
+
+    connect(btnAddTeacher, &QPushButton::clicked, this, [this] {
+        if (AddTeacherDialog dialog; dialog.exec() == Accepted) {
+            comboTeacher->clear();
+            const auto &teacher_accounts = aaims::manager::account::get_teachers();
+            for (auto it = teacher_accounts.begin(); it != teacher_accounts.end(); ++it) {
+                QString display = QString("%1(%2)").arg((*it)->name, (*it)->department);
+                comboTeacher->addItem(display, (*it)->uuid);
+            }
+        }
     });
 
     onAddSlotClicked(); // Don't forget

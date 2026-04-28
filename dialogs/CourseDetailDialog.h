@@ -18,18 +18,21 @@ class CourseDetailDialog : public StyledDialog {
     Q_OBJECT
 
 public:
-    explicit CourseDetailDialog(Course* course = nullptr, QWidget *parent = nullptr);
+    explicit CourseDetailDialog(Course *course = nullptr, QWidget *parent = nullptr);
+
+    void onAddSlotClicked();
+
+    void removeSlot(TimeSlot *slot);
+
+    bool validateForm();
 
 private:
     QVBoxLayout *mainLayout;
     QLabel *headerLabel;
-    QFormLayout *tableLayout;
+    QFormLayout *formLayout;
+    QComboBox *comboSemester;
     QLineEdit *editId;
     QLineEdit *editName;
-    QHBoxLayout *majorLayout;
-    QCompleter *completerMajor;
-    QComboBox *comboMajor;
-    QPushButton *btnAddMajor;
     QHBoxLayout *teacherLayout;
     QComboBox *comboTeacher;
     QCompleter *teacherCompleter;
@@ -44,7 +47,6 @@ private:
     QPushButton *btnSave;
     QPushButton *btnCancel;
 };
-
 
 
 #endif //AAIMS_COURSEDETAILDIALOG_H

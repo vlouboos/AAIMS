@@ -71,7 +71,8 @@ namespace aaims::manager::account {
             }
             for (const auto &teacher: teachers) {
                 for (const auto &courseUuid: teacher->courses) {
-                    for (const auto &course = course::get_courses()[courseUuid]; const auto &[weekStart, weekEnd, dayOfWeek, startTime, duration, location]: course->times) {
+                    for (const auto &course = course::get_courses()[courseUuid]; const auto &[weekStart, weekEnd,
+                             dayOfWeek, startTime, duration, location]: course->times) {
                         int mask = 0;
                         for (int i = weekStart; i <= weekEnd; ++i) {
                             mask |= 1 << (i - 1);
@@ -252,7 +253,7 @@ namespace aaims::manager::account {
     }
 
     namespace student {
-        [[nodiscard]] static bool is_course_eligible(const StudentAccount *const &student, const Course *const &course) {
+        [[nodiscard]] bool is_course_eligible(const StudentAccount *student, const Course *course) {
             using namespace aaims::manager;
             const auto &rule = course->assignmentRule;
             const auto &cls = classes::get_classes()[student->currentClass];

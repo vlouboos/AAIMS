@@ -62,7 +62,7 @@ namespace aaims::manager::account {
     void remove(const Account *account);
 
     namespace student {
-        [[nodiscard]] static bool is_course_eligible(const StudentAccount *const &student, const Course *const &course);
+        [[nodiscard]] bool is_course_eligible(const StudentAccount *student, const Course *course);
     }
 }
 

@@ -4,11 +4,20 @@
 
 #include "CourseDetailDialog.h"
 
+#include <QCompleter>
+#include <QFutureWatcher>
 #include <QLineEdit>
+#include <QMessageBox>
+#include <QProgressDialog>
+#include <qtconcurrentrun.h>
 
+#include "AddTeacherDialog.h"
+#include "../managements/AccountManager.h"
+#include "../managements/ClassManager.h"
+#include "../managements/CourseManager.h"
 #include "../utils/DataStructures.h"
 
-CourseDetailDialog::CourseDetailDialog(aaims::model::Course *course, QWidget *parent) : StyledDialog(parent) {
+CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : StyledDialog(parent) {
     setWindowTitle("课程详情");
     resize(500, 400);
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::CustomizeWindowHint);
@@ -16,8 +25,51 @@ CourseDetailDialog::CourseDetailDialog(aaims::model::Course *course, QWidget *pa
     headerLabel = new QLabel("编辑课程信息", this);
     headerLabel->setStyleSheet("font-size: 20px; font-weight: 700; color: #0f172a;");
 
-    tableLayout = new QFormLayout();
-    tableLayout->setSpacing(15);
+    formLayout = new QFormLayout();
+    formLayout->setSpacing(15);
+
+    comboSemester = new QComboBox(this);
+    QDate currentDate = QDate::currentDate();
+    int currentYear = currentDate.year();
+    int currentMonth = currentDate.month();
+    int targetYear = currentYear;
+    int targetTerm = currentMonth >= 9 || currentMonth == 1 ? 1 : 2;
+    if (currentMonth > 8) {
+        targetYear += 1;
+    }
+    const QString defaultData = QString("%1-%2").arg(targetYear).arg(targetTerm);
+    if (targetTerm == 1) {
+        for (int y = currentYear; y <= currentYear + 2; ++y) {
+            const QString textAutumn = QString("%1-%2学年 秋季学期").arg(y).arg(y + 1);
+            const QString dataAutumn = QString("%1-1").arg(y);
+            comboSemester->addItem(textAutumn, dataAutumn);
+            const QString textSpring = QString("%1-%2学年 春季学期").arg(y).arg(y + 1);
+            const QString dataSpring = QString("%1-2").arg(y);
+            comboSemester->addItem(textSpring, dataSpring);
+        }
+    } else {
+        for (int y = currentYear; y <= currentYear + 2; ++y) {
+            if (y != currentYear) {
+                const QString textAutumn = QString("%1-%2学年 秋季学期").arg(y - 1).arg(y);
+                const QString dataAutumn = QString("%1-1").arg(y);
+                comboSemester->addItem(textAutumn, dataAutumn);
+            }
+            const QString textSpring = QString("%1-%2学年 春季学期").arg(y - 1).arg(y);
+            const QString dataSpring = QString("%1-2").arg(y);
+            comboSemester->addItem(textSpring, dataSpring);
+        }
+    }
+
+    if (!course->semester.isEmpty()) {
+        if (const int found = comboSemester->findData(course->semester); found != -1) {
+            comboSemester->setCurrentIndex(found);
+        } else {
+            comboSemester->insertItem(0, "(未更改)", course->semester);
+            comboSemester->setCurrentIndex(0);
+        }
+    } else if (int defaultIndex = comboSemester->findData(defaultData); defaultIndex != -1) {
+        comboSemester->setCurrentIndex(defaultIndex + 1); // Default set to next semester.
+    }
 
     editId = new QLineEdit(this);
     editId->setText(course->id);
@@ -25,122 +77,61 @@ CourseDetailDialog::CourseDetailDialog(aaims::model::Course *course, QWidget *pa
     editName = new QLineEdit(this);
     editName->setText(course->name);
 
-    editGrade = new QLineEdit(this);
-    editGrade->setText(cls->grade);
-    editGrade->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]*$"), this));
+    teacherLayout = new QHBoxLayout();
 
-    majorLayout = new QHBoxLayout();
+    teacherCompleter = new QCompleter();
+    teacherCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    teacherCompleter->setFilterMode(Qt::MatchContains);
+    teacherCompleter->setCompletionMode(QCompleter::PopupCompletion);
+    teacherCompleter->setCompletionColumn(0);
 
-    completerMajor = new QCompleter(this);
-    completerMajor->setCaseSensitivity(Qt::CaseInsensitive);
-    completerMajor->setFilterMode(Qt::MatchContains);
-    completerMajor->setCompletionMode(QCompleter::PopupCompletion);
-
-    comboMajor = new QComboBox(this);
-    comboMajor->addItems(aaims::manager::classes::get_departments());
-    comboMajor->setEditable(true);
-    comboMajor->setPlaceholderText("请选择学院");
-    if (aaims::manager::classes::get_departments().contains(cls->department)) {
-        comboMajor->setCurrentText(cls->department);
-    }
-    comboMajor->setInsertPolicy(QComboBox::NoInsert);
-    comboMajor->setCompleter(completerMajor);
-
-    btnAddMajor = new QPushButton("+", this);
-    btnAddMajor->setStyleSheet("padding: 0; margin: 0;");
-    btnAddMajor->setObjectName("AddElement");
-    btnAddMajor->setFixedSize(24, 24);
-
-    majorLayout->addWidget(comboMajor);
-    majorLayout->addWidget(btnAddMajor);
-
-    masterLayout = new QHBoxLayout();
-
-    completerMaster = new QCompleter();
-    completerMaster->setCaseSensitivity(Qt::CaseInsensitive);
-    completerMaster->setFilterMode(Qt::MatchContains);
-    completerMaster->setCompletionMode(QCompleter::PopupCompletion);
-    completerMaster->setCompletionColumn(0);
-
-    comboMaster = new QComboBox(this);
+    comboTeacher = new QComboBox(this);
     const auto &teachers = aaims::manager::account::get_teachers();
 
     for (auto it = teachers.begin(); it != teachers.end(); ++it) {
         QString display = QString("%1(%2)").arg((*it)->name, (*it)->department);
-        comboMaster->addItem(display, (*it)->uuid);
+        comboTeacher->addItem(display, (*it)->uuid);
     }
-    comboMaster->setEditable(true);
-    comboMaster->setPlaceholderText("例如: 张三");
-    if (teachers.contains(cls->master)) {
-        const TeacherAccount *t = teachers[cls->master];
-        comboMaster->setCurrentText(QString("%1(%2)").arg(t->name, t->department));
+    comboTeacher->setEditable(true);
+    comboTeacher->setPlaceholderText("例如: 张三");
+    if (teachers.contains(course->teacher)) {
+        const TeacherAccount *t = teachers[course->teacher];
+        comboTeacher->setCurrentText(QString("%1(%2)").arg(t->name, t->department));
     }
-    comboMaster->setInsertPolicy(QComboBox::NoInsert);
-    comboMaster->setCompleter(completerMaster);
+    comboTeacher->setInsertPolicy(QComboBox::NoInsert);
+    comboTeacher->setCompleter(teacherCompleter);
 
     btnAddTeacher = new QPushButton("+", this);
     btnAddTeacher->setStyleSheet("padding: 0; margin: 0;");
     btnAddTeacher->setObjectName("AddElement");
     btnAddTeacher->setFixedSize(24, 24);
 
-    masterLayout->addWidget(comboMaster);
-    masterLayout->addWidget(btnAddTeacher);
+    teacherLayout->addWidget(comboTeacher);
+    teacherLayout->addWidget(btnAddTeacher);
 
-    coursesLayout = new QVBoxLayout();
+    comboCredits = new QComboBox(this);
+    comboCredits->addItems({"1", "2", "3", "4", "5", "6"});
+    comboCredits->setCurrentText(QString::number(course->credit));
 
-    coursesLabel = new QLabel(QString("共%1个课程").arg(cls->courses.size()), this);
-    coursesLabel->setMaximumHeight(40);
-
-    coursesEditLayout = new QHBoxLayout();
-    coursesEditLayout->setAlignment(Qt::AlignTop);
-
-    courses = new QScrollArea();
-
-    courseList = new QListWidget();
-
-    const auto &allCourses = aaims::manager::course::get_courses();
-    for (const auto &courseUuid: cls->courses) {
-        if (allCourses.contains(courseUuid)) {
-            const auto &course = allCourses[courseUuid];
-            const auto item = new QListWidgetItem(QString("%1-%2").arg(course->id, course->name)); // NOLINT
-            item->setData(Qt::UserRole, courseUuid);
-            courseList->addItem(item);
-        }
-    }
-
-    courses->setWidget(courseList);
-    courses->setWidgetResizable(true);
-
-    courseBtnLayout = new QVBoxLayout();
-
-    btnAddCourse = new QPushButton("+", this);
-    btnAddCourse->setStyleSheet("padding: 0; margin: 0;");
-    btnAddCourse->setObjectName("AddElement");
-    btnAddCourse->setFixedSize(24, 24);
-
-    btnRemoveCourse = new QPushButton("-", this);
-    btnRemoveCourse->setStyleSheet("padding: 0; margin: 0;");
-    btnRemoveCourse->setObjectName("AddElement");
-    btnRemoveCourse->setFixedSize(24, 24);
-    btnRemoveCourse->setEnabled(false);
-
-    courseBtnLayout->addWidget(btnAddCourse);
-    courseBtnLayout->addWidget(btnRemoveCourse);
-
-    coursesEditLayout->addWidget(courses);
-    coursesEditLayout->addLayout(courseBtnLayout);
-
-    coursesLayout->addWidget(coursesLabel);
-    coursesLayout->addLayout(coursesEditLayout);
-
-    tableLayout->addRow("班级名称:", editName);
-    tableLayout->addRow("年级:", editGrade);
-    tableLayout->addRow("院系:", majorLayout);
-    tableLayout->addRow("班主任:", masterLayout);
-    tableLayout->addRow("班级课程:", coursesLayout);
+    formLayout->addRow("学期:", comboSemester);
+    formLayout->addRow("课程编号:", editId);
+    formLayout->addRow("课程名称:", editName);
+    formLayout->addRow("授课教师:", teacherLayout);
+    formLayout->addRow("学分:", comboCredits);
 
     btnLayout = new QHBoxLayout();
     btnLayout->setSpacing(12);
+
+    timeGroup = new QGroupBox("上课时间", this);
+
+    groupLayout = new QVBoxLayout(timeGroup);
+
+    btnAddSlot = new QPushButton("+ 添加时段", this);
+
+    timeSlotsLayout = new QVBoxLayout();
+
+    groupLayout->addWidget(btnAddSlot, 0, Qt::AlignRight);
+    groupLayout->addLayout(timeSlotsLayout);
 
     btnSave = new QPushButton("保存修改", this);
     btnSave->setCursor(Qt::PointingHandCursor);
@@ -154,7 +145,117 @@ CourseDetailDialog::CourseDetailDialog(aaims::model::Course *course, QWidget *pa
     btnLayout->addWidget(btnCancel);
 
     mainLayout->addWidget(headerLabel);
-    mainLayout->addLayout(tableLayout);
+    mainLayout->addLayout(formLayout);
+    mainLayout->addWidget(timeGroup);
     mainLayout->addLayout(btnLayout);
+
     applyStyles();
+
+    connect(btnSave, &QPushButton::clicked, this, [this, course] {
+        if (validateForm()) {
+            auto *pd = new QProgressDialog("正在添加...", nullptr, 0, 0, this); // NOLINT
+            pd->setWindowModality(Qt::WindowModal);
+            pd->setWindowFlag(Qt::Popup);
+            pd->show();
+            TeacherAccount *teacher = aaims::manager::account::get_teachers()[comboTeacher->currentData().value<
+                QUuid>()];
+
+            QList<Course::LessonTime> courses;
+            for (const auto &x: slotWidgets) {
+                courses.append(x->toData());
+            }
+            if (teacher->is_occupied(comboSemester->currentData().value<QString>(), courses)) {
+                pd->close();
+                pd->deleteLater();
+                QMessageBox::warning(this, "输入错误", "该教师已有课程时间与当前课程冲突！");
+                return;
+            }
+            course->id = editId->text().trimmed();
+            course->name = editName->text().trimmed();
+            course->teacher = teacher->uuid;
+            course->credit = comboCredits->currentData().value<int>();
+            course->status = Course::ACCEPTING;
+            course->times.clear();
+            course->times.append(courses);
+            teacher->courses.append(course->uuid);
+            const auto future = QtConcurrent::run([] { return aaims::manager::course::save(); });
+            const auto watcher = new QFutureWatcher<bool>(this); // NOLINT
+            connect(watcher, &QFutureWatcher<bool>::finished, this, [this, pd, watcher] {
+                pd->close();
+                pd->deleteLater();
+                watcher->deleteLater();
+                QMessageBox::information(this, "添加完成", QString("添加课程成功！"));
+                accept();
+            });
+            watcher->setFuture(future);
+        }
+    });
+    connect(btnCancel, &QPushButton::clicked, this, &CourseDetailDialog::reject);
+    connect(btnAddSlot, &QPushButton::clicked, this, &CourseDetailDialog::onAddSlotClicked);
+    connect(btnAddTeacher, &QPushButton::clicked, this, [this] {
+        if (AddTeacherDialog dialog; dialog.exec() == Accepted) {
+            comboTeacher->clear();
+            const auto &teacher_accounts = aaims::manager::account::get_teachers();
+            for (auto it = teacher_accounts.begin(); it != teacher_accounts.end(); ++it) {
+                QString display = QString("%1(%2)").arg((*it)->name, (*it)->department);
+                comboTeacher->addItem(display, (*it)->uuid);
+            }
+        }
+    });
+}
+
+void CourseDetailDialog::onAddSlotClicked() {
+    const auto w = new TimeSlot(Course::LessonTime(), this);
+    // Strange, IDK why it keeps stupid clangD.
+    connect(w, &TimeSlot::removeRequested, this, [this, w] { removeSlot(w); });
+    timeSlotsLayout->addWidget(w);
+    slotWidgets.append(w);
+}
+
+void CourseDetailDialog::removeSlot(TimeSlot *slot) {
+    if (slotWidgets.size() <= 1) {
+        QMessageBox::warning(this, "提示", "至少需要保留一个上课时间段！");
+        return;
+    }
+
+    slotWidgets.removeOne(slot);
+    timeSlotsLayout->removeWidget(slot);
+    slot->deleteLater();
+}
+
+bool CourseDetailDialog::validateForm() {
+    if (editId->text().trimmed().isEmpty()) {
+        QMessageBox::warning(this, "错误", "课程编号不能为空");
+        return false;
+    }
+    if (editName->text().trimmed().isEmpty()) {
+        QMessageBox::warning(this, "错误", "课程名称不能为空");
+        return false;
+    }
+
+    // [0-6][0-14]
+    int occupied[7][15];
+    return std::ranges::all_of(slotWidgets, [this, &occupied](const auto w) {
+        const auto data = w->toData();
+        if (data.weekEnd < data.weekStart) {
+            QMessageBox::warning(this, "时间错误", "结束周不能早于起始周！");
+            return false;
+        }
+        if (data.startTime + data.duration > 15) {
+            QMessageBox::warning(this, "时间溢出", "排课时间超出了当天的最大课节范围！");
+            return false;
+        }
+        int mask = 0;
+        for (int i = data.weekStart; i <= data.weekEnd; ++i) {
+            mask |= 1 << (i - 1);
+        }
+        for (int i = 0; i < data.duration; i++) {
+            if (occupied[data.dayOfWeek - 1][data.startTime + i] & mask) {
+                QMessageBox::warning(this, "时间冲突", "时间安排存在冲突！");
+                return false;
+            }
+            occupied[data.dayOfWeek - 1][data.startTime + i] |= mask;
+        }
+        return true;
+    });
 }

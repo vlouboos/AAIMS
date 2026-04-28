@@ -20,7 +20,7 @@ public:
     enum Column {
         Name,
         Grade,
-        Department,
+        Major,
         MemberCount,
         Master,
         Courses,
@@ -51,16 +51,19 @@ public:
 
         if (!cls) return {};
 
+        const auto *const major = aaims::manager::classes::get_majors()[cls->major].get();
+        QString maj = major ? major->name : "错误";
+
         const TeacherAccount *master = aaims::manager::account::get_teachers()[cls->master];
-        QString m = master ? master->name : "错误";
+        QString mas = master ? master->name : "错误";
 
         if (role == Qt::DisplayRole) {
             switch (index.column()) {
                 case Name: return cls->name;
                 case Grade: return cls->grade;
-                case Department: return cls->department;
+                case Major: return maj;
                 case MemberCount: return cls->students.size();
-                case Master: return m;
+                case Master: return mas;
                 case Courses: return cls->courses.size();
                 default: return {};
             }

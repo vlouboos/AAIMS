@@ -12,6 +12,7 @@
 #include <qtconcurrentrun.h>
 
 #include "../dialogs/AddCourseDialog.h"
+#include "../dialogs/CourseDetailDialog.h"
 #include "delegate/OperationDelegate.h"
 #include "model/FilterProxyModel.h"
 
@@ -101,9 +102,9 @@ AdminCoursePage::AdminCoursePage(QWidget *parent) : QWidget(parent) {
     connect(delegate, &OperationDelegate::openEdit, [this](const QModelIndex &index) {
         if (Course *course = aaims::manager::course::get_courses()[tableModel->getCourse(
             proxyModel->mapToSource(index))].get()) {
-            //if (CourseDetailDialog dialog(course, this); dialog.exec() == QDialog::Accepted) {
-            //    reloadData();
-            //}
+            if (CourseDetailDialog dialog(course, this); dialog.exec() == QDialog::Accepted) {
+                reloadData();
+            }
         }
     });
 
@@ -139,11 +140,11 @@ AdminCoursePage::AdminCoursePage(QWidget *parent) : QWidget(parent) {
     });
 
     connect(tableView, &QTableView::doubleClicked, [this](const QModelIndex &index) {
-        if (Course *course = aaims::manager::course::get_courses()[tableModel->getCourse(
+        if (const Course *course = aaims::manager::course::get_courses()[tableModel->getCourse(
             proxyModel->mapToSource(index))].get()) {
-            //if (CourseDetailDialog dialog(course, this); dialog.exec() == QDialog::Accepted) {
-            //    reloadData();
-            //}
+            if (CourseDetailDialog dialog(course, this); dialog.exec() == QDialog::Accepted) {
+                reloadData();
+            }
         }
     });
 
