@@ -50,9 +50,6 @@ private:
     QPushButton *btnCancel;
     aaims::model::StudentAccount *account;
     QList<QUuid> workingCourses;
-
-    // Helper to check if student is eligible for a course based on assignment rules
-    bool isStudentEligibleForCourse(const std::shared_ptr<aaims::model::Course> &course) const;
 };
 
 #endif //AAIMS_STUDENTDETAILDIALOG_H

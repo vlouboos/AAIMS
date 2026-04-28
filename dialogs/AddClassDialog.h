@@ -29,10 +29,10 @@ private:
     QFormLayout *singleLayout;
     QLineEdit *gradeEdit;
     QLineEdit *nameEdit;
-    QHBoxLayout *deptLayout;
-    QCompleter *deptCompleter;
-    QComboBox *deptCombo;
-    QPushButton *btnAddDept;
+    QHBoxLayout *majorLayout;
+    QCompleter *majorCompleter;
+    QComboBox *majorCombo;
+    QPushButton *btnAddMajor;
     QHBoxLayout *masterLayout;
     QCompleter *masterCompleter;
     QComboBox *masterCombo;

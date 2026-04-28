@@ -31,10 +31,10 @@ private:
     QFormLayout *tableLayout;
     QLineEdit *editName;
     QLineEdit *editGrade;
-    QHBoxLayout *deptLayout;
-    QCompleter *completerDept;
-    QComboBox *comboDept;
-    QPushButton *btnAddDept;
+    QHBoxLayout *majorLayout;
+    QCompleter *completerMajor;
+    QComboBox *comboMajor;
+    QPushButton *btnAddMajor;
     QHBoxLayout *masterLayout;
     QCompleter *completerMaster;
     QComboBox *comboMaster;

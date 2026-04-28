@@ -5,43 +5,41 @@
 #ifndef AAIMS_COURSEDETAILDIALOG_H
 #define AAIMS_COURSEDETAILDIALOG_H
 
-#include <QComboBox>
 #include <QFormLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QListWidget>
-#include <QPushButton>
-#include <QScrollArea>
 
 #include "StyledDialog.h"
+#include "../pages/components/TimeSlot.h"
+#include "../utils/DataStructures.h"
 
 class CourseDetailDialog : public StyledDialog {
     Q_OBJECT
 
 public:
-    explicit CourseDetailDialog(QWidget *parent = nullptr);
+    explicit CourseDetailDialog(Course* course = nullptr, QWidget *parent = nullptr);
 
 private:
     QVBoxLayout *mainLayout;
     QLabel *headerLabel;
     QFormLayout *tableLayout;
+    QLineEdit *editId;
     QLineEdit *editName;
-    QLineEdit *editGrade;
-    QHBoxLayout *deptLayout;
-    QCompleter *completerDept;
-    QComboBox *comboDept;
-    QPushButton *btnAddDept;
-    QHBoxLayout *masterLayout;
-    QCompleter *completerMaster;
-    QComboBox *comboMaster;
+    QHBoxLayout *majorLayout;
+    QCompleter *completerMajor;
+    QComboBox *comboMajor;
+    QPushButton *btnAddMajor;
+    QHBoxLayout *teacherLayout;
+    QComboBox *comboTeacher;
+    QCompleter *teacherCompleter;
     QPushButton *btnAddTeacher;
-    QVBoxLayout *coursesLayout;
-    QLabel *coursesLabel;
-    QHBoxLayout *coursesEditLayout;
-    QScrollArea *courses;
-    QListWidget *courseList;
-    QVBoxLayout * courseBtnLayout;
-    QPushButton *btnAddCourse;
-    QPushButton *btnRemoveCourse;
+    QComboBox *comboCredits;
+    QGroupBox *timeGroup;
+    QVBoxLayout *timeSlotsLayout;
+    QVBoxLayout *groupLayout;
+    QPushButton *btnAddSlot;
+    QList<TimeSlot *> slotWidgets;
     QHBoxLayout *btnLayout;
     QPushButton *btnSave;
     QPushButton *btnCancel;

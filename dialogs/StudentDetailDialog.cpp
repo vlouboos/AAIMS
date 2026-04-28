@@ -171,12 +171,12 @@ StudentDetailDialog::StudentDetailDialog(StudentAccount *account, QWidget *paren
         }
     });
 
-    connect(btnAddCourse, &QPushButton::clicked, [this, allCourses] {
+    connect(btnAddCourse, &QPushButton::clicked, [this, allCourses, account] {
         // Build list of courses NOT eligible for this student
         QList<QUuid> ineligibleCourses;
         for (const auto &[courseUuid, course] : allCourses.asKeyValueRange()) {
             // Check if student is eligible for this course based on assignment rule
-            if (!isStudentEligibleForCourse(course)) {
+            if (!aaims::manager::account::student::is_course_eligible(account, course.get())) {
                 ineligibleCourses.append(courseUuid);
             }
         }
@@ -331,23 +331,5 @@ void StudentDetailDialog::onSaveButtonClicked() {
         accept();
     });
     watcher->setFuture(future);
-}
-
-bool StudentDetailDialog::isStudentEligibleForCourse(const std::shared_ptr<Course> &course) const {
-    using namespace aaims::model;
-    using namespace aaims::manager;
-    const auto &rule = course->assignmentRule;
-    const auto &cls = classes::get_classes()[account->currentClass];
-    if (!cls.get()) return false;
-    const auto &major = classes::get_majors()[cls->major];
-    if (rule.specific_single()) {
-        return rule.specificStudents.contains(account->uuid);
-    }
-    if (rule.specific_department() && !rule.targetDepartments.contains(major->department)) return false;
-    if (rule.specific_class() && !rule.targetClasses.contains(cls->uuid)) return false;
-    if (rule.specific_gender() && account->female != rule.isFemale) return false;
-    if (rule.specific_grade() && !rule.targetGrades.contains(cls->grade)) return false;
-    if (rule.specific_major() && !rule.targetMajors.contains(major->uuid)) return false;
-    return true;
 }
 

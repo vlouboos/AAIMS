@@ -60,6 +60,10 @@ namespace aaims::manager::account {
     QList<Account *> get_all_ptrs();
 
     void remove(const Account *account);
+
+    namespace student {
+        [[nodiscard]] static bool is_course_eligible(const StudentAccount *const &student, const Course *const &course);
+    }
 }
 
 #endif // AAIMS_ACCOUNT_MANAGER_H

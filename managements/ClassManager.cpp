@@ -61,9 +61,9 @@ namespace aaims::manager::classes {
         qInfo() << "Loaded" << departments.size() << "departments.";
         path = QCoreApplication::applicationDirPath() + "/data/majors.json";
         io::load(path, [](const QJsonObject &json) {
-            for (const auto &key: json.asKeyValueRange()) {
-                QUuid uuid = QUuid::fromString(key.first);
-                majors[uuid] = std::make_shared<Major>(Major::fromJson(json.value(key).toObject()));
+            for (const auto &key: json.keys()) {
+                QUuid uuid = QUuid::fromString(key);
+                majors[uuid] = std::make_shared<Major>(Major::fromJson(uuid, json.value(key).toObject()));
             }
         });
         qInfo() << "Loaded" << all_classes.size() << "majors.";
@@ -95,6 +95,25 @@ namespace aaims::manager::classes {
         all_classes[uuid] = cls;
         cls->uuid = uuid;
         return "";
+    }
+
+    void addMajor(const std::shared_ptr<Major> &major) {
+        QUuid uuid;
+        do {
+            uuid = QUuid::createUuid();
+        } while (majors.contains(uuid));
+        majors[uuid] = major;
+        major->uuid = uuid;
+    }
+
+    bool saveMajors() {
+        const QString path = QCoreApplication::applicationDirPath() + "/data/majors.json";
+        QJsonObject root;
+        for (auto it = majors.begin(); it != majors.end(); ++it) {
+            QUuid uuid = it.key();
+            root.insert(uuid.toString(QUuid::WithoutBraces), it.value()->toJson());
+        }
+        return io::save(path, root);
     }
 
     void removeClass(const QUuid &uuid) {

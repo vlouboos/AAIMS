@@ -10,6 +10,7 @@
 #include <QtConcurrentRun>
 
 #include "AddDepartmentDialog.h"
+#include "AddMajorDialog.h"
 #include "AddTeacherDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
@@ -36,28 +37,28 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
     nameEdit = new QLineEdit(singleAddPage);
     nameEdit->setPlaceholderText("例如: 软工R4");
 
-    deptLayout = new QHBoxLayout();
+    majorLayout = new QHBoxLayout();
 
-    deptCombo = new QComboBox(singleAddPage);
-    deptCombo->addItems(aaims::manager::classes::get_departments());
-    deptCombo->setEditable(true);
-    deptCombo->setPlaceholderText("请选择学院");
-    deptCombo->setInsertPolicy(QComboBox::NoInsert);
+    majorCombo = new QComboBox(singleAddPage);
+    majorCombo->addItems(aaims::manager::classes::get_departments());
+    majorCombo->setEditable(true);
+    majorCombo->setPlaceholderText("请选择学院");
+    majorCombo->setInsertPolicy(QComboBox::NoInsert);
 
-    deptCompleter = new QCompleter(deptCombo->model());
-    deptCompleter->setCaseSensitivity(Qt::CaseInsensitive);
-    deptCompleter->setFilterMode(Qt::MatchContains);
-    deptCompleter->setCompletionMode(QCompleter::InlineCompletion);
+    majorCompleter = new QCompleter(majorCombo->model());
+    majorCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    majorCompleter->setFilterMode(Qt::MatchContains);
+    majorCompleter->setCompletionMode(QCompleter::InlineCompletion);
 
-    deptCombo->setCompleter(deptCompleter);
+    majorCombo->setCompleter(majorCompleter);
 
-    btnAddDept = new QPushButton("+", singleAddPage);
-    btnAddDept->setStyleSheet("padding: 0; margin: 0;");
-    btnAddDept->setObjectName("AddElement");
-    btnAddDept->setFixedSize(24, 24);
+    btnAddMajor = new QPushButton("+", singleAddPage);
+    btnAddMajor->setStyleSheet("padding: 0; margin: 0;");
+    btnAddMajor->setObjectName("AddElement");
+    btnAddMajor->setFixedSize(24, 24);
 
-    deptLayout->addWidget(deptCombo);
-    deptLayout->addWidget(btnAddDept);
+    majorLayout->addWidget(majorCombo);
+    majorLayout->addWidget(btnAddMajor);
 
     masterLayout = new QHBoxLayout();
 
@@ -93,7 +94,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
 
     singleLayout->addRow("年级:", gradeEdit);
     singleLayout->addRow("班级名字:", nameEdit);
-    singleLayout->addRow("院系:", deptLayout);
+    singleLayout->addRow("院系:", majorLayout);
     singleLayout->addRow("班主任:", masterLayout);
     singleLayout->addRow("", btnConfirmSingle);
 
@@ -133,11 +134,13 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
     mainLayout->addWidget(tabWidget);
     applyStyles();
 
-    connect(btnAddDept, &QPushButton::clicked, [this] {
-        if (AddDepartmentDialog dialog; dialog.exec() == Accepted) {
-            deptCombo->clear();
-            deptCombo->addItems(aaims::manager::classes::get_departments());
-            deptCompleter->setModel(deptCombo->model());
+    connect(btnAddMajor, &QPushButton::clicked, [this] {
+        if (AddMajorDialog dialog; dialog.exec() == Accepted) {
+            majorCombo->clear();
+            for (const auto &major: aaims::manager::classes::get_majors()) {
+                majorCombo->addItem(major->name, major->uuid);
+            }
+            majorCompleter->setModel(majorCombo->model());
         }
     });
     connect(btnAddTeacher, &QPushButton::clicked, [this] {
@@ -171,7 +174,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                     QMessageBox::warning(this, "输入错误", "班级名字不能为空！");
                     return;
                 }
-                if (deptCombo->currentIndex() == -1) {
+                if (majorCombo->currentIndex() == -1) {
                     QMessageBox::warning(this, "输入错误", "请选择院系！");
                     return;
                 }
@@ -193,7 +196,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                 const auto cls = std::make_shared<Class>();
                 cls->grade = gradeEdit->text().trimmed();
                 cls->name = nameEdit->text().trimmed();
-                cls->department = deptCombo->currentText().trimmed();
+                cls->major = majorCombo->currentData().value<QUuid>();
                 cls->master = teacher->uuid;
                 teacher->status |= Account::CLASS_MASTER;
                 teacher->managingClass = cls->uuid;
@@ -251,6 +254,7 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
     QTextStream in(&file);
     in.readLine(); // Skip first line
     auto teachers = aaims::manager::account::get_teachers();
+    auto majors = aaims::manager::classes::get_majors();
     while (!in.atEnd()) {
         QString line = in.readLine();
         if (line.trimmed().isEmpty()) {
@@ -265,15 +269,23 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
 
         const QString grade = fields[0].trimmed();
         const QString name = fields[1].trimmed();
-        const QString dept = fields[2].trimmed();
+        const QString major = fields[2].trimmed();
         const QString master = fields[3].trimmed();
-        if (grade.isEmpty() || name.isEmpty() || dept.isEmpty() || master.isEmpty()) {
+        if (grade.isEmpty() || name.isEmpty() || major.isEmpty() || master.isEmpty()) {
+            failed++;
+            continue;
+        }
+        auto ma = std::ranges::find_if(majors,
+                                       [major](const auto &m) {
+                                           return major == m->name;
+                                       });
+        if (ma == majors.end()) {
             failed++;
             continue;
         }
         if (auto classes = aaims::manager::classes::get_all_ptr(); std::ranges::any_of(
-            classes, [grade, name, dept](const Class *cls) {
-                return cls->grade == grade && cls->name == name && cls->department == dept;
+            classes, [grade, name, ma](const Class *cls) {
+                return cls->grade == grade && cls->name == name && cls->major == (*ma)->uuid;
             })) {
             failed++;
             continue;
@@ -290,13 +302,10 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
             failed++;
             continue;
         }
-        if (!aaims::manager::classes::get_departments().contains(dept)) {
-            aaims::manager::classes::addDepartment({dept});
-        }
         auto cls = std::make_shared<Class>();
         cls->grade = grade;
         cls->name = name;
-        cls->department = dept;
+        cls->major = (*ma)->uuid;
         cls->master = (*it)->uuid;
         if (const QString result = aaims::manager::classes::add(cls); !result.isEmpty()) {
             failed++;

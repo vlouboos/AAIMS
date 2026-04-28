@@ -250,4 +250,23 @@ namespace aaims::manager::account {
         }
         accounts.remove(account->uuid);
     }
+
+    namespace student {
+        [[nodiscard]] static bool is_course_eligible(const StudentAccount *const &student, const Course *const &course) {
+            using namespace aaims::manager;
+            const auto &rule = course->assignmentRule;
+            const auto &cls = classes::get_classes()[student->currentClass];
+            if (!cls.get()) return false;
+            const auto &major = classes::get_majors()[cls->major];
+            if (rule.specific_single()) {
+                return rule.specificStudents.contains(student->uuid);
+            }
+            if (rule.specific_department() && !rule.targetDepartments.contains(major->department)) return false;
+            if (rule.specific_class() && !rule.targetClasses.contains(cls->uuid)) return false;
+            if (rule.specific_gender() && student->female != rule.isFemale) return false;
+            if (rule.specific_grade() && !rule.targetGrades.contains(cls->grade)) return false;
+            if (rule.specific_major() && !rule.targetMajors.contains(major->uuid)) return false;
+            return true;
+        }
+    }
 }

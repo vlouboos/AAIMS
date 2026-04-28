@@ -14,6 +14,7 @@
 #include <ranges>
 
 #include "AddDepartmentDialog.h"
+#include "AddMajorDialog.h"
 #include "AddTeacherDialog.h"
 #include "ClassAddCourseDialog.h"
 #include "../managements/AccountManager.h"
@@ -41,30 +42,30 @@ ClassDetailDialog::ClassDetailDialog(Class *cls,
     editGrade->setText(cls->grade);
     editGrade->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]*$"), this));
 
-    deptLayout = new QHBoxLayout();
+    majorLayout = new QHBoxLayout();
 
-    completerDept = new QCompleter(this);
-    completerDept->setCaseSensitivity(Qt::CaseInsensitive);
-    completerDept->setFilterMode(Qt::MatchContains);
-    completerDept->setCompletionMode(QCompleter::PopupCompletion);
+    completerMajor = new QCompleter(this);
+    completerMajor->setCaseSensitivity(Qt::CaseInsensitive);
+    completerMajor->setFilterMode(Qt::MatchContains);
+    completerMajor->setCompletionMode(QCompleter::PopupCompletion);
 
-    comboDept = new QComboBox(this);
-    comboDept->addItems(aaims::manager::classes::get_departments());
-    comboDept->setEditable(true);
-    comboDept->setPlaceholderText("请选择学院");
-    if (aaims::manager::classes::get_departments().contains(cls->department)) {
-        comboDept->setCurrentText(cls->department);
+    comboMajor = new QComboBox(this);
+    for (const auto &major: aaims::manager::classes::get_majors()) {
+        comboMajor->addItem(major->name, major->uuid);
     }
-    comboDept->setInsertPolicy(QComboBox::NoInsert);
-    comboDept->setCompleter(completerDept);
+    comboMajor->setEditable(true);
+    comboMajor->setPlaceholderText("请选择专业");
+    comboMajor->setCurrentIndex(comboMajor->findData(cls->major));
+    comboMajor->setInsertPolicy(QComboBox::NoInsert);
+    comboMajor->setCompleter(completerMajor);
 
-    btnAddDept = new QPushButton("+", this);
-    btnAddDept->setStyleSheet("padding: 0; margin: 0;");
-    btnAddDept->setObjectName("AddElement");
-    btnAddDept->setFixedSize(24, 24);
+    btnAddMajor = new QPushButton("+", this);
+    btnAddMajor->setStyleSheet("padding: 0; margin: 0;");
+    btnAddMajor->setObjectName("AddElement");
+    btnAddMajor->setFixedSize(24, 24);
 
-    deptLayout->addWidget(comboDept);
-    deptLayout->addWidget(btnAddDept);
+    majorLayout->addWidget(comboMajor);
+    majorLayout->addWidget(btnAddMajor);
 
     masterLayout = new QHBoxLayout();
 
@@ -147,7 +148,7 @@ ClassDetailDialog::ClassDetailDialog(Class *cls,
 
     tableLayout->addRow("班级名称:", editName);
     tableLayout->addRow("年级:", editGrade);
-    tableLayout->addRow("院系:", deptLayout);
+    tableLayout->addRow("专业:", majorLayout);
     tableLayout->addRow("班主任:", masterLayout);
     tableLayout->addRow("班级课程:", coursesLayout);
 
@@ -170,10 +171,13 @@ ClassDetailDialog::ClassDetailDialog(Class *cls,
     mainLayout->addLayout(btnLayout);
     applyStyles();
 
-    connect(btnAddDept, &QPushButton::clicked, [this] {
-        if (AddDepartmentDialog dialog; dialog.exec() == Accepted) {
-            comboDept->clear();
-            comboDept->addItems(aaims::manager::classes::get_departments());
+    connect(btnAddMajor, &QPushButton::clicked, [this] {
+        if (AddMajorDialog dialog; dialog.exec() == Accepted) {
+            comboMajor->clear();
+            for (const auto &major: aaims::manager::classes::get_majors()) {
+                comboMajor->addItem(major->name, major->uuid);
+            }
+            completerMajor->setModel(comboMajor->model());
         }
     });
     connect(btnAddTeacher, &QPushButton::clicked, [this] {
@@ -242,9 +246,9 @@ void ClassDetailDialog::onSaveButtonClicked() {
         QMessageBox::warning(this, "输入错误", "年级不能为空！");
         return;
     }
-    const QString &department = comboDept->currentText().trimmed();
-    if (!aaims::manager::classes::get_departments().contains(department)) {
-        QMessageBox::warning(this, "输入错误", "请选择院系！");
+    const QUuid &major = comboMajor->currentData().value<QUuid>();
+    if (!aaims::manager::classes::get_majors().contains(major)) {
+        QMessageBox::warning(this, "输入错误", "请选择专业！");
         return;
     }
     if (!comboMaster->currentData().isValid() || !aaims::manager::account::get_teachers().contains(
@@ -271,7 +275,7 @@ void ClassDetailDialog::onSaveButtonClicked() {
 
     cls->name = name;
     cls->grade = grade;
-    cls->department = department;
+    cls->major = major;
     cls->master = newUuid;
 
     // Update bidirectional relationship between class and courses

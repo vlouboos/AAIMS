@@ -93,6 +93,8 @@ if (WIN32)
             pages/model/AuthTabelModel.h
             pages/delegate/AuthDelegate.cpp
             pages/delegate/AuthDelegate.h
+            dialogs/AddMajorDialog.cpp
+            dialogs/AddMajorDialog.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -170,6 +172,8 @@ else ()
             pages/model/AuthTabelModel.h
             pages/delegate/AuthDelegate.cpp
             pages/delegate/AuthDelegate.h
+            dialogs/AddMajorDialog.cpp
+            dialogs/AddMajorDialog.h
     )
 endif ()
 

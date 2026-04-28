@@ -11,15 +11,7 @@
 #include "../utils/DataStructures.h"
 
 namespace aaims::manager::classes {
-    class InternalManager : public QObject {
-        Q_OBJECT
-
-    public:
-        static InternalManager *instance() {
-            static InternalManager inst;
-            return &inst;
-        }
-    };
+    void init();
 
     QPair<unsigned long long, unsigned long long> addDepartment(const QVector<QString> &dep);
 
@@ -27,19 +19,21 @@ namespace aaims::manager::classes {
 
     bool saveDepartments();
 
-    void init();
-
     QHash<QUuid, std::shared_ptr<model::Class> > get_classes();
-
-    QHash<QUuid, std::shared_ptr<model::Major> > get_majors();
-
-    QString add(const std::shared_ptr<model::Class> &cls);
 
     void removeClass(const QUuid &uuid);
 
     bool saveClasses();
 
     QVector<model::Class *> get_all_ptr();
+
+    QHash<QUuid, std::shared_ptr<model::Major> > get_majors();
+
+    QString add(const std::shared_ptr<model::Class> &cls);
+
+    void addMajor(const std::shared_ptr<model::Major> &major);
+
+    bool saveMajors();
 }
 
 #endif //AAIMS_CLASSMANAGER_H
