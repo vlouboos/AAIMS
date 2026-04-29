@@ -409,7 +409,7 @@ namespace aaims {
                         mask |= 1 << (i - 1);
                     }
                     for (int i = 0; i < data.duration; i++) {
-                        if (occupied[semester][data.dayOfWeek - 1][data.startTime + i] & mask) {
+                        if (occupied[semester][data.dayOfWeek][data.startTime + i] & mask) {
                             return true;
                         }
                     }
@@ -429,16 +429,14 @@ namespace aaims {
                         mask |= 1 << (i - 1);
                     }
                     for (int i = 0; i < duration; i++) {
-                        occupied[course->semester][dayOfWeek - 1][startTime + i] |= mask;
+                        qDebug() << "Add course" << course->uuid << "at" << dayOfWeek << startTime + i;
+                        occupied[course->semester][dayOfWeek][startTime + i] |= mask;
                     }
                 }
             }
 
             void removeCourse(const Course *course) {
                 courses.removeOne(course->uuid);
-                if (!occupied.contains(course->semester)) {
-                    occupied[course->semester].resize(7, QVector<int>(15, 0));
-                }
                 for (const auto &[weekStart, weekEnd, dayOfWeek, startTime, duration, location]: course->
                      times) {
                     int mask = 0;
@@ -446,7 +444,7 @@ namespace aaims {
                         mask |= 1 << (i - 1);
                     }
                     for (int i = 0; i < duration; i++) {
-                        occupied[course->semester][dayOfWeek - 1][startTime + i] &= ~mask;
+                        occupied[course->semester][dayOfWeek][startTime + i] &= ~mask;
                     }
                 }
             }

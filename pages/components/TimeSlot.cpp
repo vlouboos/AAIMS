@@ -11,6 +11,7 @@ TimeSlot::TimeSlot(const Course::LessonTime &l, QWidget *parent) : QWidget(paren
 
     comboDay = new QComboBox(this);
     comboDay->addItems(Course::LessonTime::DAY_OF_WEEK_TABLE);
+    comboDay->setCurrentIndex(l.dayOfWeek);
 
     comboStart = new QComboBox(this);
     for (int i = 0; i < 15; ++i) {

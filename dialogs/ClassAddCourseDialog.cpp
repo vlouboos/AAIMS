@@ -87,22 +87,23 @@ void ClassAddCourseDialog::onAddButtonClicked() {
 
 void ClassAddCourseDialog::addToAddedList(const QUuid &uuid) {
     const auto &course = allCourses[uuid];
-    auto *hLayout = new QHBoxLayout();
+    auto *widget = new QWidget(); // NOLINT
+    auto *hLayout = new QHBoxLayout(widget); // NOLINT
     auto *label = new QLabel(QString("%1-%2").arg(course->id, course->name)); // NOLINT
     auto *btnDelete = new QPushButton("删除"); // NOLINT
     connect(btnDelete, &QPushButton::clicked, [this, uuid] { onDeleteButtonClicked(uuid); });
     hLayout->addWidget(label);
     hLayout->addWidget(btnDelete);
-    addedLayout->addLayout(hLayout);
-    addedLayouts[uuid] = hLayout;
+    addedLayout->addWidget(widget);
+    addedWidgets[uuid] = widget;
 }
 
 void ClassAddCourseDialog::onDeleteButtonClicked(const QUuid &uuid) {
-    if (addedLayouts.contains(uuid)) {
-        auto *layout = addedLayouts[uuid];
-        addedLayout->removeItem(layout);
-        delete layout;
-        addedLayouts.remove(uuid);
+    if (addedWidgets.contains(uuid)) {
+        auto *widget = addedWidgets[uuid];
+        addedLayout->removeWidget(widget);
+        delete widget;
+        addedWidgets.remove(uuid);
         addedCourses.removeOne(uuid);
         populateAvailable();  // to add back to available
     }

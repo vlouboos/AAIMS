@@ -108,8 +108,8 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     teacherLayout->addWidget(btnAddTeacher);
 
     comboCredits = new QComboBox(this);
-    for (int i = 1; i <= 6; i++) comboCredits->addItem(QString::number(i) + " 学分", i);
-    comboCredits->setCurrentIndex(course->credit);
+    for (int i = 1; i <= 4; i++) comboCredits->addItem(QString::number(i) + " 学分", i);
+    comboCredits->setCurrentIndex(course->credit - 1);
 
     onlineCheck = new QPushButton(this);
     onlineCheck->setObjectName("CheckBox");
@@ -288,11 +288,11 @@ bool CourseDetailDialog::validateForm() {
             mask |= 1 << (i - 1);
         }
         for (int i = 0; i < data.duration; i++) {
-            if (occupied[data.dayOfWeek - 1][data.startTime + i] & mask) {
+            if (occupied[data.dayOfWeek][data.startTime + i] & mask) {
                 QMessageBox::warning(this, "时间冲突", "时间安排存在冲突！");
                 return false;
             }
-            occupied[data.dayOfWeek - 1][data.startTime + i] |= mask;
+            occupied[data.dayOfWeek][data.startTime + i] |= mask;
         }
         return true;
     });

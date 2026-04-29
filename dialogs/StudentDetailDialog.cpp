@@ -7,6 +7,7 @@
 #include <QFutureWatcher>
 #include <QHBoxLayout>
 #include <QProgressDialog>
+#include <QPushButton>
 #include <QValidator>
 #include <qtconcurrentrun.h>
 #include <ranges>

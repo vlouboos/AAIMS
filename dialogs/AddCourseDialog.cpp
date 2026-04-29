@@ -38,8 +38,8 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     int currentMonth = currentDate.month();
     int targetYear = currentYear;
     int targetTerm = currentMonth >= 9 || currentMonth == 1 ? 1 : 2;
-    if (currentMonth > 8) {
-        targetYear += 1;
+    if (currentMonth < 9) {
+        targetYear -= 1;
     }
     const QString defaultData = QString("%1-%2").arg(targetYear).arg(targetTerm);
     if (targetTerm == 1) {
@@ -55,11 +55,11 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
         for (int y = currentYear; y <= currentYear + 2; ++y) {
             if (y != currentYear) {
                 const QString textAutumn = QString("%1-%2学年 秋季学期").arg(y - 1).arg(y);
-                const QString dataAutumn = QString("%1-1").arg(y);
+                const QString dataAutumn = QString("%1-1").arg(y - 1);
                 comboSemester->addItem(textAutumn, dataAutumn);
             }
             const QString textSpring = QString("%1-%2学年 春季学期").arg(y - 1).arg(y);
-            const QString dataSpring = QString("%1-2").arg(y);
+            const QString dataSpring = QString("%1-2").arg(y - 1);
             comboSemester->addItem(textSpring, dataSpring);
         }
     }
@@ -388,11 +388,11 @@ bool AddCourseDialog::validateForm() {
             mask |= 1 << (i - 1);
         }
         for (int i = 0; i < data.duration; i++) {
-            if (occupied[data.dayOfWeek - 1][data.startTime + i] & mask) {
+            if (occupied[data.dayOfWeek][data.startTime + i] & mask) {
                 QMessageBox::warning(this, "时间冲突", "时间安排存在冲突！");
                 return false;
             }
-            occupied[data.dayOfWeek - 1][data.startTime + i] |= mask;
+            occupied[data.dayOfWeek][data.startTime + i] |= mask;
         }
         return true;
     });

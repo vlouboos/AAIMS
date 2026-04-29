@@ -5,14 +5,9 @@
 #ifndef AAIMS_CLASSADDCOURSEDIALOG_H
 #define AAIMS_CLASSADDCOURSEDIALOG_H
 
-#include <QDialog>
-#include <QHBoxLayout>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QMap>
-#include <QPushButton>
 #include <QScrollArea>
-#include <QVBoxLayout>
 
 #include "StyledDialog.h"
 #include "../utils/DataStructures.h"
@@ -45,7 +40,7 @@ private:
     QPushButton *btnCancel;
     QList<QUuid> addedCourses;
     QList<QUuid> currentCourses;
-    QMap<QUuid, QHBoxLayout *> addedLayouts;
+    QHash<QUuid, QWidget *> addedWidgets;
     QHash<QUuid, std::shared_ptr<aaims::model::Course> > allCourses;
 
     void populateAvailable();

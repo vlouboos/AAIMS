@@ -71,14 +71,18 @@ namespace aaims::manager::account {
             }
             for (const auto &teacher: teachers) {
                 for (const auto &courseUuid: teacher->courses) {
-                    for (const auto &course = course::get_courses()[courseUuid]; const auto &[weekStart, weekEnd,
+                    const auto &course = course::get_courses()[courseUuid];
+                    if (!teacher->occupied.contains(course->semester)) {
+                        teacher->occupied[course->semester].resize(7, QVector<int>(15, 0));
+                    }
+                    for (const auto &[weekStart, weekEnd,
                              dayOfWeek, startTime, duration, location]: course->times) {
                         int mask = 0;
                         for (int i = weekStart; i <= weekEnd; ++i) {
                             mask |= 1 << (i - 1);
                         }
                         for (int i = 0; i < duration; i++) {
-                            teacher->occupied[course->semester][dayOfWeek - 1][startTime + i] |= mask;
+                            teacher->occupied[course->semester][dayOfWeek][startTime + i] |= mask;
                         }
                     }
                 }

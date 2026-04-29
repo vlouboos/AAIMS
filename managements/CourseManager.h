@@ -16,7 +16,7 @@ namespace aaims::manager::course {
 
     void remove(const Course *course);
 
-    QHash<QUuid, std::shared_ptr<Course>> get_courses();
+    QHash<QUuid, std::shared_ptr<Course>> &get_courses();
 
     bool save();
 }

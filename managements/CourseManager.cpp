@@ -10,14 +10,14 @@
 #include "AccountManager.h"
 
 namespace {
-    QHash<QUuid, std::shared_ptr<Course>> courses;
+    QHash<QUuid, std::shared_ptr<Course> > courses;
 }
 
 namespace aaims::manager::course {
     void init() {
         const QString path = QCoreApplication::applicationDirPath() + "/data/courses.json";
         io::load(path, [](const QJsonObject &json) {
-            for (const auto &key : json.keys()) {
+            for (const auto &key: json.keys()) {
                 QUuid uuid = QUuid::fromString(key);
                 courses[uuid] = std::make_shared<Course>(Course::fromJson(uuid, json.value(key).toObject()));
             }
@@ -42,14 +42,14 @@ namespace aaims::manager::course {
         courses.remove(course->uuid);
     }
 
-    QHash<QUuid, std::shared_ptr<Course>> get_courses() {
+    QHash<QUuid, std::shared_ptr<Course> > &get_courses() {
         return courses;
     }
 
     bool save() {
         const QString path = QCoreApplication::applicationDirPath() + "/data/courses.json";
         QJsonObject json;
-        for (const auto &c : courses) {
+        for (const auto &c: courses) {
             QUuid uuid = c->uuid;
             QJsonObject course = c->toJson();
             json.insert(uuid.toString(QUuid::WithoutBraces), course);
