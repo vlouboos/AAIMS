@@ -111,7 +111,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     for (int i = 1; i <= 6; i++) comboCredits->addItem(QString::number(i) + " 学分", i);
     comboCredits->setCurrentIndex(course->credit);
 
-    onlineCheck =  new QPushButton(this);
+    onlineCheck = new QPushButton(this);
     onlineCheck->setObjectName("CheckBox");
     onlineCheck->setCheckable(true);
     onlineCheck->setFixedSize(24, 24);
@@ -122,7 +122,13 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     comboStatus->addItem("筛选中", Course::QUALIFYING);
     comboStatus->addItem("已开课", Course::STARTED);
     comboStatus->addItem("已结课", Course::ENDED);
-    comboStatus->setCurrentIndex(course->status == Course::ACCEPTING ? 0 : course->status == Course::QUALIFYING ? 1 : course->status == Course::STARTED ? 2 : 3);
+    comboStatus->setCurrentIndex(course->status == Course::ACCEPTING
+                                     ? 0
+                                     : course->status == Course::QUALIFYING
+                                           ? 1
+                                           : course->status == Course::STARTED
+                                                 ? 2
+                                                 : 3);
 
     formLayout->addRow("学期:", comboSemester);
     formLayout->addRow("课程编号:", editId);
@@ -164,7 +170,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
 
     applyStyles();
 
-    for (const auto &x : course->times) {
+    for (const auto &x: course->times) {
         const auto w = new TimeSlot(x, this);
         // Strange, IDK why it keeps stupid clangD.
         connect(w, &TimeSlot::removeRequested, this, [this, w] { removeSlot(w); });
@@ -181,11 +187,11 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
             TeacherAccount *teacher = aaims::manager::account::get_teachers()[comboTeacher->currentData().value<
                 QUuid>()];
 
-            QList<Course::LessonTime> courses;
+            QList<Course::LessonTime> times;
             for (const auto &x: slotWidgets) {
-                courses.append(x->toData());
+                times.append(x->toData());
             }
-            if (teacher->is_occupied(comboSemester->currentData().value<QString>(), courses)) {
+            if (teacher->is_occupied(comboSemester->currentData().value<QString>(), times)) {
                 pd->close();
                 pd->deleteLater();
                 QMessageBox::warning(this, "输入错误", "该教师已有课程时间与当前课程冲突！");
@@ -193,13 +199,16 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
             }
             course->id = editId->text().trimmed();
             course->name = editName->text().trimmed();
+            TeacherAccount *old = aaims::manager::account::get_teachers()[course->teacher];
+            old->removeCourse(course);
             course->teacher = teacher->uuid;
+            teacher->addCourse(course);
             course->credit = comboCredits->currentData().value<int>();
+            course->semester = comboSemester->currentData().value<QString>();
             course->status = comboStatus->currentData().value<int>();
             course->times.clear();
-            course->times.append(courses);
-            teacher->courses.append(course->uuid);
-            const auto future = QtConcurrent::run([] { return aaims::manager::course::save(); });
+            course->times.append(times);
+            const auto future = QtConcurrent::run([] { return aaims::manager::course::save() && aaims::manager::account::save(); });
             const auto watcher = new QFutureWatcher<bool>(this); // NOLINT
             connect(watcher, &QFutureWatcher<bool>::finished, this, [this, pd, watcher] {
                 pd->close();
@@ -257,7 +266,8 @@ bool CourseDetailDialog::validateForm() {
         QMessageBox::warning(this, "错误", "课程名称不能为空");
         return false;
     }
-    if (!course->classes.empty() && comboStatus->currentData().value<int>() != Course::STARTED && comboStatus->currentData().value<int>() != Course::ENDED) {
+    if (!course->classes.empty() && comboStatus->currentData().value<int>() != Course::STARTED && comboStatus->
+        currentData().value<int>() != Course::ENDED) {
         QMessageBox::warning(this, "错误", "已分配班级的课程状态只能为“已开课”或“已结束”！");
         return false;
     }

@@ -126,9 +126,11 @@ AdminCoursePage::AdminCoursePage(QWidget *parent) : QWidget(parent) {
                 auto *pd = new QProgressDialog("正在删除...", nullptr, 0, 0, this); // NOLINT
                 pd->setWindowModality(Qt::WindowModal);
                 pd->show();
+                TeacherAccount *teacher = aaims::manager::account::get_teachers()[course->teacher];
+                teacher->removeCourse(course);
                 aaims::manager::course::remove(course);
                 reloadData();
-                const auto future = QtConcurrent::run([] { return aaims::manager::course::save(); });
+                const auto future = QtConcurrent::run([] { return aaims::manager::course::save() && aaims::manager::account::save(); });
                 auto watcher = new QFutureWatcher<bool>(this); // NOLINT
                 connect(watcher, &QFutureWatcherBase::finished, [this, pd, watcher] {
                     pd->close();

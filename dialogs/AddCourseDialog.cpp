@@ -201,10 +201,11 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
             course->name = editName->text().trimmed();
             course->teacher = teacher->uuid;
             course->credit = comboCredits->currentData().value<int>();
+            course->semester = comboSemester->currentData().value<QString>();
             course->status = Course::ACCEPTING;
             course->times.append(courses);
             aaims::manager::course::add(course);
-            teacher->courses.append(course->uuid);
+            teacher->addCourse(course.get());
             const auto future = QtConcurrent::run([] { return aaims::manager::course::save(); });
             const auto watcher = new QFutureWatcher<bool>(this); // NOLINT
             connect(watcher, &QFutureWatcher<bool>::finished, this, [this, pd, watcher] {
@@ -333,7 +334,7 @@ QPair<unsigned long long, unsigned long long> AddCourseDialog::importFromCsv() c
             failed++;
             continue;
         }
-        (*it)->courses.append(course->uuid);
+        (*it)->addCourse(course.get());
         succeed++;
     }
     aaims::manager::course::save(); // This is synchronized!!!

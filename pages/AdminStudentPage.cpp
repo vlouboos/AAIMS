@@ -6,6 +6,7 @@
 
 #include <QFutureWatcher>
 #include <QProgressDialog>
+#include <qtconcurrentrun.h>
 
 #include "../dialogs/AddStudentDialog.h"
 #include "../dialogs/StudentDetailDialog.h"
@@ -115,9 +116,13 @@ AdminStudentPage::AdminStudentPage(QWidget *parent) : QWidget(parent) {
                 auto *pd = new QProgressDialog("正在删除...", nullptr, 0, 0, this); // NOLINT
                 pd->setWindowModality(Qt::WindowModal);
                 pd->show();
+                const auto cls = aaims::manager::classes::get_classes()[account->currentClass];
+                cls->students.removeOne(account->uuid);
                 aaims::manager::account::remove(account);
                 reloadData();
-                const auto future = aaims::manager::account::saveAsync();
+                const auto future = QtConcurrent::run([] {
+                    return aaims::manager::classes::saveClasses() && aaims::manager::account::save();
+                });;
                 auto watcher = new QFutureWatcher<bool>(this); // NOLINT
                 connect(watcher, &QFutureWatcherBase::finished, [this, pd, watcher] {
                     pd->close();
