@@ -3,9 +3,10 @@
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
 #include <QPainterPath>
+#include <utility>
 #include "DistributionRing.h"
 
-DistributionRing::DistributionRing(QWidget *parent) : QWidget(parent) {
+DistributionRing::DistributionRing(QString title, QWidget *parent) : QWidget(parent), title(std::move(title)) {
     setMinimumSize(220, 220);
     setMouseTracking(true);
 }
@@ -41,7 +42,7 @@ void DistributionRing::paintEvent([[maybe_unused]] QPaintEvent *event) {
     for (int i = 0; i < items.size(); ++i) {
         const auto &item = items[i];
         if (item.count <= 0) continue;
-        const int spanAngle = -((item.count * 360 * 16) / totalCount);
+        const int spanAngle = -static_cast<int>(item.count * 360 * 16 / totalCount);
 
         QColor barColor = item.color;
         if (hoveredIndex == i) barColor = barColor.darker(110);
@@ -70,7 +71,7 @@ void DistributionRing::drawCenterText(QPainter &painter, const QRectF &rect) con
     painter.setFont(labelFont);
     QRectF labelRect = rect;
     labelRect.adjust(0, 30, 0, 0);
-    painter.drawText(labelRect, Qt::AlignCenter, "个人账号数");
+    painter.drawText(labelRect, Qt::AlignCenter, title);
 }
 
 void DistributionRing::mouseMoveEvent(QMouseEvent *event) {
@@ -132,20 +133,16 @@ void DistributionRing::mouseMoveEvent(QMouseEvent *event) {
 
         if (hoveredIndex != -1) {
             const auto &[label, count, color] = angleRanges[hoveredIndex].item;
-            const double percent = static_cast<double>(count) / totalCount * 100.0;
+            const double percent = static_cast<double>(count) / static_cast<double>(totalCount) * 100.0;
 
             // Use CSS to make it 非常地 beautiful
             const QString tooltipStr = QString(
-                        "<div style='margin: 4px;'>"
-                        "<b style='font-size: 14px; color: %1;'>%2</b><br/>"
-                        "<span style='color: #cbd5e1;'>人数:</span> <b style='color: white;'>%3</b><br/>"
-                        "<span style='color: #cbd5e1;'>占比:</span> <b style='color: white;'>%4%</b>"
-                        "</div>"
-                    ).arg(color.name())
-                    .arg(label)
-                    .arg(count)
-                    .arg(QString::number(percent, 'f', 1));
-
+                "<div style='margin: 4px;'>"
+                "<b style='font-size: 14px; color: %1;'>%2</b><br/>"
+                "<span style='color: #cbd5e1;'>人数:</span> <b style='color: white;'>%3</b><br/>"
+                "<span style='color: #cbd5e1;'>占比:</span> <b style='color: white;'>%4%</b>"
+                "</div>"
+            ).arg(color.name(), label, QString::number(count), QString::number(percent, 'f', 1));
             QToolTip::showText(event->globalPosition().toPoint(), tooltipStr, this);
         } else {
             QToolTip::hideText();

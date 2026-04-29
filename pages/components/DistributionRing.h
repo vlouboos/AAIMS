@@ -17,8 +17,9 @@ struct DistributionItem {
 
 class DistributionRing : public QWidget {
     Q_OBJECT
+
 public:
-    explicit DistributionRing(QWidget *parent = nullptr);
+    explicit DistributionRing(QString title = nullptr, QWidget *parent = nullptr);
 
     void setData(const QList<DistributionItem> &i);
 
@@ -31,16 +32,17 @@ protected:
 
 private:
     struct AngleRange {
-        int startAngle;
-        int spanAngle;
+        int startAngle{};
+        int spanAngle{};
         DistributionItem item;
     };
 
     QList<DistributionItem> items;
-    int totalCount = 0;
+    long long totalCount = 0;
     int ringWidth = 20;
     int hoveredIndex = -1;
     QList<AngleRange> angleRanges;
+    QString title;
 };
 
 

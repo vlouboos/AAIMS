@@ -23,18 +23,13 @@ AdminDashboardPage::AdminDashboardPage(QWidget *parent) : QWidget(parent) {
     statsGrid = new QGridLayout();
     statsGrid->setSpacing(16);
 
-    const long long total = account::all().size();
-    const long long adminCount = account::get_admins().size();
-    const long long teacherCount = account::get_teachers().size();
-    const long long studentCount = account::get_working_students().size();
-
-    cardTotal = new StatCard("总账号数", total, ":/assets/users.svg", QColor(0x6366f1));
-    cardAdmin = new StatCard("管理员", adminCount, ":/assets/shield.svg", QColor(0xf59e0b));
-    cardTeacher = new StatCard("教师", teacherCount, ":/assets/briefcase.svg", QColor(0x10b981));
-    cardStudent = new StatCard("在校学生", studentCount, ":/assets/graduation-cap.svg", QColor(0x3b82f6));
-    cardDepartments = new StatCard("院系数量", teacherCount, ":/assets/briefcase.svg", QColor(0xf59e0b));
-    cardClasses = new StatCard("班级数量", studentCount, ":/assets/classes.svg", QColor(0x10b981));
-    cardMajors = new StatCard("专业数量", studentCount, ":/assets/graduation-cap.svg", QColor(0x3b82f6));
+    cardTotal = new StatCard("总账号数", 0, ":/assets/users.svg", QColor(0x6366f1));
+    cardAdmin = new StatCard("管理员", 0, ":/assets/shield.svg", QColor(0xf59e0b));
+    cardTeacher = new StatCard("教师", 0, ":/assets/briefcase.svg", QColor(0x10b981));
+    cardStudent = new StatCard("在校学生", 0, ":/assets/graduation-cap.svg", QColor(0x3b82f6));
+    cardDepartments = new StatCard("院系数量", 0, ":/assets/briefcase.svg", QColor(0xf59e0b));
+    cardClasses = new StatCard("班级数量", 0, ":/assets/classes.svg", QColor(0x10b981));
+    cardMajors = new StatCard("专业数量", 0, ":/assets/graduation-cap.svg", QColor(0x3b82f6));
 
     statsGrid->addWidget(cardTotal, 0, 0);
     statsGrid->addWidget(cardAdmin, 0, 1);
@@ -55,7 +50,7 @@ AdminDashboardPage::AdminDashboardPage(QWidget *parent) : QWidget(parent) {
 
     distributionLayout->addWidget(titleLabel);
 
-    distRing = new DistributionRing(distributionContainer);
+    distRing = new DistributionRing("个人账号数", distributionContainer);
 
     centerLayout = new QHBoxLayout();
     centerLayout->addStretch();
