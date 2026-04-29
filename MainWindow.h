@@ -50,7 +50,7 @@ private:
     QHBoxLayout *headerLayout;
     QLabel *pageTitleLabel;
     QMenu *menu;
-    QAction *settingAction;
+    QAction *resetPasswordAction;
     QAction *logoutAction;
     QPushButton *userMenuBtn;
     QStackedWidget *contentStack;

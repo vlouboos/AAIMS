@@ -9,7 +9,6 @@
 #include <QFutureWatcher>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <QtConcurrentRun>
 
 #include "AddDepartmentDialog.h"
 #include "../managements/AccountManager.h"

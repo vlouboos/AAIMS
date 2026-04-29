@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <qthreadpool.h>
 
+#include "dialogs/PasswordResetDialog.h"
 #include "managements/AccountManager.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
@@ -109,10 +110,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     menu = new QMenu(this);
 
-    settingAction = new QAction("个人设置", menu);
+    resetPasswordAction = new QAction("修改密码", menu);
     logoutAction = new QAction("退出登录", menu);
 
-    menu->addAction(settingAction);
+    menu->addAction(resetPasswordAction);
     menu->addSeparator();
     menu->addAction(logoutAction);
 
@@ -302,6 +303,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             aaims::manager::account::logged = nullptr;
             this->close();
         }
+    });
+    connect(resetPasswordAction, &QAction::triggered, [this] {
+        menu->hide();
+        PasswordResetDialog(this).exec();
     });
 }
 
