@@ -13,6 +13,8 @@ namespace aaims::manager::rating {
     void init();
 
     QHash<QUuid, std::shared_ptr<StudentRating>> &get_ratings();
+    
+    bool save();
 }
 
 #endif //AAIMS_RATINGMANAGER_H

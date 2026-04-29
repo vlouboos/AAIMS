@@ -43,6 +43,7 @@ private:
     QPushButton *btnClasses;
     QPushButton *btnCourses;
     QPushButton *btnAuth;
+    QPushButton *btnGrades;
     QWidget *rightContainer;
     QVBoxLayout *rightLayout;
     QWidget *headerWidget;

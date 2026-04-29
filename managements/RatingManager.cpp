@@ -26,4 +26,26 @@ namespace aaims::manager::rating {
     QHash<QUuid, std::shared_ptr<StudentRating>> & get_ratings() {
         return ratingMap;
     }
+    
+    bool save() {
+        const QString path = QCoreApplication::applicationDirPath() + "/data/ratings.json";
+        QJsonObject root;
+        for (const auto &[uuid, rating] : ratingMap.asKeyValueRange()) {
+            QJsonObject ratingObj;
+            QJsonObject ratingsArray;
+            
+            for (const auto &[courseUuid, ratingDetail] : rating->ratings.asKeyValueRange()) {
+                QJsonObject detailObj;
+                detailObj["performance"] = ratingDetail.performance;
+                detailObj["score"] = ratingDetail.score;
+                detailObj["finalScore"] = ratingDetail.finalScore;
+                ratingsArray[courseUuid.toString(QUuid::WithoutBraces)] = detailObj;
+            }
+            
+            ratingObj["ratings"] = ratingsArray;
+            root[uuid.toString(QUuid::WithoutBraces)] = ratingObj;
+        }
+        
+        return io::save(path, root);
+    }
 }

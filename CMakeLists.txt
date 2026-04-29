@@ -105,6 +105,8 @@ if (WIN32)
             pages/model/GradeTableModel.h
             pages/delegate/GradeDelegate.cpp
             pages/delegate/GradeDelegate.h
+            dialogs/GradeEditDialog.cpp
+            dialogs/GradeEditDialog.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -194,6 +196,8 @@ else ()
             pages/model/GradeTableModel.h
             pages/delegate/GradeDelegate.cpp
             pages/delegate/GradeDelegate.h
+            dialogs/GradeEditDialog.cpp
+            dialogs/GradeEditDialog.h
     )
 endif ()
 

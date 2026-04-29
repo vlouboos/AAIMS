@@ -9,6 +9,7 @@
 
 #include "delegate/GradeDelegate.h"
 #include "model/FilterProxyModel.h"
+#include "../dialogs/GradeEditDialog.h"
 
 TeacherGradePage::TeacherGradePage(QWidget *parent) : QWidget(parent) {
     tableModel = new GradeTableModel(this);
@@ -83,16 +84,16 @@ TeacherGradePage::TeacherGradePage(QWidget *parent) : QWidget(parent) {
     });
 
     connect(delegate, &GradeDelegate::edit, [this](const QModelIndex &index) {
-        if (Course *course = aaims::manager::course::get_courses()[tableModel->getCourse(
+        if (const Course *course = aaims::manager::course::get_courses()[tableModel->getCourse(
             proxyModel->mapToSource(index))].get()) {
-            // TODO: Open GradeEditDialog
+            GradeEditDialog(course->uuid, this).exec();
         }
     });
 
     connect(tableView, &QTableView::doubleClicked, [this](const QModelIndex &index) {
-        if (Course *course = aaims::manager::course::get_courses()[tableModel->getCourse(
+        if (const Course *course = aaims::manager::course::get_courses()[tableModel->getCourse(
             proxyModel->mapToSource(index))].get()) {
-            // TODO: Open GradeEditDialog
+            GradeEditDialog(course->uuid, this).exec();
         }
     });
 

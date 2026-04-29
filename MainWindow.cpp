@@ -63,6 +63,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         btnCourses = new QPushButton("课程", sidebarWidget);
         btnCourses->setProperty("class", "category-button");
         btnCourses->setCheckable(true);
+        btnGrades = new QPushButton("成绩", sidebarWidget);
+        btnGrades->setProperty("class", "category-button");
+        btnGrades->setCheckable(true);
+        if (loggedAccount->is_class_master()) {
+            btnClasses = new QPushButton("班级", sidebarWidget);
+            btnClasses->setProperty("class", "category-button");
+            btnClasses->setCheckable(true);
+        }
     }
 
     sidebarLayout->addWidget(logoLabel);
@@ -75,6 +83,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     sidebarLayout->addWidget(btnCourses);
     if (loggedAccount->is_master() || loggedAccount->is_admin()) {
         sidebarLayout->addWidget(btnAuth);
+    }
+    if (loggedAccount->is_teacher()) {
+        sidebarLayout->addWidget(btnGrades);
+        if (loggedAccount->is_class_master()) {
+            sidebarLayout->addWidget(btnClasses);
+        }
     }
     sidebarLayout->addStretch();
 
@@ -233,20 +247,50 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             btnAuth->setChecked(true);
         });
     } else if (loggedAccount->is_teacher()) {
-        connect(btnDashboard, &QPushButton::clicked, [this] {
+        connect(btnDashboard, &QPushButton::clicked, [this, loggedAccount] {
             contentStack->setCurrentIndex(0);
             pageTitleLabel->setText("仪表盘");
             teacherDashboardPage->update();
             btnDashboard->setChecked(true);
             btnCourses->setChecked(false);
+            btnGrades->setChecked(false);
+            if (loggedAccount->is_class_master()) {
+                btnClasses->setChecked(false);
+            }
         });
-        connect(btnCourses, &QPushButton::clicked, [this] {
+        connect(btnCourses, &QPushButton::clicked, [this, loggedAccount] {
             contentStack->setCurrentIndex(1);
             pageTitleLabel->setText("课程");
             teacherCoursePage->reload();
             btnDashboard->setChecked(false);
             btnCourses->setChecked(true);
+            btnGrades->setChecked(false);
+            if (loggedAccount->is_class_master()) {
+                btnClasses->setChecked(false);
+            }
         });
+        connect(btnGrades, &QPushButton::clicked, [this, loggedAccount] {
+            contentStack->setCurrentIndex(2);
+            pageTitleLabel->setText("成绩");
+            teacherCoursePage->reload();
+            btnDashboard->setChecked(false);
+            btnCourses->setChecked(false);
+            btnGrades->setChecked(true);
+            if (loggedAccount->is_class_master()) {
+                btnClasses->setChecked(false);
+            }
+        });
+        if (loggedAccount->is_class_master()) {
+            connect(btnClasses, &QPushButton::clicked, [this] {
+                contentStack->setCurrentIndex(3);
+                pageTitleLabel->setText("班级");
+                teacherCoursePage->reload();
+                btnDashboard->setChecked(false);
+                btnClasses->setChecked(false);
+                btnGrades->setChecked(false);
+                btnClasses->setChecked(true);
+            });
+        }
     }
     connect(logoutAction, &QAction::triggered, [this] {
         menu->hide();

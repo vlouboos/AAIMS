@@ -3,3 +3,6 @@
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
 #include "TeacherClassPage.h"
+
+TeacherClassPage::TeacherClassPage(QWidget *parent) : QWidget(parent) {
+}
