@@ -95,6 +95,8 @@ if (WIN32)
             pages/delegate/AuthDelegate.h
             dialogs/AddMajorDialog.cpp
             dialogs/AddMajorDialog.h
+            dialogs/QualifyCourseDialog.cpp
+            dialogs/QualifyCourseDialog.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -174,6 +176,8 @@ else ()
             pages/delegate/AuthDelegate.h
             dialogs/AddMajorDialog.cpp
             dialogs/AddMajorDialog.h
+            dialogs/QualifyCourseDialog.cpp
+            dialogs/QualifyCourseDialog.h
     )
 endif ()
 

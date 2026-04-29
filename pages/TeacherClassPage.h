@@ -5,8 +5,6 @@
 #ifndef AAIMS_TEACHERCLASSPAGE_H
 #define AAIMS_TEACHERCLASSPAGE_H
 
-#include <QBoxLayout>
-
 #include "components/TimetableWidget.h"
 
 class TeacherClassPage : public QWidget {
@@ -17,7 +15,7 @@ public:
 
 private:
     QVBoxLayout *mainLayout;
-    TimetableWidget * timetable;
+    TimetableWidget *timetable;
 };
 
 #endif //AAIMS_TEACHERCLASSPAGE_H

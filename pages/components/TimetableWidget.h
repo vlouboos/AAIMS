@@ -25,7 +25,7 @@ class TimetableCanvas : public QWidget {
 public:
     explicit TimetableCanvas(QWidget *parent = nullptr);
 
-    void setCourses(const QList<aaims::model::Course> &courses);
+    void setCourses(const QList<aaims::model::Course *> &courses);
 
     void setCurrentWeek(int week);
 
@@ -39,7 +39,7 @@ private:
     static constexpr int HEADER_HEIGHT = 48;
     static constexpr int TOTAL_PERIODS = 15;
     int currentWeek = 0;
-    QList<aaims::model::Course> allCourses;
+    QList<aaims::model::Course *> allCourses;
     QVector<CourseColor> colors;
 
     [[nodiscard]] long long getColorIndex(const QString &courseId) const;
@@ -49,9 +49,9 @@ class TimetableWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit TimetableWidget(QWidget *parent = nullptr);
+    void reload();
 
-    void loadCourses(const QList<aaims::model::Course> &courses) const;
+    explicit TimetableWidget(QWidget *parent = nullptr);
 
 private slots:
     void onPrevWeek();
@@ -60,15 +60,19 @@ private slots:
 
 private:
     static constexpr int TOTAL_WEEKS = 20;
-    QVBoxLayout * mainLayout;
-    QWidget * topBar;
-    QHBoxLayout * topLayout;
-    QLabel *labelWeek;
+    QVBoxLayout *mainLayout;
+    QWidget *topBar;
+    QHBoxLayout *topLayout;
+    QLabel *labelSemester;
     QPushButton *btnPrev;
+    QLabel *labelWeek;
     QPushButton *btnNext;
+    QPushButton *btnQualify;
     TimetableCanvas *canvas;
     QScrollArea *scrollArea;
     int currentWeek = 0;
+    QList<aaims::model::Course *> courses, qualifyingCourses;
+    QString semester;
 };
 
 

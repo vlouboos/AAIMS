@@ -5,8 +5,6 @@
 #ifndef AAIMS_TEACHERDASHBOARDPAGE_H
 #define AAIMS_TEACHERDASHBOARDPAGE_H
 
-#include <QWidget>
-
 #include "components/DistributionRing.h"
 #include "components/StatCard.h"
 

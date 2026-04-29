@@ -8,8 +8,6 @@
 #pragma once
 #include <qformlayout.h>
 #include <qgroupbox.h>
-#include <QLabel>
-#include <QLineEdit>
 
 #include "AddClassDialog.h"
 #include "StyledDialog.h"
