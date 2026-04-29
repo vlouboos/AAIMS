@@ -6,12 +6,13 @@
 #define AAIMS_QUALIFYCOURSEDIALOG_H
 
 #include "StyledDialog.h"
+#include "../utils/DataStructures.h"
 
 class QualifyCourseDialog : public StyledDialog {
     Q_OBJECT
 
 public:
-    explicit QualifyCourseDialog(QWidget *parent = nullptr);
+    explicit QualifyCourseDialog(QList<aaims::model::Course *> qualifyingCourses, QWidget *parent = nullptr);
 };
 
 

@@ -182,7 +182,7 @@ TimetableWidget::TimetableWidget(QWidget *parent) : QWidget(parent) {
     connect(btnPrev, &QPushButton::clicked, this, &TimetableWidget::onPrevWeek);
     connect(btnNext, &QPushButton::clicked, this, &TimetableWidget::onNextWeek);
     connect(btnQualify, &QPushButton::clicked, this, [this] {
-        QualifyCourseDialog dialog(this);
+        QualifyCourseDialog dialog(qualifyingCourses, this);
         dialog.exec();
         reload();
     });

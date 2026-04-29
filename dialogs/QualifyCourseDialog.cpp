@@ -4,7 +4,7 @@
 
 #include "QualifyCourseDialog.h"
 
-QualifyCourseDialog::QualifyCourseDialog(QWidget *parent) : StyledDialog(parent) {
+QualifyCourseDialog::QualifyCourseDialog(QList<aaims::model::Course *> qualifyingCourses, QWidget *parent) : StyledDialog(parent) {
      setWindowTitle("筛选课程");
      setFixedSize(400, 300);
 
