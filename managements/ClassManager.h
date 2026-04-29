@@ -15,11 +15,11 @@ namespace aaims::manager::classes {
 
     QPair<unsigned long long, unsigned long long> addDepartment(const QVector<QString> &dep);
 
-    QList<QString> get_departments();
+    QList<QString> &get_departments();
 
     bool saveDepartments();
 
-    QHash<QUuid, std::shared_ptr<model::Class> > get_classes();
+    QHash<QUuid, std::shared_ptr<model::Class> > &get_classes();
 
     void removeClass(const QUuid &uuid);
 
@@ -27,7 +27,7 @@ namespace aaims::manager::classes {
 
     QVector<model::Class *> get_all_ptr();
 
-    QHash<QUuid, std::shared_ptr<model::Major> > get_majors();
+    QHash<QUuid, std::shared_ptr<model::Major> > &get_majors();
 
     QString add(const std::shared_ptr<model::Class> &cls);
 

@@ -47,6 +47,7 @@ private:
     QVBoxLayout * courseBtnLayout;
     QPushButton *btnAddCourse;
     QPushButton *btnRemoveCourse;
+    QPushButton *btnExportGrades;
     QHBoxLayout *btnLayout;
     QPushButton *btnSave;
     QPushButton *btnCancel;

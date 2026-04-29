@@ -260,7 +260,7 @@ void StudentDetailDialog::onSaveButtonClicked() {
 
     // Update course enrollment
     const auto &allCoursesRef = aaims::manager::course::get_courses();
-    const auto previousCourseIds = [this]() {
+    const auto previousCourseIds = [this] {
         QList<QUuid> ids;
         for (const auto &[uuid, retake]: account->lessons) {
             ids.append(uuid);

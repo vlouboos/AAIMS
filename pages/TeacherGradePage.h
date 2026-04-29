@@ -4,14 +4,31 @@
 
 #ifndef AAIMS_TEACHERGRADEPAGE_H
 #define AAIMS_TEACHERGRADEPAGE_H
+
+#include <QLabel>
+#include <QLineEdit>
+#include <QSortFilterProxyModel>
+#include <QTableView>
+#include <QVBoxLayout>
 #include <QWidget>
 
+#include "model/GradeTableModel.h"
 
 class TeacherGradePage : public QWidget {
     Q_OBJECT
 
 public:
     explicit TeacherGradePage(QWidget *parent = nullptr);
+
+    QVBoxLayout *mainLayout;
+    QHBoxLayout *headerLayout;
+    QVBoxLayout *titleContainer;
+    QLabel *titleLabel;
+    QLabel *subtitleLabel;
+    QLineEdit *searchEdit;
+    QTableView *tableView;
+    GradeTableModel *tableModel;
+    QSortFilterProxyModel *proxyModel;
 };
 
 

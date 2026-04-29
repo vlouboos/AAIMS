@@ -4,10 +4,8 @@
 
 #include "AdminCoursePage.h"
 
-#include <QFile>
 #include <qfuturewatcher.h>
 #include <QHeaderView>
-#include <QMessageBox>
 #include <QProgressDialog>
 #include <qtconcurrentrun.h>
 
@@ -42,14 +40,14 @@ AdminCoursePage::AdminCoursePage(QWidget *parent) : QWidget(parent) {
     searchEdit->setFixedWidth(280);
     searchEdit->setObjectName("SearchEdit");
 
-    btnAddStudent = new QPushButton("+ 新增课程", this);
-    btnAddStudent->setCursor(Qt::PointingHandCursor);
-    btnAddStudent->setObjectName("AddElement");
+    btnAddCourse = new QPushButton("+ 新增课程", this);
+    btnAddCourse->setCursor(Qt::PointingHandCursor);
+    btnAddCourse->setObjectName("AddElement");
 
     headerLayout->addLayout(titleContainer);
     headerLayout->addStretch();
     headerLayout->addWidget(searchEdit);
-    headerLayout->addWidget(btnAddStudent);
+    headerLayout->addWidget(btnAddCourse);
 
     mainLayout->addLayout(headerLayout);
 
@@ -95,7 +93,7 @@ AdminCoursePage::AdminCoursePage(QWidget *parent) : QWidget(parent) {
         proxyModel->setFilterFixedString(text);
     });
 
-    connect(btnAddStudent, &QPushButton::clicked, [this] {
+    connect(btnAddCourse, &QPushButton::clicked, [this] {
         if (AddCourseDialog dialog(this); dialog.exec() == QDialog::Accepted) {
             reloadData();
         }

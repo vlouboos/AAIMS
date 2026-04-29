@@ -35,14 +35,6 @@ namespace aaims::manager::account {
             for (const auto &key: json.keys()) {
                 const QUuid uuid = QUuid::fromString(key);
                 QJsonObject accountData = json.value(key).toObject();
-                QList<CourseStatus> lessons;
-                for (QJsonArray lessonData = accountData.value("lessons").toArray(); const auto &lesson: lessonData) {
-                    if (lesson.isObject()) {
-                        const auto &lessonJson = lesson.toObject();
-                        lessons.emplace_back(QUuid::fromString(lessonJson.value("uuid").toString()),
-                                             lessonJson.value("retake").toInt());
-                    }
-                }
                 const int status = accountData.value("status").toInt();
                 std::shared_ptr<Account> acc;
                 if (status & Account::ADMIN || status & Account::MASTER) {

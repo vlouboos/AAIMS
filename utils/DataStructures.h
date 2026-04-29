@@ -245,15 +245,38 @@ namespace aaims {
             }
         };
 
-        struct RatingDetail {
-            QUuid course_uuid;
-            double performance = 0.0;
-            double score = 0.0;
-        };
 
         struct StudentRating {
+            struct RatingDetail {
+                QUuid course_uuid;
+                double performance = 0.0;
+                double score = 0.0;
+                double finalScore = 0.0;
+
+                static RatingDetail fromJson(const QUuid &uuid, const QJsonObject &json) {
+                    RatingDetail rating;
+                    rating.course_uuid = uuid;
+                    rating.performance = json.value("performance").toDouble();
+                    rating.score = json.value("score").toDouble();
+                    rating.finalScore = json.value("finalScore").toDouble();
+                    return rating;
+                }
+            };
+
             QUuid student_id;
-            QList<RatingDetail> ratings;
+            QHash<QUuid, RatingDetail> ratings;
+
+            static StudentRating fromJson(const QUuid &uuid, const QJsonObject &json) {
+                StudentRating rating;
+                rating.student_id = uuid;
+                QHash<QUuid, RatingDetail> ratings;
+                for (QJsonObject ratingJson = json.value("ratings").toObject(); const auto &key: ratingJson.keys()) {
+                    QUuid ratingUuid = QUuid::fromString(key);
+                    ratings[ratingUuid] = RatingDetail::fromJson(ratingUuid, ratingJson[key].toObject());
+                }
+                rating.ratings = ratings;
+                return rating;
+            }
         };
 
         struct CourseStatus {

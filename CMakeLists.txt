@@ -23,7 +23,6 @@ if (WIN32)
             file_info.rc
             managements/AccountManager.h
             utils/DataStructures.h
-            managements/RatingManager.h
             dialogs/AccountLoginDialog.cpp
             dialogs/AccountLoginDialog.h
             utils/Sha256Util.h
@@ -97,10 +96,15 @@ if (WIN32)
             dialogs/AddMajorDialog.h
             dialogs/QualifyCourseDialog.cpp
             dialogs/QualifyCourseDialog.h
-            pages/TeacherGradePage.cpp
-            pages/TeacherGradePage.h
             pages/TeacherClassPage.cpp
             pages/TeacherClassPage.h
+            managements/RatingManager.cpp
+            managements/RatingManager.h
+            pages/TeacherGradePage.cpp
+            pages/TeacherGradePage.h
+            pages/model/GradeTableModel.h
+            pages/delegate/GradeDelegate.cpp
+            pages/delegate/GradeDelegate.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -108,7 +112,6 @@ else ()
             file_info.rc
             managements/AccountManager.h
             utils/DataStructures.h
-            managements/RatingManager.h
             dialogs/AccountLoginDialog.cpp
             dialogs/AccountLoginDialog.h
             utils/Sha256Util.h
@@ -182,10 +185,15 @@ else ()
             dialogs/AddMajorDialog.h
             dialogs/QualifyCourseDialog.cpp
             dialogs/QualifyCourseDialog.h
-            pages/TeacherGradePage.cpp
-            pages/TeacherGradePage.h
             pages/TeacherClassPage.cpp
             pages/TeacherClassPage.h
+            managements/RatingManager.cpp
+            managements/RatingManager.h
+            pages/TeacherGradePage.cpp
+            pages/TeacherGradePage.h
+            pages/model/GradeTableModel.h
+            pages/delegate/GradeDelegate.cpp
+            pages/delegate/GradeDelegate.h
     )
 endif ()
 

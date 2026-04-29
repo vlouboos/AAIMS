@@ -28,7 +28,7 @@ private:
     QLabel *titleLabel;
     QLabel *subtitleLabel;
     QLineEdit *searchEdit;
-    QPushButton *btnAddStudent;
+    QPushButton *btnAddCourse;
     QTableView *tableView;
     CourseTableModel *tableModel;
     QSortFilterProxyModel *proxyModel;

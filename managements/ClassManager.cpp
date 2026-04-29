@@ -32,7 +32,7 @@ namespace aaims::manager::classes {
         return {succeed, fail};
     }
 
-    QList<QString> get_departments() {
+    QList<QString> &get_departments() {
         return departments;
     }
 
@@ -79,11 +79,11 @@ namespace aaims::manager::classes {
         qInfo() << "Loaded" << all_classes.size() << "classes.";
     }
 
-    QHash<QUuid, std::shared_ptr<Class> > get_classes() {
+    QHash<QUuid, std::shared_ptr<Class> > &get_classes() {
         return all_classes;
     }
 
-    QHash<QUuid, std::shared_ptr<Major> > get_majors() {
+    QHash<QUuid, std::shared_ptr<Major> > &get_majors() {
         return majors;
     }
 
