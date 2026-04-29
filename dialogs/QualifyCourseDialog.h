@@ -10,6 +10,7 @@
 #include <QScrollArea>
 #include <QLabel>
 #include <QPushButton>
+#include <QCheckBox>
 
 #include "StyledDialog.h"
 #include "../utils/DataStructures.h"
@@ -18,7 +19,7 @@ class QualifyCourseDialog : public StyledDialog {
     Q_OBJECT
 
 public:
-    explicit QualifyCourseDialog(QList<aaims::model::Course *> qualifyingCourses, QWidget *parent = nullptr);
+    explicit QualifyCourseDialog(QList<QUuid> qualifyingCourses, QWidget *parent = nullptr);
 
 private:
     QHBoxLayout *mainLayout;
@@ -45,11 +46,14 @@ private:
     QLabel *excLabel;
 
     QHBoxLayout *buttonLayout;
+    QPushButton *btnRemoveSelected;
     QPushButton *btnFinalize;
     QPushButton *btnCancel;
+    
+    QHash<QUuid, QCheckBox*> studentCheckBoxes;  // Track checkboxes for students
 
-    QList<aaims::model::Course *> qualifyingCourses;
-    aaims::model::Course *currentCourse = nullptr;
+    QList<QUuid> qualifyingCourses;
+    QUuid currentCourseUuid = aaims::model::EMPTY_UUID;
 
     void populateCourses();
 
@@ -57,12 +61,12 @@ private:
 
     void loadStudentsForCurrentCourse();
 
-    void removeStudentFromCourse(const QUuid &studentUuid);
+    void removeSelectedStudents();
 
 private slots:
     void onCourseSelected(QListWidgetItem *current, QListWidgetItem *previous);
 
-    void onRemoveStudentClicked(const QUuid &studentUuid);
+    void onRemoveSelectedClicked();
 };
 
 #endif //AAIMS_QUALIFYCOURSEDIALOG_H

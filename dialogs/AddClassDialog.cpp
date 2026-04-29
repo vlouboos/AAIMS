@@ -7,13 +7,13 @@
 #include <QCompleter>
 #include <QFutureWatcher>
 #include <QProgressDialog>
-#include <QtConcurrentRun>
 
 #include "AddDepartmentDialog.h"
 #include "AddMajorDialog.h"
 #include "AddTeacherDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
+#include "../utils/AsyncJsonIO.h"
 
 AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
     setWindowTitle("新增班级");
@@ -248,73 +248,69 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
 
 QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() const {
     unsigned long long succeed = 0, failed = 0;
-    QFile file(selectedFilePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return {0, 0};
-
-    QTextStream in(&file);
-    in.readLine(); // Skip first line
     auto teachers = aaims::manager::account::get_teachers();
     auto majors = aaims::manager::classes::get_majors();
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        if (line.trimmed().isEmpty()) {
-            continue;
-        }
+    aaims::io::loadCsv(selectedFilePath, [&succeed, &failed, teachers, majors](const auto &lines) {
+        for (const QString &line : lines) {
+            if (line.trimmed().isEmpty()) {
+                continue;
+            }
 
-        QStringList fields = line.split(",");
-        if (fields.size() < 4) {
-            failed++;
-            continue;
-        }
+            QStringList fields = line.split(",");
+            if (fields.size() < 4) {
+                failed++;
+                continue;
+            }
 
-        const QString grade = fields[0].trimmed();
-        const QString name = fields[1].trimmed();
-        const QString major = fields[2].trimmed();
-        const QString master = fields[3].trimmed();
-        if (grade.isEmpty() || name.isEmpty() || major.isEmpty() || master.isEmpty()) {
-            failed++;
-            continue;
+            const QString grade = fields[0].trimmed();
+            const QString name = fields[1].trimmed();
+            const QString major = fields[2].trimmed();
+            const QString master = fields[3].trimmed();
+            if (grade.isEmpty() || name.isEmpty() || major.isEmpty() || master.isEmpty()) {
+                failed++;
+                continue;
+            }
+            auto ma = std::ranges::find_if(majors,
+                                           [major](const auto &m) {
+                                               return major == m->name;
+                                           });
+            if (ma == majors.end()) {
+                failed++;
+                continue;
+            }
+            if (auto classes = aaims::manager::classes::get_all_ptr(); std::ranges::any_of(
+                classes, [grade, name, ma](const Class *cls) {
+                    return cls->grade == grade && cls->name == name && cls->major == (*ma)->uuid;
+                })) {
+                failed++;
+                continue;
+            }
+            auto it = std::ranges::find_if(teachers,
+                                           [master](const auto *t) {
+                                               return master == QString("%1(%2)").arg(t->name).arg(t->department);
+                                           });
+            if (it == teachers.end()) {
+                failed++;
+                continue;
+            }
+            if ((*it)->is_class_master()) {
+                failed++;
+                continue;
+            }
+            auto cls = std::make_shared<Class>();
+            cls->grade = grade;
+            cls->name = name;
+            cls->major = (*ma)->uuid;
+            cls->master = (*it)->uuid;
+            if (const QString result = aaims::manager::classes::add(cls); !result.isEmpty()) {
+                failed++;
+                continue;
+            }
+            (*it)->status |= Account::CLASS_MASTER;
+            (*it)->managingClass = cls->uuid;
+            succeed++;
         }
-        auto ma = std::ranges::find_if(majors,
-                                       [major](const auto &m) {
-                                           return major == m->name;
-                                       });
-        if (ma == majors.end()) {
-            failed++;
-            continue;
-        }
-        if (auto classes = aaims::manager::classes::get_all_ptr(); std::ranges::any_of(
-            classes, [grade, name, ma](const Class *cls) {
-                return cls->grade == grade && cls->name == name && cls->major == (*ma)->uuid;
-            })) {
-            failed++;
-            continue;
-        }
-        auto it = std::ranges::find_if(teachers,
-                                       [master](const auto *t) {
-                                           return master == QString("%1(%2)").arg(t->name).arg(t->department);
-                                       });
-        if (it == teachers.end()) {
-            failed++;
-            continue;
-        }
-        if ((*it)->is_class_master()) {
-            failed++;
-            continue;
-        }
-        auto cls = std::make_shared<Class>();
-        cls->grade = grade;
-        cls->name = name;
-        cls->major = (*ma)->uuid;
-        cls->master = (*it)->uuid;
-        if (const QString result = aaims::manager::classes::add(cls); !result.isEmpty()) {
-            failed++;
-            continue;
-        }
-        (*it)->status |= Account::CLASS_MASTER;
-        (*it)->managingClass = cls->uuid;
-        succeed++;
-    }
+    });
     aaims::manager::classes::saveDepartments();
     aaims::manager::classes::saveClasses(); // This is synchronized!!!
     aaims::manager::account::save();

@@ -7,11 +7,11 @@
 #include <QCompleter>
 #include <QFutureWatcher>
 #include <QProgressDialog>
-#include <QtConcurrentRun>
 
 #include "AddDepartmentDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
+#include "../utils/AsyncJsonIO.h"
 #include "../utils/DataStructures.h"
 #include "../utils/Sha256Util.h"
 
@@ -86,7 +86,8 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
     batchLayout->setContentsMargins(30, 30, 30, 30);
     batchLayout->setSpacing(20);
 
-    tipLabel = new QLabel("支持导入 .csv 格式的文件。\n请确保列头包含: 工号, 姓名, 性别, 院系, 手机号。\n例: 202600001001,李华,沃尔玛购物袋,软件学院,13511351113", batchAddPage);
+    tipLabel = new QLabel("支持导入 .csv 格式的文件。\n请确保列头包含: 工号, 姓名, 性别, 院系, 手机号。\n例: 202600001001,李华,沃尔玛购物袋,软件学院,13511351113",
+                          batchAddPage);
     tipLabel->setStyleSheet("color: #64748b; line-height: 1.5;");
 
     btnSelectFile = new QPushButton("选择 CSV 文件", batchAddPage);
@@ -208,58 +209,53 @@ AddTeacherDialog::AddTeacherDialog(QWidget *parent) : StyledDialog(parent) {
 }
 
 QPair<unsigned long long, unsigned long long> AddTeacherDialog::importFromCsv() const {
+    unsigned long long succeed = 0, failed = 0;
     static const QString password = Sha256Util::hash("123456");
     static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
-    unsigned long long succeed = 0, failed = 0;
-    QFile file(selectedFilePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return {0, 0};
+    aaims::io::loadCsv(selectedFilePath, [&succeed, &failed](const auto &lines) {
+        for (const QString &line: lines) {
+            if (line.trimmed().isEmpty()) {
+                continue;
+            }
 
-    QTextStream in(&file);
-    in.readLine(); // Skip first line
+            QStringList fields = line.split(",");
+            if (fields.size() < 5) {
+                failed++;
+                continue;
+            }
 
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        if (line.trimmed().isEmpty()) {
-            continue;
-        }
+            const QString username = fields[0].trimmed();
+            const QString name = fields[1].trimmed();
+            const bool isFemale = fields[2].trimmed() == "女";
+            const QString dept = fields[3].trimmed();
+            const QString phone = fields[4].trimmed();
+            if (username.isEmpty() || name.isEmpty() || phone.length() != 11 || !phoneRegex.match(phone).isValid()) {
+                failed++;
+                continue;
+            }
+            if (aaims::manager::account::findByUsername(username)) {
+                failed++;
+                continue;
+            }
+            if (!aaims::manager::classes::get_departments().contains(dept)) {
+                aaims::manager::classes::addDepartment({dept});
+            }
+            auto teacher = std::make_shared<TeacherAccount>();
+            teacher->username = username;
+            teacher->name = name;
+            teacher->password = password;
+            teacher->female = isFemale;
+            teacher->status = Account::TEACHER;
+            teacher->department = dept;
+            teacher->phoneNumber = phone;
 
-        QStringList fields = line.split(",");
-        if (fields.size() < 5) {
-            failed++;
-            continue;
+            if (const QString result = aaims::manager::account::add(teacher); !result.isEmpty()) {
+                failed++;
+                continue;
+            }
+            succeed++;
         }
-
-        const QString username = fields[0].trimmed();
-        const QString name = fields[1].trimmed();
-        const bool isFemale = fields[2].trimmed() == "女";
-        const QString dept = fields[3].trimmed();
-        const QString phone = fields[4].trimmed();
-        if (username.isEmpty() || name.isEmpty() || phone.length() != 11 || !phoneRegex.match(phone).isValid()) {
-            failed++;
-            continue;
-        }
-        if (aaims::manager::account::findByUsername(username)) {
-            failed++;
-            continue;
-        }
-        if (!aaims::manager::classes::get_departments().contains(dept)) {
-            aaims::manager::classes::addDepartment({dept});
-        }
-        auto teacher = std::make_shared<TeacherAccount>();
-        teacher->username = username;
-        teacher->name = name;
-        teacher->password = password;
-        teacher->female = isFemale;
-        teacher->status = Account::TEACHER;
-        teacher->department = dept;
-        teacher->phoneNumber = phone;
-
-        if (const QString result = aaims::manager::account::add(teacher); !result.isEmpty()) {
-            failed++;
-            continue;
-        }
-        succeed++;
-    }
+    });
     aaims::manager::classes::saveDepartments();
     aaims::manager::account::save(); // This is synchronized!!!
 

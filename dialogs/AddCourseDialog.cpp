@@ -5,7 +5,6 @@
 #include "AddCourseDialog.h"
 
 #include <QCompleter>
-#include <QFile>
 #include <QFormLayout>
 #include <QFutureWatcher>
 #include <QMessageBox>
@@ -17,6 +16,7 @@
 #include "AddTeacherDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/CourseManager.h"
+#include "../utils/AsyncJsonIO.h"
 
 AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     setWindowTitle("添加课程");
@@ -262,83 +262,79 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
 
 QPair<unsigned long long, unsigned long long> AddCourseDialog::importFromCsv() const {
     unsigned long long succeed = 0, failed = 0;
-    QFile file(selectedFilePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return {0, 0};
-
-    QTextStream in(&file);
-    in.readLine(); // Skip first line
     auto teachers = aaims::manager::account::get_teachers();
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        if (line.trimmed().isEmpty()) {
-            continue;
-        }
+    aaims::io::loadCsv(selectedFilePath, [&succeed, &failed, teachers](const auto &lines) {
+        for (const QString &line: lines) {
+            if (line.trimmed().isEmpty()) {
+                continue;
+            }
 
-        QStringList fields = line.split(",");
-        if (fields.size() < 6) {
-            failed++;
-            continue;
-        }
+            QStringList fields = line.split(",");
+            if (fields.size() < 6) {
+                failed++;
+                continue;
+            }
 
-        const QString id = fields[0].trimmed();
-        const QString name = fields[1].trimmed();
-        const QString teacher = fields[2].trimmed();
-        const QString semester = fields[3].trimmed();
-        const QString credit = fields[4].trimmed();
-        const QString times = fields[5].trimmed();
-        if (id.isEmpty() || name.isEmpty() || teacher.isEmpty() || credit.isEmpty() || times.isEmpty()) {
-            failed++;
-            continue;
+            const QString id = fields[0].trimmed();
+            const QString name = fields[1].trimmed();
+            const QString teacher = fields[2].trimmed();
+            const QString semester = fields[3].trimmed();
+            const QString credit = fields[4].trimmed();
+            const QString times = fields[5].trimmed();
+            if (id.isEmpty() || name.isEmpty() || teacher.isEmpty() || credit.isEmpty() || times.isEmpty()) {
+                failed++;
+                continue;
+            }
+            if (auto classes = aaims::manager::course::get_courses().values(); std::ranges::any_of(
+                classes, [id](const auto &cls) {
+                    return cls->id == id;
+                })) {
+                failed++;
+                continue;
+            }
+            auto it = std::ranges::find_if(teachers,
+                                           [teacher](const auto *t) {
+                                               return teacher == QString("%1(%2)").arg(t->name).arg(t->department);
+                                           });
+            if (it == teachers.end()) {
+                failed++;
+                continue;
+            }
+            QList<Course::LessonTime> timeList;
+            for (QStringList timeStringList = times.split(";"); const auto &time: timeStringList) {
+                QStringList timeVal = time.trimmed().split(":");
+                if (timeVal.size() < 6) continue;
+                const QString startWeek = timeVal[0].trimmed();
+                const QString endWeek = timeVal[1].trimmed();
+                const QString dayOfWeek = timeVal[2].trimmed();
+                const QString startTime = timeVal[3].trimmed();
+                const QString duration = timeVal[4].trimmed();
+                const QString location = timeVal[5].trimmed();
+                timeList.append({
+                    startTime.toInt(), endWeek.toInt(), dayOfWeek.toInt(), startWeek.toInt() - 1, duration.toInt(),
+                    location
+                });
+            }
+            if ((*it)->is_occupied(semester, timeList)) {
+                failed++;
+                continue;
+            }
+            auto course = std::make_shared<Course>();
+            course->id = id;
+            course->name = name;
+            course->teacher = (*it)->uuid;
+            course->credit = credit.toInt();
+            course->status = Course::ACCEPTING;
+            course->times = timeList;
+            if (const QString result = aaims::manager::course::add(course); !result.isEmpty()) {
+                failed++;
+                continue;
+            }
+            (*it)->addCourse(course.get());
+            succeed++;
         }
-        if (auto classes = aaims::manager::course::get_courses().values(); std::ranges::any_of(
-            classes, [id](const auto &cls) {
-                return cls->id == id;
-            })) {
-            failed++;
-            continue;
-        }
-        auto it = std::ranges::find_if(teachers,
-                                       [teacher](const auto *t) {
-                                           return teacher == QString("%1(%2)").arg(t->name).arg(t->department);
-                                       });
-        if (it == teachers.end()) {
-            failed++;
-            continue;
-        }
-        QList<Course::LessonTime> timeList;
-        for (QStringList timeStringList = times.split(";"); const auto &time: timeStringList) {
-            QStringList timeVal = time.trimmed().split(":");
-            if (timeVal.size() < 6) continue;
-            const QString startWeek = timeVal[0].trimmed();
-            const QString endWeek = timeVal[1].trimmed();
-            const QString dayOfWeek = timeVal[2].trimmed();
-            const QString startTime = timeVal[3].trimmed();
-            const QString duration = timeVal[4].trimmed();
-            const QString location = timeVal[5].trimmed();
-            timeList.append({
-                startTime.toInt(), endWeek.toInt(), dayOfWeek.toInt(), startWeek.toInt() - 1, duration.toInt(), location
-            });
-        }
-        if ((*it)->is_occupied(semester, timeList)) {
-            failed++;
-            continue;
-        }
-        auto course = std::make_shared<Course>();
-        course->id = id;
-        course->name = name;
-        course->teacher = (*it)->uuid;
-        course->credit = credit.toInt();
-        course->status = Course::ACCEPTING;
-        course->times = timeList;
-        if (const QString result = aaims::manager::course::add(course); !result.isEmpty()) {
-            failed++;
-            continue;
-        }
-        (*it)->addCourse(course.get());
-        succeed++;
-    }
+    });
     aaims::manager::course::save(); // This is synchronized!!!
-
     return {succeed, failed};
 }
 

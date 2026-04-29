@@ -25,7 +25,7 @@ class TimetableCanvas : public QWidget {
 public:
     explicit TimetableCanvas(QWidget *parent = nullptr);
 
-    void setCourses(const QList<aaims::model::Course *> &courses);
+    void setCourses(const QList<QUuid> &courses);
 
     void setCurrentWeek(int week);
 
@@ -39,7 +39,7 @@ private:
     static constexpr int HEADER_HEIGHT = 48;
     static constexpr int TOTAL_PERIODS = 15;
     int currentWeek = 0;
-    QList<aaims::model::Course *> allCourses;
+    QList<QUuid> allCourses;
     QVector<CourseColor> colors;
 
     [[nodiscard]] long long getColorIndex(const QString &courseId) const;
@@ -58,6 +58,8 @@ private slots:
 
     void onNextWeek();
 
+    void onQualify();
+
 private:
     static constexpr int TOTAL_WEEKS = 20;
     QVBoxLayout *mainLayout;
@@ -71,7 +73,7 @@ private:
     TimetableCanvas *canvas;
     QScrollArea *scrollArea;
     int currentWeek = 0;
-    QList<aaims::model::Course *> courses, qualifyingCourses;
+    QList<QUuid> courses, qualifyingCourses;
     QString semester;
 };
 

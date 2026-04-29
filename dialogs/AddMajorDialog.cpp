@@ -14,6 +14,7 @@
 #include "AddDepartmentDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
+#include "../utils/AsyncJsonIO.h"
 #include "../utils/DataStructures.h"
 #include "../utils/Sha256Util.h"
 
@@ -187,49 +188,43 @@ AddMajorDialog::AddMajorDialog(QWidget *parent) : StyledDialog(parent) {
 
 QPair<unsigned long long, unsigned long long> AddMajorDialog::importFromCsv() const {
     unsigned long long succeed = 0, failed = 0;
-    QFile file(selectedFilePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return {0, 0};
+    aaims::io::loadCsv(selectedFilePath, [&succeed, &failed](const auto &lines) {
+        for (const auto &line: lines) {
+            if (line.trimmed().isEmpty()) {
+                continue;
+            }
 
-    QTextStream in(&file);
-    in.readLine(); // Skip first line
+            QStringList fields = line.split(",");
+            if (fields.size() < 2) {
+                failed++;
+                continue;
+            }
 
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        if (line.trimmed().isEmpty()) {
-            continue;
-        }
+            const QString name = fields[0].trimmed();
+            const QString dept = fields[1].trimmed();
+            if (name.isEmpty()) {
+                failed++;
+                continue;
+            }
+            if (aaims::manager::classes::findMajorByName(name)) {
+                failed++;
+                continue;
+            }
+            if (!aaims::manager::classes::get_departments().contains(dept)) {
+                aaims::manager::classes::addDepartment({dept});
+            }
+            auto major = std::make_shared<Major>();
+            major->name = name;
+            major->department = dept;
 
-        QStringList fields = line.split(",");
-        if (fields.size() < 2) {
-            failed++;
-            continue;
+            if (const QString result = aaims::manager::classes::addMajor(major); !result.isEmpty()) {
+                failed++;
+                continue;
+            }
+            succeed++;
         }
-
-        const QString name = fields[0].trimmed();
-        const QString dept = fields[1].trimmed();
-        if (name.isEmpty()) {
-            failed++;
-            continue;
-        }
-        if (aaims::manager::classes::findMajorByName(name)) {
-            failed++;
-            continue;
-        }
-        if (!aaims::manager::classes::get_departments().contains(dept)) {
-            aaims::manager::classes::addDepartment({dept});
-        }
-        auto major = std::make_shared<Major>();
-        major->name = name;
-        major->department = dept;
-
-        if (const QString result = aaims::manager::classes::addMajor(major); !result.isEmpty()) {
-            failed++;
-            continue;
-        }
-        succeed++;
-    }
+    });
     aaims::manager::classes::saveDepartments();
     aaims::manager::classes::saveMajors(); // This is synchronized!!!
-
     return {succeed, failed};
 }

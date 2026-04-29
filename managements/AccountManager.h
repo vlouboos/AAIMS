@@ -39,19 +39,19 @@ namespace aaims::manager::account {
 
     Account *findByName(const QString &name);
 
-    QHash<QUuid, std::shared_ptr<Account> > all();
+    QHash<QUuid, std::shared_ptr<Account> > &all();
 
-    QHash<QUuid, Account *> get_admins();
+    QHash<QUuid, Account *> &get_admins();
 
-    QHash<QUuid, TeacherAccount *> get_teachers();
+    QHash<QUuid, TeacherAccount *> &get_teachers();
 
-    QHash<QUuid, StudentAccount *> get_students();
+    QHash<QUuid, StudentAccount *> &get_students();
 
-    QHash<QUuid, StudentAccount *> get_working_students();
+    QHash<QUuid, StudentAccount *> &get_working_students();
 
-    QHash<QUuid, StudentAccount *> get_graduated_students();
+    QHash<QUuid, StudentAccount *> &get_graduated_students();
 
-    QHash<QUuid, StudentAccount *> get_suspended_students();
+    QHash<QUuid, StudentAccount *> &get_suspended_students();
 
     QString add(const std::shared_ptr<Account> &account);
 

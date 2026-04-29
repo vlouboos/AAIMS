@@ -17,8 +17,9 @@
 #include "../managements/CourseManager.h"
 #include "../managements/ClassManager.h"
 
-QualifyCourseDialog::QualifyCourseDialog(QList<Course *> qualifyingCourses, QWidget *parent) : StyledDialog(parent),
+QualifyCourseDialog::QualifyCourseDialog(QList<QUuid> qualifyingCourses, QWidget *parent) : StyledDialog(parent),
     qualifyingCourses(qualifyingCourses) {
+    qDebug() << "QualifyingCourses:" << qualifyingCourses.count();
     setWindowTitle("筛选课程");
     resize(900, 600);
 
@@ -110,19 +111,22 @@ QualifyCourseDialog::QualifyCourseDialog(QList<Course *> qualifyingCourses, QWid
 
     btnFinalize = new QPushButton("完成筛选", this);
     btnFinalize->setObjectName("AddElement"); // Using consistent styling
-    connect(btnFinalize, &QPushButton::clicked, [this]() {
+    connect(btnFinalize, &QPushButton::clicked, [this] {
         // Move course status from QUALIFYING to STARTED
-        if (currentCourse) {
-            currentCourse->status = aaims::model::Course::STARTED;
-            // Save changes to the course
-            aaims::manager::course::save();
-            QMessageBox::information(this, "筛选完成", "课程筛选已完成，状态更新为已开课。");
+        if (currentCourseUuid != EMPTY_UUID) {
+            // TODO: Update course status to STARTED
         }
     });
 
     btnCancel = new QPushButton("关闭", this);
+    btnCancel->setObjectName("AddElement");
     connect(btnCancel, &QPushButton::clicked, this, &QDialog::reject);
 
+    btnRemoveSelected = new QPushButton("移除选中", this);
+    btnRemoveSelected->setObjectName("RemoveElement");
+    connect(btnRemoveSelected, &QPushButton::clicked, this, &QualifyCourseDialog::onRemoveSelectedClicked);
+
+    buttonLayout->addWidget(btnRemoveSelected);
     buttonLayout->addStretch();
     buttonLayout->addWidget(btnFinalize);
     buttonLayout->addWidget(btnCancel);
@@ -131,7 +135,7 @@ QualifyCourseDialog::QualifyCourseDialog(QList<Course *> qualifyingCourses, QWid
     populateCourses();
 
     if (!qualifyingCourses.isEmpty()) {
-        currentCourse = qualifyingCourses.first();
+        currentCourseUuid = qualifyingCourses.first();
         courseList->setCurrentRow(0);
         updateCourseDetails();
         loadStudentsForCurrentCourse();
@@ -142,18 +146,20 @@ QualifyCourseDialog::QualifyCourseDialog(QList<Course *> qualifyingCourses, QWid
 
 void QualifyCourseDialog::populateCourses() {
     courseList->clear();
-    for (auto *course: qualifyingCourses) {
-        auto *item = new QListWidgetItem(QString("%1 - %2").arg(course->id, course->name)); // NOLINT
-        item->setData(Qt::UserRole, QVariant::fromValue(course));
+    for (const auto &uuid : qualifyingCourses) {
+        const auto x = aaims::manager::course::get_courses()[uuid];
+        auto *item = new QListWidgetItem(QString("%1-%2").arg(x->id, x->name)); // NOLINT
+        item->setData(Qt::UserRole, QVariant::fromValue(uuid));
         courseList->addItem(item);
     }
 }
 
 void QualifyCourseDialog::updateCourseDetails() const {
-    if (!currentCourse) return;
+    if (currentCourseUuid == EMPTY_UUID) return;
+    const auto currentCourse = aaims::manager::course::get_courses()[currentCourseUuid];
 
     // Update selected course label
-    selectedCourseLabel->setText(QString("课程: %1 - %2").arg(currentCourse->id, currentCourse->name));
+    selectedCourseLabel->setText(QString("课程: %1-%2").arg(currentCourse->id, currentCourse->name));
 
     // Calculate current enrollment (students directly enrolled + students from classes)
     unsigned long long currentEnrollment = currentCourse->students.size();
@@ -191,7 +197,7 @@ void QualifyCourseDialog::updateCourseDetails() const {
 }
 
 void QualifyCourseDialog::loadStudentsForCurrentCourse() {
-    // Clear existing widgets from the layout
+    // Clear existing widgets from the layout and reset checkbox hash
     QLayoutItem *child;
     while ((child = studentsLayout->takeAt(0)) != nullptr) {
         if (QWidget *widget = child->widget()) {
@@ -199,8 +205,10 @@ void QualifyCourseDialog::loadStudentsForCurrentCourse() {
         }
         delete child;
     }
+    studentCheckBoxes.clear();
 
-    if (!currentCourse) return;
+    if (currentCourseUuid == EMPTY_UUID) return;
+    const auto currentCourse = aaims::manager::course::get_courses()[currentCourseUuid];
 
     // Get all students directly enrolled in this course
     const auto &allStudents = aaims::manager::account::get_working_students();
@@ -208,18 +216,15 @@ void QualifyCourseDialog::loadStudentsForCurrentCourse() {
         if (allStudents.contains(studentUuid)) {
             const auto &student = allStudents[studentUuid];
             auto *studentLayout = new QHBoxLayout; // NOLINT
+            auto *checkBox = new QCheckBox(); // NOLINT
             auto *studentInfo = new QLabel(QString("%1 (%2)").arg(student->username, student->name)); // NOLINT
             studentInfo->setStyleSheet("padding: 5px;");
-            auto *removeBtn = new QPushButton("移除"); // NOLINT
-            removeBtn->setObjectName("RemoveElement");
-            removeBtn->setFixedSize(60, 24);
+            
+            // Store the checkbox for later access
+            studentCheckBoxes[studentUuid] = checkBox;
 
-            connect(removeBtn, &QPushButton::clicked, [this, studentUuid]() {
-                onRemoveStudentClicked(studentUuid);
-            });
-
+            studentLayout->addWidget(checkBox);
             studentLayout->addWidget(studentInfo);
-            studentLayout->addWidget(removeBtn);
             studentLayout->addStretch();
 
             auto *container = new QWidget; // NOLINT
@@ -237,41 +242,47 @@ void QualifyCourseDialog::loadStudentsForCurrentCourse() {
 void QualifyCourseDialog::onCourseSelected(QListWidgetItem *current, QListWidgetItem *previous) {
     if (current) {
         // Retrieve course pointer from user data
-        const auto coursePtr = current->data(Qt::UserRole).value<Course *>();
-        currentCourse = coursePtr;
+        const auto uuid = current->data(Qt::UserRole).value<QUuid>();
+        currentCourseUuid = uuid;
 
         updateCourseDetails();
         loadStudentsForCurrentCourse();
     }
 }
 
-void QualifyCourseDialog::onRemoveStudentClicked(const QUuid &studentUuid) {
-    if (!currentCourse) return;
-
-    // Confirm removal
-    const auto &allStudents = aaims::manager::account::get_working_students();
-    if (allStudents.contains(studentUuid)) {
-        const auto &student = allStudents[studentUuid];
-        auto result = QMessageBox::question(this, "确认移除",
-                                            QString("确定要将学生 %1 (%2) 从课程中移除吗？").arg(student->name, student->username),
-                                            QMessageBox::Yes | QMessageBox::No);
-
-        if (result == QMessageBox::Yes) {
-            removeStudentFromCourse(studentUuid);
+void QualifyCourseDialog::onRemoveSelectedClicked() {
+    if (currentCourseUuid == EMPTY_UUID) return;
+    
+    const auto currentCourse = aaims::manager::course::get_courses()[currentCourseUuid];
+    QList<QUuid> studentsToRemove;
+    
+    // Collect all checked students
+    for (auto it = studentCheckBoxes.constBegin(); it != studentCheckBoxes.constEnd(); ++it) {
+        if (it.value()->isChecked()) {
+            studentsToRemove.append(it.key());
         }
     }
-}
-
-void QualifyCourseDialog::removeStudentFromCourse(const QUuid &studentUuid) {
-    if (!currentCourse) return;
-
-    // Remove from course's direct students
-    currentCourse->students.removeAll(studentUuid);
-
-    // Update the UI
-    updateCourseDetails();
-    loadStudentsForCurrentCourse();
-
-    // Save the changes
-    aaims::manager::course::save();
+    
+    if (studentsToRemove.isEmpty()) {
+        QMessageBox::information(this, "提示", "没有选中任何学生。");
+        return;
+    }
+    
+    auto result = QMessageBox::question(this, "确认移除", 
+                                       QString("确定要移除选中的 %1 名学生吗？").arg(studentsToRemove.size()),
+                                       QMessageBox::Yes | QMessageBox::No);
+    
+    if (result == QMessageBox::Yes) {
+        // Remove all selected students
+        for (const auto &studentUuid : studentsToRemove) {
+            currentCourse->students.removeAll(studentUuid);
+        }
+        
+        // Update the UI
+        updateCourseDetails();
+        loadStudentsForCurrentCourse();
+        
+        // Save the changes
+        aaims::manager::course::save();
+    }
 }

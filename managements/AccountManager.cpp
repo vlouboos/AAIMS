@@ -197,31 +197,31 @@ namespace aaims::manager::account {
         return nullptr;
     }
 
-    QHash<QUuid, std::shared_ptr<Account> > all() {
+    QHash<QUuid, std::shared_ptr<Account> > &all() {
         return accounts;
     }
 
-    QHash<QUuid, Account *> get_admins() {
+    QHash<QUuid, Account *> &get_admins() {
         return admins;
     }
 
-    QHash<QUuid, TeacherAccount *> get_teachers() {
+    QHash<QUuid, TeacherAccount *> &get_teachers() {
         return teachers;
     }
 
-    QHash<QUuid, StudentAccount *> get_students() {
+    QHash<QUuid, StudentAccount *> &get_students() {
         return students;
     }
 
-    QHash<QUuid, StudentAccount *> get_working_students() {
+    QHash<QUuid, StudentAccount *> &get_working_students() {
         return workingStudents;
     }
 
-    QHash<QUuid, StudentAccount *> get_graduated_students() {
+    QHash<QUuid, StudentAccount *> &get_graduated_students() {
         return graduatedStudents;
     }
 
-    QHash<QUuid, StudentAccount *> get_suspended_students() {
+    QHash<QUuid, StudentAccount *> &get_suspended_students() {
         return suspendedStudents;
     }
 

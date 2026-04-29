@@ -24,7 +24,7 @@ TimetableCanvas::TimetableCanvas(QWidget *parent) : QWidget(parent) {
     };
 }
 
-void TimetableCanvas::setCourses(const QList<Course *> &courses) {
+void TimetableCanvas::setCourses(const QList<QUuid> &courses) {
     allCourses = courses;
     update();
 }
@@ -80,7 +80,9 @@ void TimetableCanvas::paintEvent(QPaintEvent *) {
                          Course::LessonTime::TIME_TABLE[i]);
     }
 
-    for (const auto &course: allCourses) {
+    for (const auto &uuid: allCourses) {
+        const auto &course = aaims::manager::course::get_courses()[uuid];
+        if (!course->is_started()) continue;
         auto [bg, border, text] = colors[getColorIndex(course->id)];
 
         for (const auto &[weekStart, weekEnd, dayOfWeek, startTime, duration, location]: course->times) {
@@ -103,8 +105,15 @@ void TimetableCanvas::paintEvent(QPaintEvent *) {
                                  course->name);
                 painter.drawText(QRect(x + 8, y + 14, w - 12, h - 8), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap,
                                  location);
-                painter.drawText(QRect(x + 8, y + 24, w - 12, h - 8), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap,
-                                 QString("第%1-%2周").arg(weekStart, weekEnd));
+                if (weekStart == weekEnd) {
+                    painter.drawText(QRect(x + 8, y + 24, w - 12, h - 8), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap,
+                                     QString("第%1周").arg(weekStart));
+                } else {
+                    painter.drawText(QRect(x + 8, y + 24, w - 12, h - 8), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap,
+                                     QString("第%1-%2周").arg(weekStart).arg(weekEnd));
+                }
+                painter.drawText(QRect(x + 8, y + 34, w - 12, h - 8), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap,
+                                 location);
             }
         }
     }
@@ -116,9 +125,9 @@ void TimetableWidget::reload() {
     for (const auto &x: aaims::manager::account::get_teachers()[aaims::manager::account::logged->uuid]->courses) {
         const auto &c = aaims::manager::course::get_courses()[x];
         if (c->semester == semester) {
-            courses.append(c.get());
+            courses.append(c->uuid);
         }
-        if (c->is_qualifying()) qualifyingCourses.append(c.get());
+        if (c->is_qualifying()) qualifyingCourses.append(c->uuid);
     }
     canvas->setCourses(courses);
 }
@@ -177,15 +186,9 @@ TimetableWidget::TimetableWidget(QWidget *parent) : QWidget(parent) {
     mainLayout->addWidget(topBar);
     mainLayout->addWidget(scrollArea);
 
-    reload();
-
     connect(btnPrev, &QPushButton::clicked, this, &TimetableWidget::onPrevWeek);
     connect(btnNext, &QPushButton::clicked, this, &TimetableWidget::onNextWeek);
-    connect(btnQualify, &QPushButton::clicked, this, [this] {
-        QualifyCourseDialog dialog(qualifyingCourses, this);
-        dialog.exec();
-        reload();
-    });
+    connect(btnQualify, &QPushButton::clicked, this, &TimetableWidget::onQualify);
 }
 
 void TimetableWidget::onPrevWeek() {
@@ -207,4 +210,10 @@ void TimetableWidget::onNextWeek() {
         btnPrev->setEnabled(true);
     }
     btnNext->setEnabled(currentWeek < TOTAL_WEEKS);
+}
+
+void TimetableWidget::onQualify() {
+    QualifyCourseDialog dialog(qualifyingCourses, this);
+    dialog.exec();
+    reload();
 }

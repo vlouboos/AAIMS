@@ -7,12 +7,12 @@
 #include <QCompleter>
 #include <QFutureWatcher>
 #include <QProgressDialog>
-#include <QtConcurrentRun>
 
 #include "AddClassDialog.h"
 #include "AddDepartmentDialog.h"
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
+#include "../utils/AsyncJsonIO.h"
 #include "../utils/DataStructures.h"
 #include "../utils/Sha256Util.h"
 
@@ -227,66 +227,63 @@ AddStudentDialog::AddStudentDialog(QWidget *parent) : StyledDialog(parent) {
 QPair<unsigned long long, unsigned long long> AddStudentDialog::importFromCsv() const {
     static const QString password = Sha256Util::hash("123456");
     static const QRegularExpression phoneRegex("^1[3-9]\\d{9}$");
-    unsigned long long succeed = 0, failed = 0;
-    QFile file(selectedFilePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return {0, 0};
-
-    QTextStream in(&file);
-    in.readLine(); // Skip first line
-
     auto classes = aaims::manager::classes::get_all_ptr();
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        if (line.trimmed().isEmpty()) {
-            continue;
-        }
+    unsigned long long succeed = 0, failed = 0;
+    aaims::io::loadCsv(selectedFilePath, [&succeed, &failed, classes](const auto &lines) {
+        for (const QString &line: lines) {
+            if (line.trimmed().isEmpty()) {
+                continue;
+            }
 
-        QStringList fields = line.split(",");
-        if (fields.size() < 6) {
-            failed++;
-            continue;
-        }
+            QStringList fields = line.split(",");
+            if (fields.size() < 6) {
+                failed++;
+                continue;
+            }
 
-        const QString username = fields[0].trimmed();
-        const QString name = fields[1].trimmed();
-        const bool isFemale = fields[2].trimmed() == "女";
-        const QString cls = fields[3].trimmed();
-        const QString dormitory = fields[4].trimmed();
-        const QString phone = fields[5].trimmed();
-        if (username.isEmpty() || name.isEmpty() || cls.isEmpty() || phone.length() != 11 || !phoneRegex.match(phone).
-            isValid()) {
-            failed++;
-            continue;
-        }
-        if (aaims::manager::account::findByUsername(username)) {
-            failed++;
-            continue;
-        }
-        const auto it = std::ranges::find_if(classes, [cls](const auto *x) {
-            return QString(x->grade).append(x->name) == cls;
-        });
-        if (it == classes.end()) {
-            failed++;
-            continue;
-        }
-        auto student = std::make_shared<StudentAccount>();
-        student->username = username;
-        student->name = name;
-        student->password = password;
-        student->female = isFemale;
-        student->status = 0;
-        student->currentClass = (*it)->uuid;
-        (*it)->students.append(student->uuid);
-        student->dormitory = dormitory;
-        student->phoneNumber = phone;
+            const QString username = fields[0].trimmed();
+            const QString name = fields[1].trimmed();
+            const bool isFemale = fields[2].trimmed() == "女";
+            const QString cls = fields[3].trimmed();
+            const QString dormitory = fields[4].trimmed();
+            const QString phone = fields[5].trimmed();
+            if (username.isEmpty() || name.isEmpty() || cls.isEmpty() || phone.length() != 11 || !phoneRegex.
+                match(phone).
+                isValid()) {
+                failed++;
+                continue;
+            }
+            if (aaims::manager::account::findByUsername(username)) {
+                failed++;
+                continue;
+            }
+            const auto it = std::ranges::find_if(classes, [cls](const auto *x) {
+                return QString(x->grade).append(x->name) == cls;
+            });
+            if (it == classes.end()) {
+                failed++;
+                continue;
+            }
+            auto student = std::make_shared<StudentAccount>();
+            student->username = username;
+            student->name = name;
+            student->password = password;
+            student->female = isFemale;
+            student->status = 0;
+            student->currentClass = (*it)->uuid;
+            (*it)->students.append(student->uuid);
+            student->dormitory = dormitory;
+            student->phoneNumber = phone;
 
-        if (const QString result = aaims::manager::account::add(student); !result.isEmpty()) {
-            failed++;
-            continue;
+            if (const QString result = aaims::manager::account::add(student); !result.isEmpty()) {
+                failed++;
+                continue;
+            }
+            (*it)->students.append(student->uuid);
+            succeed++;
         }
-        (*it)->students.append(student->uuid);
-        succeed++;
-    }
+    });
+
     aaims::manager::classes::saveClasses();
     aaims::manager::classes::saveDepartments();
     aaims::manager::account::save(); // This is synchronized!!!

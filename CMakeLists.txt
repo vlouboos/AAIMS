@@ -78,8 +78,8 @@ if (WIN32)
             pages/AdminCoursePage.cpp
             pages/AdminCoursePage.h
             pages/model/CourseTableModel.h
-            pages/TeacherClassPage.cpp
-            pages/TeacherClassPage.h
+            pages/TeacherCoursePage.cpp
+            pages/TeacherCoursePage.h
             pages/components/TimetableWidget.cpp
             pages/components/TimetableWidget.h
             dialogs/ClassAddCourseDialog.cpp
@@ -97,6 +97,10 @@ if (WIN32)
             dialogs/AddMajorDialog.h
             dialogs/QualifyCourseDialog.cpp
             dialogs/QualifyCourseDialog.h
+            pages/TeacherGradePage.cpp
+            pages/TeacherGradePage.h
+            pages/TeacherClassPage.cpp
+            pages/TeacherClassPage.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -159,8 +163,8 @@ else ()
             pages/AdminCoursePage.cpp
             pages/AdminCoursePage.h
             pages/model/CourseTableModel.h
-            pages/TeacherClassPage.cpp
-            pages/TeacherClassPage.h
+            pages/TeacherCoursePage.cpp
+            pages/TeacherCoursePage.h
             pages/components/TimetableWidget.cpp
             pages/components/TimetableWidget.h
             dialogs/ClassAddCourseDialog.cpp
@@ -178,6 +182,10 @@ else ()
             dialogs/AddMajorDialog.h
             dialogs/QualifyCourseDialog.cpp
             dialogs/QualifyCourseDialog.h
+            pages/TeacherGradePage.cpp
+            pages/TeacherGradePage.h
+            pages/TeacherClassPage.cpp
+            pages/TeacherClassPage.h
     )
 endif ()
 

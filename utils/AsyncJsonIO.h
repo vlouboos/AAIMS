@@ -21,7 +21,6 @@ namespace aaims::io {
         }
     }
 
-
     static QFuture<void> loadAsync(const QString &filePath, const std::function<void(const QJsonObject &)> &consumer) {
         return QtConcurrent::run([filePath, consumer] {
             QFile file(filePath);
@@ -56,6 +55,25 @@ namespace aaims::io {
             return file.commit();
         }
         return false;
+    }
+
+    static void loadCsv(const QString &filePath, const std::function<void(const QStringList &)> &consumer) {
+        QFile file(filePath);
+        if (!file.exists()) return;
+        if (!file.open(QIODevice::ReadOnly)) return;
+        const QString content = file.readAll();
+        QStringList list = content.split("\n");
+        list.removeFirst();
+        consumer(list);
+    }
+
+    static bool saveCsv(const QString &filePath, const QStringList &data, const QString &header) {
+        if (!QFileInfo::exists(filePath) && !QDir().mkpath(QFileInfo(filePath).absolutePath())) return false;
+        QSaveFile file(filePath);
+        if (!file.open(QIODevice::WriteOnly)) return false;
+        file.write((header + "\n").toUtf8());
+        file.write(data.join("\n").toUtf8());
+        return file.commit();
     }
 }
 

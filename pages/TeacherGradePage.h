@@ -2,17 +2,17 @@
 // You WON'T be guaranteed to be permitted with this file unless you're under BSD-3 License.
 // See https://spdx.org/licenses/BSD-3-Clause.html
 
-#ifndef AAIMS_TEACHERCLASSPAGE_H
-#define AAIMS_TEACHERCLASSPAGE_H
-
+#ifndef AAIMS_TEACHERGRADEPAGE_H
+#define AAIMS_TEACHERGRADEPAGE_H
 #include <QWidget>
 
-class TeacherClassPage : public QWidget {
+
+class TeacherGradePage : public QWidget {
     Q_OBJECT
 
 public:
-    explicit TeacherClassPage(QWidget *parent = nullptr);
+    explicit TeacherGradePage(QWidget *parent = nullptr);
 };
 
 
-#endif //AAIMS_TEACHERCLASSPAGE_H
+#endif //AAIMS_TEACHERGRADEPAGE_H
