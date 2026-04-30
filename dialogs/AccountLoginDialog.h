@@ -8,6 +8,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QFrame>
+#include <QPixmap>
 #include <qgraphicseffect.h>
 
 #include "StyledDialog.h"
@@ -27,6 +28,7 @@ private slots:
 
     void switchToPassword() const;
 
+protected slots:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:

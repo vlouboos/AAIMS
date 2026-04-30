@@ -40,6 +40,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     btnDashboard->setProperty("class", "category-button");
     btnDashboard->setCheckable(true);
     btnDashboard->setChecked(true);
+
+    btnCourses = new QPushButton("课程", sidebarWidget);
+    btnCourses->setProperty("class", "category-button");
+    btnCourses->setCheckable(true);
     if (loggedAccount->is_master() || loggedAccount->is_admin()) {
         btnTeachers = new QPushButton("教师", sidebarWidget);
         btnTeachers->setProperty("class", "category-button");
@@ -53,17 +57,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         btnClasses->setProperty("class", "category-button");
         btnClasses->setCheckable(true);
 
-        btnCourses = new QPushButton("课程", sidebarWidget);
-        btnCourses->setProperty("class", "category-button");
-        btnCourses->setCheckable(true);
-
         btnAuth = new QPushButton("凭证", sidebarWidget);
         btnAuth->setProperty("class", "category-button");
         btnAuth->setCheckable(true);
     } else if (loggedAccount->is_teacher()) {
-        btnCourses = new QPushButton("课程", sidebarWidget);
-        btnCourses->setProperty("class", "category-button");
-        btnCourses->setCheckable(true);
         btnGrades = new QPushButton("成绩", sidebarWidget);
         btnGrades->setProperty("class", "category-button");
         btnGrades->setCheckable(true);
@@ -174,6 +171,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         if (loggedAccount->is_class_master()) {
             contentStack->addWidget(teacherClassPage);
         }
+    } else {
+        studentDashboardPage = new StudentDashboardPage(contentStack);
+
+        contentStack->addWidget(studentDashboardPage);
     }
 
     rightLayout->addWidget(headerWidget);
@@ -292,6 +293,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
                 btnClasses->setChecked(true);
             });
         }
+    } else {
+        connect(btnDashboard, &QPushButton::clicked, [this] {
+            contentStack->setCurrentIndex(0);
+            pageTitleLabel->setText("仪表盘");
+            studentDashboardPage->update();
+            btnDashboard->setChecked(true);
+            btnCourses->setChecked(false);
+        });
     }
     connect(logoutAction, &QAction::triggered, [this] {
         menu->hide();

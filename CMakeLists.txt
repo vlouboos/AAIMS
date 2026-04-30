@@ -109,6 +109,8 @@ if (WIN32)
             dialogs/GradeEditDialog.h
             dialogs/PasswordResetDialog.cpp
             dialogs/PasswordResetDialog.h
+            pages/StudentDashboardPage.cpp
+            pages/StudentDashboardPage.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -202,6 +204,8 @@ else ()
             dialogs/GradeEditDialog.h
             dialogs/PasswordResetDialog.cpp
             dialogs/PasswordResetDialog.h
+            pages/StudentDashboardPage.cpp
+            pages/StudentDashboardPage.h
     )
 endif ()
 

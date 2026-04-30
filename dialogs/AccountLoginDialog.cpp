@@ -6,6 +6,7 @@
 
 #include <qcoreevent.h>
 #include <QGraphicsDropShadowEffect>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QStyle>
 
@@ -154,6 +155,34 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
     connect(userEdit, &QLineEdit::returnPressed, this, &AccountLoginDialog::switchToPassword);
     connect(passEdit, &QLineEdit::textChanged, this, &AccountLoginDialog::toggleLoginButton);
     connect(passEdit, &QLineEdit::returnPressed, this, &AccountLoginDialog::onLoginClicked);
+    connect(forgotBtn, &QPushButton::clicked, this, [this] {
+        QMessageBox::information(this, "我也没招", "请联系管理员重置密码。");
+    });
+    connect(helpBtn, &QPushButton::clicked, this, [this] {
+        // 创建自定义对话框以显示包含图片的帮助信息
+        QDialog helpDialog(this);
+        helpDialog.setWindowTitle("帮助中心");
+        helpDialog.setModal(true);
+        helpDialog.resize(500, 600);
+        
+        auto *layout = new QVBoxLayout(&helpDialog);
+
+        auto *imageLabel = new QLabel(&helpDialog);
+        imageLabel->setAlignment(Qt::AlignCenter);
+
+        if (const QPixmap pixmap(":/assets/payment-code.png"); !pixmap.isNull()) {
+            imageLabel->setPixmap(pixmap.scaled(400, 200, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        }
+        
+        layout->addWidget(new QLabel("AAIMS - 教务信息管理系统\n作者: vlouboos\n版本: 1.0.0\n"
+                                    "联系邮箱: vlouyearlinjinhua@outlook.com\n\n"
+                                    "什么帮助？哦，帮助啊，看到下面那个二维码了吗？扫它！\n\n", &helpDialog));
+        layout->addWidget(imageLabel);
+        layout->addWidget(new QLabel("\n\n版权所有: Copyright (c) 2026, vlouboos\nAll rights reserved.", &helpDialog));
+        helpDialog.exec();
+        delete layout;
+        delete imageLabel;
+    });
     passEdit->installEventFilter(this);
 }
 
