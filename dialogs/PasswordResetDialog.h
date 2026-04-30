@@ -5,13 +5,9 @@
 #ifndef AAIMS_PASSWORDRESETDIALOG_H
 #define AAIMS_PASSWORDRESETDIALOG_H
 
-#include <QDialog>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
 
 #include "StyledDialog.h"
 
@@ -22,18 +18,16 @@ public:
     explicit PasswordResetDialog(QWidget *parent = nullptr);
 
 private slots:
-    void onCurrentPasswordChanged();
+    void onCurrentPasswordChanged() const;
 
-    void onNewPasswordChanged();
+    void onNewPasswordChanged() const;
 
-    void onConfirmPasswordChanged();
+    void onConfirmPasswordChanged() const;
 
     void onResetPasswordClicked();
 
 private:
-    void setupUI();
-
-    void updateButtonState();
+    void updateButtonState() const;
 
 private:
     QVBoxLayout *mainLayout;
