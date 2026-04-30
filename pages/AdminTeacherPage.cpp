@@ -73,8 +73,8 @@ AdminTeacherPage::AdminTeacherPage(QWidget *parent) : QWidget(parent) {
 
     auto *delegate = new OperationDelegate(this);
     tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    tableView->setColumnWidth(0, 120);
-    tableView->setColumnWidth(1, 120);
+    tableView->setColumnWidth(0, 140);
+    tableView->setColumnWidth(1, 100);
     tableView->setColumnWidth(4, 150);
     tableView->setColumnWidth(5, 120);
     tableView->setItemDelegateForColumn(5, delegate);

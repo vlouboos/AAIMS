@@ -59,27 +59,7 @@ QualifyCourseDialog::QualifyCourseDialog(QList<QUuid> qualifyingCourses, QWidget
     selectedCourseLabel = new QLabel("请选择一门课程", rightPanel);
     selectedCourseLabel->setStyleSheet("font-size: 16px; font-weight: bold;");
 
-    infoLayout = new QHBoxLayout();
-    capacityLabel = new QLabel("-", rightPanel);
-    currentLabel = new QLabel("-", rightPanel);
-    exceededLabel = new QLabel("-", rightPanel);
-
-    capLabel = new QLabel("容量:");
-    curLabel = new QLabel("当前:");
-    excLabel = new QLabel("超出:");
-
-    infoLayout->addWidget(capLabel);
-    infoLayout->addWidget(capacityLabel);
-    infoLayout->addSpacing(20);
-    infoLayout->addWidget(curLabel);
-    infoLayout->addWidget(currentLabel);
-    infoLayout->addSpacing(20);
-    infoLayout->addWidget(excLabel);
-    infoLayout->addWidget(exceededLabel);
-    infoLayout->addStretch();
-
     detailsLayout->addWidget(selectedCourseLabel);
-    detailsLayout->addLayout(infoLayout);
 
     rightPanelLayout->addWidget(detailsWidget);
 
@@ -111,22 +91,12 @@ QualifyCourseDialog::QualifyCourseDialog(QList<QUuid> qualifyingCourses, QWidget
 
     btnFinalize = new QPushButton("完成筛选", this);
     btnFinalize->setObjectName("AddElement"); // Using consistent styling
-    connect(btnFinalize, &QPushButton::clicked, [this] {
-        // Move course status from QUALIFYING to STARTED
-        if (currentCourseUuid != EMPTY_UUID) {
-            // TODO: Update course status to STARTED
-        }
-    });
+    connect(btnFinalize, &QPushButton::clicked, this, &QualifyCourseDialog::onFinalizeClicked);
 
     btnCancel = new QPushButton("关闭", this);
     btnCancel->setObjectName("AddElement");
     connect(btnCancel, &QPushButton::clicked, this, &QDialog::reject);
 
-    btnRemoveSelected = new QPushButton("移除选中", this);
-    btnRemoveSelected->setObjectName("RemoveElement");
-    connect(btnRemoveSelected, &QPushButton::clicked, this, &QualifyCourseDialog::onRemoveSelectedClicked);
-
-    buttonLayout->addWidget(btnRemoveSelected);
     buttonLayout->addStretch();
     buttonLayout->addWidget(btnFinalize);
     buttonLayout->addWidget(btnCancel);
@@ -158,46 +128,10 @@ void QualifyCourseDialog::updateCourseDetails() const {
     if (currentCourseUuid == EMPTY_UUID) return;
     const auto currentCourse = aaims::manager::course::get_courses()[currentCourseUuid];
 
-    // Update selected course label
     selectedCourseLabel->setText(QString("课程: %1-%2").arg(currentCourse->id, currentCourse->name));
-
-    // Calculate current enrollment (students directly enrolled + students from classes)
-    unsigned long long currentEnrollment = currentCourse->students.size();
-    for (const auto &classUuid: currentCourse->classes) {
-        const auto &allClasses = aaims::manager::classes::get_classes();
-        if (allClasses.contains(classUuid)) {
-            const auto &cls = allClasses[classUuid];
-            currentEnrollment += cls->students.size();
-        }
-    }
-
-    // Determine capacity - in a real implementation, this would come from a course property
-    // For now, we'll use a heuristic based on course characteristics
-    int capacity = 50; // Default capacity
-
-    // In a real system, you might calculate capacity based on classroom size, online vs in-person, etc.
-    // For now, we'll use a simple approach
-    if (currentCourse->online) {
-        capacity = 100; // Online courses might have higher capacity
-    } else {
-        capacity = 50; // Traditional in-person courses
-    }
-
-    capacityLabel->setText(QString::number(capacity));
-    currentLabel->setText(QString::number(currentEnrollment));
-
-    int exceeded = static_cast<int>(currentEnrollment) - capacity;
-    if (exceeded > 0) {
-        exceededLabel->setText(QString::number(exceeded));
-        exceededLabel->setStyleSheet("color: red;");
-    } else {
-        exceededLabel->setText(QString::number(0));
-        exceededLabel->setStyleSheet("");
-    }
 }
 
 void QualifyCourseDialog::loadStudentsForCurrentCourse() {
-    // Clear existing widgets from the layout and reset checkbox hash
     QLayoutItem *child;
     while ((child = studentsLayout->takeAt(0)) != nullptr) {
         if (QWidget *widget = child->widget()) {
@@ -210,7 +144,6 @@ void QualifyCourseDialog::loadStudentsForCurrentCourse() {
     if (currentCourseUuid == EMPTY_UUID) return;
     const auto currentCourse = aaims::manager::course::get_courses()[currentCourseUuid];
 
-    // Get all students directly enrolled in this course
     const auto &allStudents = aaims::manager::account::get_working_students();
     for (const auto &studentUuid: currentCourse->students) {
         if (allStudents.contains(studentUuid)) {
@@ -220,7 +153,7 @@ void QualifyCourseDialog::loadStudentsForCurrentCourse() {
             auto *studentInfo = new QLabel(QString("%1 (%2)").arg(student->username, student->name)); // NOLINT
             studentInfo->setStyleSheet("padding: 5px;");
             
-            // Store the checkbox for later access
+            checkBox->setChecked(true);
             studentCheckBoxes[studentUuid] = checkBox;
 
             studentLayout->addWidget(checkBox);
@@ -235,13 +168,11 @@ void QualifyCourseDialog::loadStudentsForCurrentCourse() {
         }
     }
 
-    // Add stretch to fill remaining space
     studentsLayout->addStretch();
 }
 
 void QualifyCourseDialog::onCourseSelected(QListWidgetItem *current, QListWidgetItem *previous) {
     if (current) {
-        // Retrieve course pointer from user data
         const auto uuid = current->data(Qt::UserRole).value<QUuid>();
         currentCourseUuid = uuid;
 
@@ -250,39 +181,31 @@ void QualifyCourseDialog::onCourseSelected(QListWidgetItem *current, QListWidget
     }
 }
 
-void QualifyCourseDialog::onRemoveSelectedClicked() {
+void QualifyCourseDialog::onFinalizeClicked() {
     if (currentCourseUuid == EMPTY_UUID) return;
     
-    const auto currentCourse = aaims::manager::course::get_courses()[currentCourseUuid];
-    QList<QUuid> studentsToRemove;
-    
-    // Collect all checked students
-    for (auto it = studentCheckBoxes.constBegin(); it != studentCheckBoxes.constEnd(); ++it) {
-        if (it.value()->isChecked()) {
-            studentsToRemove.append(it.key());
-        }
-    }
-    
-    if (studentsToRemove.isEmpty()) {
-        QMessageBox::information(this, "提示", "没有选中任何学生。");
-        return;
-    }
-    
-    auto result = QMessageBox::question(this, "确认移除", 
-                                       QString("确定要移除选中的 %1 名学生吗？").arg(studentsToRemove.size()),
+    auto result = QMessageBox::question(this, "确认", 
+                                       "确定要完成筛选并开始课程吗？",
                                        QMessageBox::Yes | QMessageBox::No);
     
     if (result == QMessageBox::Yes) {
-        // Remove all selected students
+        const auto currentCourse = aaims::manager::course::get_courses()[currentCourseUuid];
+        QList<QUuid> studentsToRemove;
+        
+        for (auto it = studentCheckBoxes.constBegin(); it != studentCheckBoxes.constEnd(); ++it) {
+            if (!it.value()->isChecked()) {
+                studentsToRemove.append(it.key());
+            }
+        }
+        
         for (const auto &studentUuid : studentsToRemove) {
             currentCourse->students.removeAll(studentUuid);
         }
         
-        // Update the UI
-        updateCourseDetails();
-        loadStudentsForCurrentCourse();
-        
-        // Save the changes
+        currentCourse->status = Course::STARTED;
         aaims::manager::course::save();
+        
+        QMessageBox::information(this, "成功", "筛选完成，课程已开始。");
+        accept();
     }
 }

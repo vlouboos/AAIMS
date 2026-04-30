@@ -32,21 +32,13 @@ private:
     QVBoxLayout *rightPanelLayout;
     QWidget *detailsWidget;
     QVBoxLayout *detailsLayout;
-    QHBoxLayout *infoLayout;
     QScrollArea *studentsArea;
     QWidget *studentsWidget;
     QVBoxLayout *studentsLayout;
     QLabel *studentsTitle;
     QLabel *selectedCourseLabel;
-    QLabel *capacityLabel;
-    QLabel *currentLabel;
-    QLabel *exceededLabel;
-    QLabel *capLabel;
-    QLabel *curLabel;
-    QLabel *excLabel;
 
     QHBoxLayout *buttonLayout;
-    QPushButton *btnRemoveSelected;
     QPushButton *btnFinalize;
     QPushButton *btnCancel;
     
@@ -61,12 +53,10 @@ private:
 
     void loadStudentsForCurrentCourse();
 
-    void removeSelectedStudents();
-
 private slots:
     void onCourseSelected(QListWidgetItem *current, QListWidgetItem *previous);
 
-    void onRemoveSelectedClicked();
+    void onFinalizeClicked();
 };
 
 #endif //AAIMS_QUALIFYCOURSEDIALOG_H
