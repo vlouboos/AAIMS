@@ -120,6 +120,8 @@ if (WIN32)
             pages/model/SingleGradeTableModel.h
             dialogs/SingleGradeEditDialog.cpp
             dialogs/SingleGradeEditDialog.h
+            pages/StudentGradePage.cpp
+            pages/StudentGradePage.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -224,6 +226,8 @@ else ()
             pages/model/SingleGradeTableModel.h
             dialogs/SingleGradeEditDialog.cpp
             dialogs/SingleGradeEditDialog.h
+            pages/StudentGradePage.cpp
+            pages/StudentGradePage.h
     )
 endif ()
 
