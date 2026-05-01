@@ -134,6 +134,7 @@ namespace aaims::manager::classes {
         const Class *cls = all_classes[uuid].get();
         TeacherAccount *teacher = account::get_teachers()[cls->master];
         teacher->managingClass = EMPTY_UUID;
+        teacher->status &= ~Account::CLASS_MASTER;
         for (const auto &course: cls->courses) {
             const auto c = course::get_courses()[course];
             c->classes.removeAll(uuid);

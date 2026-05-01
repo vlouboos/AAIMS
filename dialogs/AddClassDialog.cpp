@@ -202,14 +202,14 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                 cls->name = nameEdit->text().trimmed();
                 cls->major = major;
                 cls->master = teacher->uuid;
-                teacher->status |= Account::CLASS_MASTER;
-                teacher->managingClass = cls->uuid;
                 if (const QString result = aaims::manager::classes::add(cls); !result.isEmpty()) {
                     pd->close();
                     pd->deleteLater();
                     QMessageBox::critical(this, "错误", result);
                     return;
                 }
+                teacher->status |= Account::CLASS_MASTER;
+                teacher->managingClass = cls->uuid;
                 const auto future = QtConcurrent::run([] {
                     return aaims::manager::classes::saveClasses() &&
                            aaims::manager::account::save();

@@ -222,7 +222,7 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
             
             aaims::manager::course::add(course);
             teacher->addCourse(course.get());
-            const auto future = QtConcurrent::run([] { return aaims::manager::course::save(); });
+            const auto future = QtConcurrent::run([] { return aaims::manager::course::save() && aaims::manager::account::save(); });
             const auto watcher = new QFutureWatcher<bool>(this); // NOLINT
             connect(watcher, &QFutureWatcher<bool>::finished, this, [this, pd, watcher] {
                 pd->close();
@@ -351,6 +351,7 @@ QPair<unsigned long long, unsigned long long> AddCourseDialog::importFromCsv() c
         }
     });
     aaims::manager::course::save(); // This is synchronized!!!
+    aaims::manager::account::save();
     return {succeed, failed};
 }
 
@@ -384,7 +385,7 @@ bool AddCourseDialog::validateForm() {
     }
 
     // [0-6][0-14]
-    int occupied[7][15];
+    int occupied[7][15] = {};
     return std::ranges::all_of(slotWidgets, [this, &occupied](const auto w) {
         const auto data = w->toData();
         if (data.weekEnd < data.weekStart) {
