@@ -288,7 +288,7 @@ ClassDetailDialog::ClassDetailDialog(Class *cls,
                             finalScore = rating->ratings[course->uuid].finalScore;
                         }
                         const QString line = QString("%1,%2,%3,%4,%5,%6,%7").arg(
-                            student->username, student->name, course->name, retake == 0 ? "自选" : "重修",
+                            student->username, student->name, course->name, retake == 0 ? "自选" : QString("重修%1次").arg(retake),
                             QString::number(performance), QString::number(score),
                             QString::number(finalScore));
                         lines.append(line);
