@@ -106,12 +106,16 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     onlineCheck->setFixedSize(24, 24);
     onlineCheck->setCheckable(true);
 
+    btnSetAssignmentRule = new QPushButton("设置分配规则", singleAddPage);
+    btnSetAssignmentRule->setObjectName("AddElement");
+
     formLayout->addRow("学期:", comboSemester);
     formLayout->addRow("课程编号:", editId);
     formLayout->addRow("课程名称:", editName);
     formLayout->addRow("授课教师:", teacherLayout);
     formLayout->addRow("学分:", comboCredits);
     formLayout->addRow("线上:", onlineCheck);
+    formLayout->addRow("分配规则:", btnSetAssignmentRule);
 
     timeGroup = new QGroupBox("上课时间", singleAddPage);
 
@@ -143,7 +147,7 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     batchLayout->setSpacing(20);
 
     tipLabel = new QLabel(
-        "支持导入 .csv 格式的文件。\n请确保列头包含: 编号, 名字, 教师, 学分, 学期, 上课时间。\n时间格式: 起始周:结束周:周i:第j节:上k节时。\n多个时间用分号“;”间隔，周日为“0”，8:00为“1”。\n例: HM#1,高等数学,李华(数学与信息学院),2,2026-1,1:16:1:1:2;1:16:3:1:2",
+        "支持导入 .csv 格式的文件。\n请确保列头包含: 编号, 名字, 教师, 学分, 学期, 上课时间, 分配规则。\n时间格式: 起始周:结束周:周i:第j节:上k节时。\n多个时间用分号“;”间隔，周日为“0”，8:00为“1”。\n分配规则：{C,M,D,GE,GR,S}。\n多个分配规则用“;”间隔。\n例: HM#1,高等数学,李华(数学与信息学院),2,2026-1,1:16:1:1:2;1:16:3:1:2,G:[\"2025\"]",
         batchAddPage);
     tipLabel->setStyleSheet("color: #64748b; line-height: 1.5;");
 
@@ -176,6 +180,14 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     applyStyles();
 
     connect(btnAddSlot, &QPushButton::clicked, this, &AddCourseDialog::onAddSlotClicked);
+    
+    connect(btnSetAssignmentRule, &QPushButton::clicked, this, [this] {
+        AssignmentRuleDialog dialog(currentAssignmentRule, this);
+        if (dialog.exec() == QDialog::Accepted) {
+            currentAssignmentRule = dialog.getRule();
+        }
+    });
+    
     connect(btnSave, &QPushButton::clicked, this, [this] {
         if (validateForm()) {
             auto *pd = new QProgressDialog("正在添加...", nullptr, 0, 0, this); // NOLINT
@@ -204,6 +216,10 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
             course->semester = comboSemester->currentData().value<QString>();
             course->status = Course::ACCEPTING;
             course->times.append(courses);
+            
+            // Apply assignment rule
+            course->assignmentRule = currentAssignmentRule;
+            
             aaims::manager::course::add(course);
             teacher->addCourse(course.get());
             const auto future = QtConcurrent::run([] { return aaims::manager::course::save(); });
@@ -253,9 +269,6 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
         }
     });
 
-    connect(onlineCheck, &QPushButton::clicked, this, [this] {
-        if (!onlineCheck->isChecked() && slotWidgets.empty()) onAddSlotClicked();
-    });
 
     onAddSlotClicked(); // Don't forget
 }

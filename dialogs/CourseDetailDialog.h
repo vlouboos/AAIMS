@@ -5,13 +5,11 @@
 #ifndef AAIMS_COURSEDETAILDIALOG_H
 #define AAIMS_COURSEDETAILDIALOG_H
 
-#include <QFormLayout>
 #include <QGroupBox>
-#include <QLabel>
-#include <QListWidget>
 
 #include "StyledDialog.h"
 #include "../pages/components/TimeSlot.h"
+#include "AssignmentRuleDialog.h"
 #include "../utils/DataStructures.h"
 
 class CourseDetailDialog : public StyledDialog {
@@ -40,6 +38,7 @@ private:
     QComboBox *comboCredits;
     QComboBox *comboStatus;
     QPushButton *onlineCheck;
+    QPushButton *btnSetAssignmentRule;
     QGroupBox *timeGroup;
     QVBoxLayout *timeSlotsLayout;
     QVBoxLayout *groupLayout;
@@ -48,7 +47,9 @@ private:
     QHBoxLayout *btnLayout;
     QPushButton *btnSave;
     QPushButton *btnCancel;
-    Course *course;
+    Course::AssignmentRule assignmentRule;
+    
+    Course *course;  // Pointer to the course being edited
 };
 
 

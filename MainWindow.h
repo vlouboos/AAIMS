@@ -15,6 +15,7 @@
 #include "pages/AdminCoursePage.h"
 #include "pages/AdminStudentPage.h"
 #include "pages/AdminTeacherPage.h"
+#include "pages/StudentCoursePage.h"
 #include "pages/StudentDashboardPage.h"
 #include "pages/TeacherClassPage.h"
 #include "pages/TeacherCoursePage.h"
@@ -66,6 +67,7 @@ private:
     TeacherGradePage *teacherGradePage;
     TeacherClassPage *teacherClassPage;
     StudentDashboardPage *studentDashboardPage;
+    StudentCoursePage *studentCoursePage;
     CloseReason closeReason = CloseReason::Exit;
 
 protected:

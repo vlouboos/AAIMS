@@ -173,8 +173,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         }
     } else {
         studentDashboardPage = new StudentDashboardPage(contentStack);
+        studentCoursePage = new StudentCoursePage(contentStack);
 
         contentStack->addWidget(studentDashboardPage);
+        contentStack->addWidget(studentCoursePage);
     }
 
     rightLayout->addWidget(headerWidget);
@@ -300,6 +302,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             studentDashboardPage->update();
             btnDashboard->setChecked(true);
             btnCourses->setChecked(false);
+        });
+        connect(btnCourses, &QPushButton::clicked, [this] {
+            contentStack->setCurrentIndex(1);
+            pageTitleLabel->setText("课程");
+            studentCoursePage->reload();
+            btnDashboard->setChecked(false);
+            btnCourses->setChecked(true);
         });
     }
     connect(logoutAction, &QAction::triggered, [this] {

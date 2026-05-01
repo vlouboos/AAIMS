@@ -81,6 +81,8 @@ if (WIN32)
             pages/TeacherCoursePage.h
             pages/components/TimetableWidget.cpp
             pages/components/TimetableWidget.h
+            dialogs/AssignmentRuleDialog.cpp
+            dialogs/AssignmentRuleDialog.h
             dialogs/ClassAddCourseDialog.cpp
             dialogs/ClassAddCourseDialog.h
             pages/TeacherDashboardPage.cpp
@@ -111,6 +113,10 @@ if (WIN32)
             dialogs/PasswordResetDialog.h
             pages/StudentDashboardPage.cpp
             pages/StudentDashboardPage.h
+            pages/StudentCoursePage.cpp
+            pages/StudentCoursePage.h
+            dialogs/SelectCourseDialog.cpp
+            dialogs/SelectCourseDialog.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -206,6 +212,14 @@ else ()
             dialogs/PasswordResetDialog.h
             pages/StudentDashboardPage.cpp
             pages/StudentDashboardPage.h
+            pages/StudentCoursePage.cpp
+            pages/StudentCoursePage.h
+            dialogs/SelectCourseDialog.cpp
+            dialogs/SelectCourseDialog.h
+            pages/components/AssignmentRoleSlot.cpp
+            pages/components/AssignmentRoleSlot.h
+            dialogs/AssignmentRuleDialog.cpp
+            dialogs/AssignmentRuleDialog.h
     )
 endif ()
 

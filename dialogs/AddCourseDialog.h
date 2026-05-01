@@ -12,6 +12,7 @@
 #include "AddClassDialog.h"
 #include "StyledDialog.h"
 #include "../pages/components/TimeSlot.h"
+#include "AssignmentRuleDialog.h"
 
 class AddCourseDialog : public StyledDialog {
     Q_OBJECT
@@ -40,6 +41,7 @@ private:
     QPushButton *btnAddTeacher;
     QComboBox *comboCredits;
     QPushButton *onlineCheck;
+    QPushButton *btnSetAssignmentRule;
     QGroupBox *timeGroup;
     QVBoxLayout *timeSlotsLayout;
     QVBoxLayout *groupLayout;
@@ -55,6 +57,7 @@ private:
     QPushButton *btnSelectFile;
     QPushButton *btnConfirmBatch;
     QString selectedFilePath;
+    Course::AssignmentRule currentAssignmentRule;
 
     bool validateForm();
 

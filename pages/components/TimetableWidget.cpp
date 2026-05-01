@@ -7,7 +7,9 @@
 #include <QHBoxLayout>
 
 #include "../../dialogs/QualifyCourseDialog.h"
+#include "../../dialogs/SelectCourseDialog.h"
 #include "../../managements/AccountManager.h"
+#include "../../managements/ClassManager.h"
 #include "../../managements/CourseManager.h"
 
 TimetableCanvas::TimetableCanvas(QWidget *parent) : QWidget(parent) {
@@ -122,17 +124,42 @@ void TimetableCanvas::paintEvent(QPaintEvent *) {
 void TimetableWidget::reload() {
     courses.clear();
     qualifyingCourses.clear();
-    for (const auto &x: aaims::manager::account::get_teachers()[aaims::manager::account::logged->uuid]->courses) {
-        const auto &c = aaims::manager::course::get_courses()[x];
-        if (c->semester == semester) {
-            courses.append(c->uuid);
+    
+    if (userType == STUDENT) {
+        if (const auto *student = dynamic_cast<StudentAccount*>(aaims::manager::account::logged)) {
+            for (const auto &[uuid, retake]: student->lessons) {
+                const auto &c = aaims::manager::course::get_courses()[uuid];
+                if (c->semester == semester) {
+                    courses.append(c->uuid);
+                }
+            }
+            for (const auto &cls = aaims::manager::classes::get_classes()[student->currentClass]; const auto &x: cls->courses) {
+                if (const auto &c = aaims::manager::course::get_courses()[x]; c->semester == semester) {
+                    courses.append(c->uuid);
+                }
+            }
+            for (const auto &course : aaims::manager::course::get_courses()) {
+                if (course->is_accepting() && aaims::manager::account::student::is_course_eligible(student, course.get())) {
+                    qualifyingCourses.append(course->uuid);
+                }
+            }
         }
-        if (c->is_qualifying()) qualifyingCourses.append(c->uuid);
+    } else {
+        if (const auto *teacher = dynamic_cast<TeacherAccount*>(aaims::manager::account::logged)) {
+            for (const auto &x: teacher->courses) {
+                const auto &c = aaims::manager::course::get_courses()[x];
+                if (c->semester == semester) {
+                    courses.append(c->uuid);
+                }
+                if (c->is_qualifying()) qualifyingCourses.append(c->uuid);
+            }
+        }
     }
+    
     canvas->setCourses(courses);
 }
 
-TimetableWidget::TimetableWidget(QWidget *parent) : QWidget(parent) {
+TimetableWidget::TimetableWidget(QWidget *parent) : QWidget(parent), userType(TEACHER) { // 默认为教师类型
     mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
@@ -191,6 +218,15 @@ TimetableWidget::TimetableWidget(QWidget *parent) : QWidget(parent) {
     connect(btnQualify, &QPushButton::clicked, this, &TimetableWidget::onQualify);
 }
 
+void TimetableWidget::setUserType(const UserType &type) {
+    userType = type;
+    if (userType == STUDENT) {
+        btnQualify->setText("选课");
+    } else {
+        btnQualify->setText("筛选");
+    }
+}
+
 void TimetableWidget::onPrevWeek() {
     if (currentWeek > 0) {
         currentWeek--;
@@ -213,7 +249,13 @@ void TimetableWidget::onNextWeek() {
 }
 
 void TimetableWidget::onQualify() {
-    QualifyCourseDialog dialog(qualifyingCourses, this);
-    dialog.exec();
-    reload();
+    if (userType == STUDENT) {
+        SelectCourseDialog dialog(qualifyingCourses, this);
+        dialog.exec();
+        reload();
+    } else {
+        QualifyCourseDialog dialog(qualifyingCourses, this);
+        dialog.exec();
+        reload();
+    }
 }

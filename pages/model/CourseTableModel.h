@@ -54,7 +54,7 @@ public:
         if (!course) return {};
 
         const TeacherAccount *const t = aaims::manager::account::get_teachers()[course->teacher];
-        unsigned long long size = course->students.size();
+        long long size = course->students.size();
         for (const auto x: course->classes) {
             const Class *const cls = aaims::manager::classes::get_classes()[x].get();
             size += cls->students.size();
@@ -64,8 +64,8 @@ public:
                 case Number: return course->id;
                 case Name: return course->name;
                 case Teacher: return QString("%1(%2)").arg(t->name, t->department);
-                case Size: return QString("%1(%2名重修/自选+%3个班级)").arg(size).arg(course->students.size())
-                            .arg(course->classes.size());
+                case Size: return course->is_started() ? (course->students.size() == size ? QString("%1自选").arg(size) : QString("%1(%2名重修+%3个班级)").arg(size).arg(course->students.size())
+                            .arg(course->classes.size())) : QString("%1参选").arg(course->students.size());
                 case Credit: return course->credit;
                 case Status: return course->is_accepting()
                                         ? "选课中"

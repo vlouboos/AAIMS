@@ -49,7 +49,14 @@ class TimetableWidget : public QWidget {
     Q_OBJECT
 
 public:
+    enum UserType {
+        TEACHER,
+        STUDENT
+    };
+
     void reload();
+
+    void setUserType(const UserType &type);
 
     explicit TimetableWidget(QWidget *parent = nullptr);
 
@@ -75,6 +82,7 @@ private:
     int currentWeek = 0;
     QList<QUuid> courses, qualifyingCourses;
     QString semester;
+    UserType userType;
 };
 
 

@@ -11,7 +11,6 @@
 
 #include "AddTeacherDialog.h"
 #include "../managements/AccountManager.h"
-#include "../managements/ClassManager.h"
 #include "../managements/CourseManager.h"
 #include "../utils/DataStructures.h"
 
@@ -130,6 +129,10 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
                                                  ? 2
                                                  : 3);
 
+
+    btnSetAssignmentRule = new QPushButton("设置选课筛选规则", this);
+    btnSetAssignmentRule->setObjectName("AddElement");
+
     formLayout->addRow("学期:", comboSemester);
     formLayout->addRow("课程编号:", editId);
     formLayout->addRow("课程名称:", editName);
@@ -137,6 +140,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     formLayout->addRow("学分:", comboCredits);
     formLayout->addRow("线上:", onlineCheck);
     formLayout->addRow("课程状态:", comboStatus);
+    formLayout->addRow("选课规则:", btnSetAssignmentRule);
 
     btnLayout = new QHBoxLayout();
     btnLayout->setSpacing(12);
@@ -166,6 +170,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     mainLayout->addWidget(headerLabel);
     mainLayout->addLayout(formLayout);
     mainLayout->addWidget(timeGroup);
+
     mainLayout->addLayout(btnLayout);
 
     applyStyles();
@@ -208,7 +213,11 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
             course->status = comboStatus->currentData().value<int>();
             course->times.clear();
             course->times.append(times);
-            const auto future = QtConcurrent::run([] { return aaims::manager::course::save() && aaims::manager::account::save(); });
+            course->assignmentRule = assignmentRule;
+
+            const auto future = QtConcurrent::run([] {
+                return aaims::manager::course::save() && aaims::manager::account::save();
+            });
             const auto watcher = new QFutureWatcher<bool>(this); // NOLINT
             connect(watcher, &QFutureWatcher<bool>::finished, this, [this, pd, watcher] {
                 pd->close();
@@ -236,6 +245,12 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     connect(onlineCheck, &QPushButton::clicked, this, [this] {
         if (!onlineCheck->isChecked() && slotWidgets.empty()) onAddSlotClicked();
     });
+
+    connect(btnSetAssignmentRule, &QPushButton::clicked, this, [this] {
+        if (AssignmentRuleDialog dialog(assignmentRule, this); dialog.exec() == Accepted) {
+            assignmentRule = dialog.getRule();
+        }
+    });
 }
 
 void CourseDetailDialog::onAddSlotClicked() {
@@ -256,6 +271,7 @@ void CourseDetailDialog::removeSlot(TimeSlot *slot) {
     timeSlotsLayout->removeWidget(slot);
     slot->deleteLater();
 }
+
 
 bool CourseDetailDialog::validateForm() {
     if (editId->text().trimmed().isEmpty()) {
