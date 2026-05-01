@@ -115,6 +115,7 @@ namespace aaims::manager::classes {
         QJsonObject root;
         for (auto it = majors.begin(); it != majors.end(); ++it) {
             QUuid uuid = it.key();
+            if (!it.value().get()) continue;
             root.insert(uuid.toString(QUuid::WithoutBraces), it.value()->toJson());
         }
         return io::save(path, root);

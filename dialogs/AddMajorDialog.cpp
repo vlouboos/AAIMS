@@ -130,7 +130,7 @@ AddMajorDialog::AddMajorDialog(QWidget *parent) : StyledDialog(parent) {
                     return;
                 }
                 if (std::ranges::any_of(aaims::manager::classes::get_majors(), [this](const auto &m) {
-                    return m->name == nameEdit->text().trimmed();
+                    return m.get() && m->name == nameEdit->text().trimmed();
                 })) {
                     QMessageBox::warning(this, "输入错误", "重名的专业已存在！");
                     return;

@@ -53,6 +53,7 @@ ClassDetailDialog::ClassDetailDialog(Class *cls,
 
     comboMajor = new QComboBox(this);
     for (const auto &major: aaims::manager::classes::get_majors()) {
+        if (!major.get()) continue;
         comboMajor->addItem(major->name, major->uuid);
     }
     comboMajor->setEditable(true);
@@ -182,6 +183,7 @@ ClassDetailDialog::ClassDetailDialog(Class *cls,
         if (AddMajorDialog dialog; dialog.exec() == Accepted) {
             comboMajor->clear();
             for (const auto &major: aaims::manager::classes::get_majors()) {
+                if (!major.get()) continue;
                 comboMajor->addItem(major->name, major->uuid);
             }
             completerMajor->setModel(comboMajor->model());

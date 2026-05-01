@@ -40,9 +40,12 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
     majorLayout = new QHBoxLayout();
 
     majorCombo = new QComboBox(singleAddPage);
-    majorCombo->addItems(aaims::manager::classes::get_departments());
+    for (const auto &major: aaims::manager::classes::get_majors()) {
+        if (!major.get()) continue;
+        majorCombo->addItem(major->name, major->uuid);
+    }
     majorCombo->setEditable(true);
-    majorCombo->setPlaceholderText("请选择学院");
+    majorCombo->setPlaceholderText("请选择专业");
     majorCombo->setInsertPolicy(QComboBox::NoInsert);
 
     majorCompleter = new QCompleter(majorCombo->model());
@@ -94,7 +97,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
 
     singleLayout->addRow("年级:", gradeEdit);
     singleLayout->addRow("班级名字:", nameEdit);
-    singleLayout->addRow("院系:", majorLayout);
+    singleLayout->addRow("专业:", majorLayout);
     singleLayout->addRow("班主任:", masterLayout);
     singleLayout->addRow("", btnConfirmSingle);
 
@@ -174,12 +177,14 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                     QMessageBox::warning(this, "输入错误", "班级名字不能为空！");
                     return;
                 }
-                if (majorCombo->currentIndex() == -1) {
-                    QMessageBox::warning(this, "输入错误", "请选择院系！");
+                const QUuid &major = majorCombo->currentData().value<QUuid>();
+                if (!aaims::manager::classes::get_majors().contains(major)) {
+                    QMessageBox::warning(this, "输入错误", "请选择专业！");
                     return;
                 }
+                const QUuid &teacherUuid = masterCombo->currentData().value<QUuid>();
                 if (!masterCombo->currentData().isValid() || !aaims::manager::account::get_teachers().contains(
-                        masterCombo->currentData().value<QUuid>())) {
+                        teacherUuid)) {
                     QMessageBox::warning(this, "输入错误", "请选择班主任！");
                     return;
                 }
@@ -187,8 +192,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                 pd->setWindowModality(Qt::WindowModal);
                 pd->show();
 
-                TeacherAccount *teacher = aaims::manager::account::get_teachers()[masterCombo->currentData().value<
-                    QUuid>()];
+                TeacherAccount *teacher = aaims::manager::account::get_teachers()[teacherUuid];
                 if (teacher->is_class_master()) {
                     QMessageBox::warning(this, "输入错误", "该老师已经是另一班级的班主任！");
                     return;
@@ -196,7 +200,7 @@ AddClassDialog::AddClassDialog(QWidget *parent) : StyledDialog(parent) {
                 const auto cls = std::make_shared<Class>();
                 cls->grade = gradeEdit->text().trimmed();
                 cls->name = nameEdit->text().trimmed();
-                cls->major = majorCombo->currentData().value<QUuid>();
+                cls->major = major;
                 cls->master = teacher->uuid;
                 teacher->status |= Account::CLASS_MASTER;
                 teacher->managingClass = cls->uuid;
@@ -251,7 +255,7 @@ QPair<unsigned long long, unsigned long long> AddClassDialog::importFromCsv() co
     auto teachers = aaims::manager::account::get_teachers();
     auto majors = aaims::manager::classes::get_majors();
     aaims::io::loadCsv(selectedFilePath, [&succeed, &failed, teachers, majors](const auto &lines) {
-        for (const QString &line : lines) {
+        for (const QString &line: lines) {
             if (line.trimmed().isEmpty()) {
                 continue;
             }
