@@ -11,6 +11,7 @@
 #include "managements/ClassManager.h"
 #include "managements/CourseManager.h"
 #include "MainWindow.h"
+#include "managements/RatingManager.h"
 
 int main(int argc, char *argv[]) {
     const QApplication a(argc, argv);
@@ -22,6 +23,8 @@ int main(int argc, char *argv[]) {
     aaims::manager::classes::init();
     qInfo() << "Loading accounts...";
     aaims::manager::account::init();
+    qInfo() << "Loading ratings...";
+    aaims::manager::rating::init();
 
     while (aaims::manager::account::isLoading()) {
         QCoreApplication::processEvents();

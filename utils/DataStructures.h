@@ -248,14 +248,20 @@ namespace aaims {
 
         struct StudentRating {
             struct RatingDetail {
-                QUuid course_uuid;
                 double performance = 0.0;
                 double score = 0.0;
                 double finalScore = 0.0;
 
-                static RatingDetail fromJson(const QUuid &uuid, const QJsonObject &json) {
+                QJsonObject toJson() {
+                    return {
+                        {"performance", performance},
+                        {"score", score},
+                        {"finalScore", finalScore}
+                    };
+                }
+
+                static RatingDetail fromJson(const QJsonObject &json) {
                     RatingDetail rating;
-                    rating.course_uuid = uuid;
                     rating.performance = json.value("performance").toDouble();
                     rating.score = json.value("score").toDouble();
                     rating.finalScore = json.value("finalScore").toDouble();
@@ -266,13 +272,21 @@ namespace aaims {
             QUuid student_id;
             QHash<QUuid, RatingDetail> ratings;
 
+            QJsonObject toJson() {
+                QJsonObject ratingsJson;
+                for (const auto &[key, val]: ratings.asKeyValueRange()) {
+                    ratingsJson[key.toString(QUuid::WithoutBraces)] = val.toJson();
+                }
+                return ratingsJson;
+            }
+
             static StudentRating fromJson(const QUuid &uuid, const QJsonObject &json) {
                 StudentRating rating;
                 rating.student_id = uuid;
                 QHash<QUuid, RatingDetail> ratings;
-                for (QJsonObject ratingJson = json.value("ratings").toObject(); const auto &key: ratingJson.keys()) {
+                for (const auto &key: json.keys()) {
                     QUuid ratingUuid = QUuid::fromString(key);
-                    ratings[ratingUuid] = RatingDetail::fromJson(ratingUuid, ratingJson[key].toObject());
+                    ratings[ratingUuid] = RatingDetail::fromJson(json[key].toObject());
                 }
                 rating.ratings = ratings;
                 return rating;
@@ -422,18 +436,19 @@ namespace aaims {
 
             [[nodiscard]] bool is_occupied() const { return !courses.isEmpty() || managingClass != EMPTY_UUID; }
 
-            [[nodiscard]] bool is_occupied(const QString &semester, const QList<Course::LessonTime> &times, const QList<Course::LessonTime> &existingTimes) {
+            [[nodiscard]] bool is_occupied(const QString &semester, const QList<Course::LessonTime> &times,
+                                           const QList<Course::LessonTime> &existingTimes) {
                 if (!occupied.contains(semester)) {
                     return false;
                 }
-                for (const auto &data : existingTimes) {
+                for (const auto &data: existingTimes) {
                     int mask = 0;
                     for (int i = data.weekStart; i <= data.weekEnd; ++i) {
                         mask |= 1 << (i - 1);
                     }
                     occupied[semester][data.dayOfWeek][data.startTime] &= ~mask;
                 }
-                const bool res =  std::ranges::any_of(times, [this, semester](const auto &data) {
+                const bool res = std::ranges::any_of(times, [this, semester](const auto &data) {
                     int mask = 0;
                     for (int i = data.weekStart; i <= data.weekEnd; ++i) {
                         mask |= 1 << (i - 1);
@@ -445,7 +460,7 @@ namespace aaims {
                     }
                     return false;
                 });
-                for (const auto &data : existingTimes) {
+                for (const auto &data: existingTimes) {
                     int mask = 0;
                     for (int i = data.weekStart; i <= data.weekEnd; ++i) {
                         mask |= 1 << (i - 1);
@@ -467,7 +482,6 @@ namespace aaims {
                         mask |= 1 << (i - 1);
                     }
                     for (int i = 0; i < duration; i++) {
-                        qDebug() << "Add course" << course->uuid << "at" << dayOfWeek << startTime + i;
                         occupied[course->semester][dayOfWeek][startTime + i] |= mask;
                     }
                 }

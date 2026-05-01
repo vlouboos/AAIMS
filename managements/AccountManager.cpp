@@ -31,7 +31,7 @@ namespace {
 namespace aaims::manager::account {
     void init() {
         const QString path = QCoreApplication::applicationDirPath() + "/data/accounts.json";
-        const auto &future = loadAsync(path, [](const QJsonObject &json) {
+        load(path, [](const QJsonObject &json) {
             for (const auto &key: json.keys()) {
                 const QUuid uuid = QUuid::fromString(key);
                 QJsonObject accountData = json.value(key).toObject();
@@ -80,14 +80,8 @@ namespace aaims::manager::account {
                 }
             }
         });
-        auto *watcher = new QFutureWatcher<void>(InternalManager::instance()); // NOLINT
-        QObject::connect(watcher, &QFutureWatcher<void>::finished, [watcher] {
-            qDebug() << "Loaded" << accounts.size() << "accounts.";
-            watcher->deleteLater();
-            loading = false;
-        });
-
-        watcher->setFuture(future);
+        qDebug() << "Loaded" << accounts.size() << "accounts.";
+        loading = false;
     }
 
     [[nodiscard]] QFuture<bool> saveAsync() {

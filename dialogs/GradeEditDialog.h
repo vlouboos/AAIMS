@@ -5,17 +5,16 @@
 #ifndef AAIMS_GRADEEDITDIALOG_H
 #define AAIMS_GRADEEDITDIALOG_H
 
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QTableWidget>
 #include <QPushButton>
-#include <QHeaderView>
+#include <QSortFilterProxyModel>
 #include <QTabWidget>
 
 #include "StyledDialog.h"
+#include "../pages/model/SingleGradeTableModel.h"
 #include "../utils/DataStructures.h"
 
 class GradeEditDialog : public StyledDialog {
@@ -24,33 +23,20 @@ class GradeEditDialog : public StyledDialog {
 public:
     explicit GradeEditDialog(const QUuid &courseUuid, QWidget *parent = nullptr);
 
-private slots:
-    void onSaveButtonClicked();
-
-    void onEditStudentGrades(int row);
-
-private:
-    void setupUI();
-
-    void loadStudents();
-
-    void updateStudentGrades();
-
 private:
     QVBoxLayout *mainLayout;
     QLabel *headerLabel;
     QFormLayout *infoLayout;
+    QWidget *infoWidget;
     QLabel *courseIdLabel;
     QLabel *courseNameLabel;
 
     QTabWidget *tabWidget;
     QWidget *singleEditPage;
     QVBoxLayout *singleLayout;
-    QTableWidget *gradesTable;
-
-    QHBoxLayout *btnLayout;
-    QPushButton *btnSave;
-    QPushButton *btnCancel;
+    QTableView *tableView;
+    SingleGradeTableModel *tableModel;
+    QSortFilterProxyModel *proxyModel;
 
     QUuid courseUuid;
     QList<QUuid> studentUuids; // List of students in this course

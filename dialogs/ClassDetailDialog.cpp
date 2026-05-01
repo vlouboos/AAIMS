@@ -257,17 +257,22 @@ ClassDetailDialog::ClassDetailDialog(Class *cls,
                     const auto &course = aaims::manager::course::get_courses()[courseUuid];
                     constexpr auto header = "学号,姓名,平时分,期末成绩,总成绩";
                     QStringList lines;
-                    for (const auto &studentUuid: course->students) {
+                    for (const auto &studentUuid: cls->students) {
                         const auto &student = aaims::manager::account::get_students()[studentUuid];
-                        const StudentRating::RatingDetail &rating = aaims::manager::rating::get_ratings()[student->uuid]
-                                ->ratings[courseUuid];
+                        const auto &rating = aaims::manager::rating::get_ratings()[studentUuid];
+                        double performance = 0.0, score = 0.0, finalScore = 0.0;
+                        if (rating.get()) {
+                            performance = rating->ratings[course->uuid].performance;
+                            score = rating->ratings[course->uuid].score;
+                            finalScore = rating->ratings[course->uuid].finalScore;
+                        }
                         const QString line = QString("%1,%2,%3,%4,%5")
-                                .arg(student->username, student->name, QString::number(rating.performance),
-                                     QString::number(rating.score), QString::number(rating.finalScore));
+                                .arg(student->username, student->name, QString::number(performance),
+                                     QString::number(score), QString::number(finalScore));
                         lines.append(line);
                     }
                     aaims::io::saveCsv(
-                        QString("%1/%2%3-%4-%5成绩.csv").arg(path, cls->grade, cls->name, course->semester, course->name),
+                        QString("%1/%2%3-%4-%5-%6成绩.csv").arg(path, cls->grade, cls->name, course->semester, course->id, course->name),
                         lines, header);
                 }
                 QStringList lines;
@@ -275,12 +280,17 @@ ClassDetailDialog::ClassDetailDialog(Class *cls,
                     for (const auto &student = aaims::manager::account::get_students()[studentUuid]; const auto &[uuid,
                              retake]: student->lessons) {
                         const auto &course = aaims::manager::course::get_courses()[uuid];
-                        const auto &rating = aaims::manager::rating::get_ratings()[student->uuid]
-                                ->ratings[uuid];
+                        const auto &rating = aaims::manager::rating::get_ratings()[studentUuid];
+                        double performance = 0.0, score = 0.0, finalScore = 0.0;
+                        if (rating.get()) {
+                            performance = rating->ratings[course->uuid].performance;
+                            score = rating->ratings[course->uuid].score;
+                            finalScore = rating->ratings[course->uuid].finalScore;
+                        }
                         const QString line = QString("%1,%2,%3,%4,%5,%6,%7").arg(
                             student->username, student->name, course->name, retake == 0 ? "自选" : "重修",
-                            QString::number(rating.performance), QString::number(rating.score),
-                            QString::number(rating.finalScore));
+                            QString::number(performance), QString::number(score),
+                            QString::number(finalScore));
                         lines.append(line);
                     }
                 }

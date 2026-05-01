@@ -128,8 +128,7 @@ void TimetableWidget::reload() {
     if (userType == STUDENT) {
         if (const auto *student = dynamic_cast<StudentAccount*>(aaims::manager::account::logged)) {
             for (const auto &[uuid, retake]: student->lessons) {
-                const auto &c = aaims::manager::course::get_courses()[uuid];
-                if (c->semester == semester) {
+                if (const auto &c = aaims::manager::course::get_courses()[uuid]; c->semester == semester) {
                     courses.append(c->uuid);
                 }
             }

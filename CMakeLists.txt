@@ -117,6 +117,9 @@ if (WIN32)
             pages/StudentCoursePage.h
             dialogs/SelectCourseDialog.cpp
             dialogs/SelectCourseDialog.h
+            pages/model/SingleGradeTableModel.h
+            dialogs/SingleGradeEditDialog.cpp
+            dialogs/SingleGradeEditDialog.h
     )
 else ()
     add_executable(AAIMS main.cpp
@@ -216,10 +219,11 @@ else ()
             pages/StudentCoursePage.h
             dialogs/SelectCourseDialog.cpp
             dialogs/SelectCourseDialog.h
-            pages/components/AssignmentRoleSlot.cpp
-            pages/components/AssignmentRoleSlot.h
             dialogs/AssignmentRuleDialog.cpp
             dialogs/AssignmentRuleDialog.h
+            pages/model/SingleGradeTableModel.h
+            dialogs/SingleGradeEditDialog.cpp
+            dialogs/SingleGradeEditDialog.h
     )
 endif ()
 

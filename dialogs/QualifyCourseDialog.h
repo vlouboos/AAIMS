@@ -22,7 +22,7 @@ public:
     explicit QualifyCourseDialog(QList<QUuid> qualifyingCourses, QWidget *parent = nullptr);
 
 private:
-    QHBoxLayout *mainLayout;
+    QVBoxLayout *mainLayout;
     QSplitter *splitter;
     QWidget *leftPanel;
     QWidget *rightPanel;
@@ -42,7 +42,7 @@ private:
     QPushButton *btnFinalize;
     QPushButton *btnCancel;
     
-    QHash<QUuid, QCheckBox*> studentCheckBoxes;  // Track checkboxes for students
+    QHash<QUuid, QPushButton*> studentCheckBoxButtons;  // Track checkbox buttons for students
 
     QList<QUuid> qualifyingCourses;
     QUuid currentCourseUuid = aaims::model::EMPTY_UUID;
@@ -54,7 +54,7 @@ private:
     void loadStudentsForCurrentCourse();
 
 private slots:
-    void onCourseSelected(QListWidgetItem *current, QListWidgetItem *previous);
+    void onCourseSelected(const QListWidgetItem *current, QListWidgetItem *previous);
 
     void onFinalizeClicked();
 };

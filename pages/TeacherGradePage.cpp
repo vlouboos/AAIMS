@@ -64,14 +64,12 @@ TeacherGradePage::TeacherGradePage(QWidget *parent) : QWidget(parent) {
 
     auto *delegate = new GradeDelegate(this);
     tableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    tableView->setColumnWidth(0, 120);
-    tableView->setColumnWidth(1, 120);
+    tableView->setColumnWidth(0, 140);
+    tableView->setColumnWidth(1, 100);
     tableView->setColumnWidth(2, 200);
-    tableView->setColumnWidth(3, 200);
-    tableView->setColumnWidth(4, 60);
-    tableView->setColumnWidth(5, 100);
-    tableView->setColumnWidth(6, 120);
-    tableView->setItemDelegateForColumn(6, delegate);
+    tableView->setColumnWidth(3, 100);
+    tableView->setColumnWidth(4, 120);
+    tableView->setItemDelegateForColumn(4, delegate);
 
     mainLayout->addWidget(tableView);
 

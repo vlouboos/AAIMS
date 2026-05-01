@@ -31,7 +31,7 @@ namespace aaims::manager::rating {
         const QString path = QCoreApplication::applicationDirPath() + "/data/ratings.json";
         QJsonObject root;
         for (const auto &[uuid, rating] : ratingMap.asKeyValueRange()) {
-            QJsonObject ratingObj;
+            if (!rating.get()) continue;
             QJsonObject ratingsArray;
             
             for (const auto &[courseUuid, ratingDetail] : rating->ratings.asKeyValueRange()) {
@@ -41,9 +41,8 @@ namespace aaims::manager::rating {
                 detailObj["finalScore"] = ratingDetail.finalScore;
                 ratingsArray[courseUuid.toString(QUuid::WithoutBraces)] = detailObj;
             }
-            
-            ratingObj["ratings"] = ratingsArray;
-            root[uuid.toString(QUuid::WithoutBraces)] = ratingObj;
+
+            root[uuid.toString(QUuid::WithoutBraces)] = ratingsArray;
         }
         
         return io::save(path, root);

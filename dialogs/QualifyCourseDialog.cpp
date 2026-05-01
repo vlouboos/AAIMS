@@ -5,13 +5,16 @@
 #include "QualifyCourseDialog.h"
 
 #include <QApplication>
+#include <QFutureWatcher>
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QListWidget>
+#include <QProgressDialog>
 #include <QSplitter>
+#include <qtconcurrentrun.h>
 
 #include "../managements/AccountManager.h"
 #include "../managements/CourseManager.h"
@@ -19,11 +22,11 @@
 
 QualifyCourseDialog::QualifyCourseDialog(QList<QUuid> qualifyingCourses, QWidget *parent) : StyledDialog(parent),
     qualifyingCourses(qualifyingCourses) {
-    qDebug() << "QualifyingCourses:" << qualifyingCourses.count();
     setWindowTitle("筛选课程");
     resize(900, 600);
 
-    mainLayout = new QHBoxLayout(this);
+    // Use a vertical layout for the main dialog
+    mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(15, 15, 15, 15);
 
     // Create splitter for left-right layout
@@ -40,6 +43,7 @@ QualifyCourseDialog::QualifyCourseDialog(QList<QUuid> qualifyingCourses, QWidget
 
     courseList = new QListWidget(leftPanel);
     courseList->setMinimumWidth(250);
+    courseList->setStyleSheet("QListWidget { border: 1px solid #cbd5e1; border-radius: 4px; }");
     connect(courseList, &QListWidget::currentItemChanged,
             this, &QualifyCourseDialog::onCourseSelected);
 
@@ -70,10 +74,11 @@ QualifyCourseDialog::QualifyCourseDialog(QList<QUuid> qualifyingCourses, QWidget
 
     studentsArea = new QScrollArea(rightPanel);
     studentsArea->setWidgetResizable(true);
-    studentsArea->setStyleSheet("border: none;");
+    studentsArea->setStyleSheet("border: 1px solid #cbd5e1; border-radius: 4px;");
     studentsWidget = new QWidget();
     studentsLayout = new QVBoxLayout(studentsWidget);
     studentsLayout->setAlignment(Qt::AlignTop);
+    studentsLayout->setContentsMargins(5, 5, 5, 5);
     studentsArea->setWidget(studentsWidget);
 
     rightPanelLayout->addWidget(studentsArea);
@@ -105,10 +110,9 @@ QualifyCourseDialog::QualifyCourseDialog(QList<QUuid> qualifyingCourses, QWidget
     populateCourses();
 
     if (!qualifyingCourses.isEmpty()) {
+        updateCourseDetails();
         currentCourseUuid = qualifyingCourses.first();
         courseList->setCurrentRow(0);
-        updateCourseDetails();
-        loadStudentsForCurrentCourse();
     }
 
     applyStyles();
@@ -116,7 +120,7 @@ QualifyCourseDialog::QualifyCourseDialog(QList<QUuid> qualifyingCourses, QWidget
 
 void QualifyCourseDialog::populateCourses() {
     courseList->clear();
-    for (const auto &uuid : qualifyingCourses) {
+    for (const auto &uuid: qualifyingCourses) {
         const auto x = aaims::manager::course::get_courses()[uuid];
         auto *item = new QListWidgetItem(QString("%1-%2").arg(x->id, x->name)); // NOLINT
         item->setData(Qt::UserRole, QVariant::fromValue(uuid));
@@ -139,7 +143,7 @@ void QualifyCourseDialog::loadStudentsForCurrentCourse() {
         }
         delete child;
     }
-    studentCheckBoxes.clear();
+    studentCheckBoxButtons.clear();
 
     if (currentCourseUuid == EMPTY_UUID) return;
     const auto currentCourse = aaims::manager::course::get_courses()[currentCourseUuid];
@@ -149,16 +153,19 @@ void QualifyCourseDialog::loadStudentsForCurrentCourse() {
         if (allStudents.contains(studentUuid)) {
             const auto &student = allStudents[studentUuid];
             auto *studentLayout = new QHBoxLayout; // NOLINT
-            auto *checkBox = new QCheckBox(); // NOLINT
-            auto *studentInfo = new QLabel(QString("%1 (%2)").arg(student->username, student->name)); // NOLINT
-            studentInfo->setStyleSheet("padding: 5px;");
-            
-            checkBox->setChecked(true);
-            studentCheckBoxes[studentUuid] = checkBox;
+            auto *checkBoxBtn = new QPushButton; // NOLINT
+            checkBoxBtn->setObjectName("CheckBox");
+            checkBoxBtn->setFixedSize(24, 24);
+            checkBoxBtn->setStyleSheet(
+                "QPushButton#CheckBox {\nborder-radius: 6px;\nborder: 1px solid #e2e8f0;\n}\nQPushButton#CheckBox:checked {\nbackground-color: #2563eb;\ncolor: white;\n}");
+            checkBoxBtn->setCheckable(true);
 
-            studentLayout->addWidget(checkBox);
+            auto *studentInfo = new QLabel(QString("%1 (%2)").arg(student->name, student->username)); // NOLINT
+            studentInfo->setStyleSheet("padding: 5px;");
+            studentCheckBoxButtons[studentUuid] = checkBoxBtn;
+
+            studentLayout->addWidget(checkBoxBtn);
             studentLayout->addWidget(studentInfo);
-            studentLayout->addStretch();
 
             auto *container = new QWidget; // NOLINT
             container->setLayout(studentLayout);
@@ -167,11 +174,10 @@ void QualifyCourseDialog::loadStudentsForCurrentCourse() {
             studentsLayout->addWidget(container);
         }
     }
-
     studentsLayout->addStretch();
 }
 
-void QualifyCourseDialog::onCourseSelected(QListWidgetItem *current, QListWidgetItem *previous) {
+void QualifyCourseDialog::onCourseSelected(const QListWidgetItem *current, [[maybe_unused]] QListWidgetItem *previous) {
     if (current) {
         const auto uuid = current->data(Qt::UserRole).value<QUuid>();
         currentCourseUuid = uuid;
@@ -183,29 +189,45 @@ void QualifyCourseDialog::onCourseSelected(QListWidgetItem *current, QListWidget
 
 void QualifyCourseDialog::onFinalizeClicked() {
     if (currentCourseUuid == EMPTY_UUID) return;
-    
-    auto result = QMessageBox::question(this, "确认", 
-                                       "确定要完成筛选并开始课程吗？",
-                                       QMessageBox::Yes | QMessageBox::No);
-    
+
+    const auto result = QMessageBox::question(this, "确认",
+                                              "确定要完成筛选并开始课程吗？",
+                                              QMessageBox::Yes | QMessageBox::No);
+
     if (result == QMessageBox::Yes) {
-        const auto currentCourse = aaims::manager::course::get_courses()[currentCourseUuid];
-        QList<QUuid> studentsToRemove;
-        
-        for (auto it = studentCheckBoxes.constBegin(); it != studentCheckBoxes.constEnd(); ++it) {
-            if (!it.value()->isChecked()) {
-                studentsToRemove.append(it.key());
+        auto *pd = new QProgressDialog("正在筛选...", nullptr, 0, 0, this); // NOLINT
+        pd->setWindowModality(Qt::WindowModal);
+        pd->show();
+
+        const auto future = QtConcurrent::run([this] {
+            const auto currentCourse = aaims::manager::course::get_courses()[currentCourseUuid];
+            QList<QUuid> studentsToRemove;
+
+            for (auto it = studentCheckBoxButtons.constBegin(); it != studentCheckBoxButtons.constEnd(); ++it) {
+                if (!it.value()->isChecked()) {
+                    studentsToRemove.append(it.key());
+                }
             }
-        }
-        
-        for (const auto &studentUuid : studentsToRemove) {
-            currentCourse->students.removeAll(studentUuid);
-        }
-        
-        currentCourse->status = Course::STARTED;
-        aaims::manager::course::save();
-        
-        QMessageBox::information(this, "成功", "筛选完成，课程已开始。");
-        accept();
+
+            for (const auto &studentUuid: studentsToRemove) {
+                currentCourse->students.removeAll(studentUuid);
+            }
+            for (const auto &x: currentCourse->students) {
+                const auto &student = aaims::manager::account::get_students()[x];
+                student->lessons.append({currentCourseUuid, 0});
+            }
+
+            currentCourse->status = Course::STARTED;
+            return aaims::manager::course::save() && aaims::manager::account::save();
+        });
+        const auto watcher = new QFutureWatcher<bool>(this); // NOLINT
+        connect(watcher, &QFutureWatcher<bool>::finished, [this, pd, watcher] {
+            pd->close();
+            pd->deleteLater();
+            watcher->deleteLater();
+            QMessageBox::information(this, "成功", "筛选完成，课程已开始。");
+            accept();
+        });
+        watcher->setFuture(future);
     }
 }
