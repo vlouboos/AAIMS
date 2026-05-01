@@ -8,12 +8,9 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QTableView>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QWidget>
-#include <QProgressDialog>
 #include <QFileDialog>
-#include <QFutureWatcher>
 #include <QtConcurrent>
 
 #include "model/ClassMemberTableModel.h"

@@ -5,13 +5,17 @@
 #include "CourseDetailDialog.h"
 
 #include <QCompleter>
+#include <QCoreApplication>
 #include <QFutureWatcher>
 #include <QProgressDialog>
 #include <qtconcurrentrun.h>
 
 #include "AddTeacherDialog.h"
 #include "../managements/AccountManager.h"
+#include "../managements/ClassManager.h"
 #include "../managements/CourseManager.h"
+#include "../managements/RatingManager.h"
+#include "../utils/AsyncJsonIO.h"
 #include "../utils/DataStructures.h"
 
 CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : StyledDialog(parent), course(course) {
@@ -164,8 +168,13 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
     btnCancel->setCursor(Qt::PointingHandCursor);
     btnCancel->setObjectName("AddElement");
 
+    btnExport = new QPushButton("导出成绩", this);
+    btnExport->setCursor(Qt::PointingHandCursor);
+    btnExport->setObjectName("AddElement");
+
     btnLayout->addWidget(btnSave);
     btnLayout->addWidget(btnCancel);
+    btnLayout->addWidget(btnExport);
 
     mainLayout->addWidget(headerLabel);
     mainLayout->addLayout(formLayout);
@@ -250,6 +259,77 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
         if (AssignmentRuleDialog dialog(assignmentRule, this); dialog.exec() == Accepted) {
             assignmentRule = dialog.getRule();
         }
+    });
+    connect(btnExport, &QPushButton::clicked, this, [this, course] {
+        const QString path = QFileDialog::getExistingDirectory(this, "选择目标文件夹", QCoreApplication::applicationDirPath(),
+                                                               QFileDialog::ShowDirsOnly);
+        if (path.isEmpty()) {
+            return;
+        }
+
+        if (const QFileInfo info(path); !info.isWritable()) {
+            QMessageBox::warning(this, "错误", "选定的目录没有写入权限！");
+            return;
+        }
+
+        auto *pd = new QProgressDialog("正在导出...", nullptr, 0, 0, this); // NOLINT
+        pd->setWindowModality(Qt::WindowModal);
+        pd->show();
+
+        const auto future = QtConcurrent::run([course, path] {
+            constexpr auto header = "学号,姓名,平时分,期末成绩,总成绩,是否及格,重修次数";
+            QStringList lines;
+            for (const auto &studentUuid: course->students) {
+                const auto &student = aaims::manager::account::get_students()[studentUuid];
+                const auto &status = std::ranges::find_if(student->lessons, [course](const auto &x) {
+                    return x.uuid == course->uuid;
+                });
+                const auto &rating = aaims::manager::rating::get_ratings()[studentUuid];
+                double performance = 0.0, score = 0.0, finalScore = 0.0;
+                if (rating.get()) {
+                    performance = rating->ratings[course->uuid].performance;
+                    score = rating->ratings[course->uuid].score;
+                    finalScore = rating->ratings[course->uuid].finalScore;
+                }
+                const QString line = QString("%1,%2,%3,%4,%5,%6,%7")
+                        .arg(student->username, student->name, QString::number(performance),
+                             QString::number(score), QString::number(finalScore),
+                             score >= 60 && finalScore >= 60 ? "是" : "否", QString::number(status->retake));
+                lines.append(line);
+            }
+            for (const auto &classUuid: course->classes) {
+                for (const auto &cls = aaims::manager::classes::get_classes()[classUuid]; const auto &studentUuid: cls->
+                     students) {
+                    const auto &student = aaims::manager::account::get_students()[studentUuid];
+                    const auto &status = std::ranges::find_if(student->lessons, [course](const auto &x) {
+                        return x.uuid == course->uuid;
+                    });
+                    const auto &rating = aaims::manager::rating::get_ratings()[studentUuid];
+                    double performance = 0.0, score = 0.0, finalScore = 0.0;
+                    if (rating.get()) {
+                        performance = rating->ratings[course->uuid].performance;
+                        score = rating->ratings[course->uuid].score;
+                        finalScore = rating->ratings[course->uuid].finalScore;
+                    }
+                    const QString line = QString("%1,%2,%3,%4,%5,%6,%7")
+                            .arg(student->username, student->name, QString::number(performance),
+                                 QString::number(score), QString::number(finalScore),
+                                 score >= 60 && finalScore >= 60 ? "是" : "否", QString::number(status->retake));
+                    lines.append(line);
+                }
+            }
+            aaims::io::saveCsv(
+                QString("%1/%4-%5-%6成绩.csv").arg(path, course->semester, course->id, course->name), lines, header);
+        });
+
+        const auto watcher = new QFutureWatcher<void>(this); // NOLINT
+        connect(watcher, &QFutureWatcher<void>::finished, this, [this, watcher, pd] {
+            pd->close();
+            pd->deleteLater();
+            watcher->deleteLater();
+            QMessageBox::information(this, "成功", "成绩导出完成！", QMessageBox::Ok);
+        });
+        watcher->setFuture(future);
     });
 }
 

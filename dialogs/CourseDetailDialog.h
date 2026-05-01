@@ -47,6 +47,7 @@ private:
     QHBoxLayout *btnLayout;
     QPushButton *btnSave;
     QPushButton *btnCancel;
+    QPushButton *btnExport;
     Course::AssignmentRule assignmentRule;
     
     Course *course;  // Pointer to the course being edited

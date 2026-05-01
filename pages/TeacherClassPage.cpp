@@ -9,6 +9,7 @@
 #include <QCoreApplication>
 #include <QDate>
 #include <QMessageBox>
+#include <QProgressDialog>
 
 #include "../managements/AccountManager.h"
 #include "../managements/ClassManager.h"
