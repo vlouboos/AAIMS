@@ -11,6 +11,9 @@
 #include "../dialogs/AddStudentDialog.h"
 #include "../dialogs/StudentDetailDialog.h"
 #include "../managements/AccountManager.h"
+#include "../managements/CourseManager.h"
+#include "../managements/RatingManager.h"
+#include "../utils/AsyncJsonIO.h"
 #include "delegate/OperationDelegate.h"
 #include "model/FilterProxyModel.h"
 
@@ -40,6 +43,10 @@ AdminStudentPage::AdminStudentPage(QWidget *parent) : QWidget(parent) {
     searchEdit->setFixedWidth(280);
     searchEdit->setObjectName("SearchEdit");
 
+    btnStat = new QPushButton("统计已修学分及不及级课程", this);
+    btnStat->setCursor(Qt::PointingHandCursor);
+    btnStat->setObjectName("AddElement");
+
     btnAddStudent = new QPushButton("+ 新增学生", this);
     btnAddStudent->setCursor(Qt::PointingHandCursor);
     btnAddStudent->setObjectName("AddElement");
@@ -47,6 +54,7 @@ AdminStudentPage::AdminStudentPage(QWidget *parent) : QWidget(parent) {
     headerLayout->addLayout(titleContainer);
     headerLayout->addStretch();
     headerLayout->addWidget(searchEdit);
+    headerLayout->addWidget(btnStat);
     headerLayout->addWidget(btnAddStudent);
 
     mainLayout->addLayout(headerLayout);
@@ -87,6 +95,59 @@ AdminStudentPage::AdminStudentPage(QWidget *parent) : QWidget(parent) {
 
     connect(searchEdit, &QLineEdit::textChanged, [this](const QString &text) {
         proxyModel->setFilterFixedString(text);
+    });
+
+    connect(btnStat, &QPushButton::clicked, [this] {
+        const QString path = QFileDialog::getExistingDirectory(this, "选择目标文件夹",
+                                                               QCoreApplication::applicationDirPath(),
+                                                               QFileDialog::ShowDirsOnly);
+        if (path.isEmpty()) {
+            return;
+        }
+        if (const QFileInfo info(path); !info.isWritable()) {
+            QMessageBox::warning(this, "错误", "选定的目录没有写入权限！");
+        } else {
+            auto *pd = new QProgressDialog("正在导出...", nullptr, 0, 0, this); // NOLINT
+            pd->setWindowModality(Qt::WindowModal);
+            pd->show();
+            const auto future = QtConcurrent::run([path] {
+                QStringList lines;
+                for (const auto &student: aaims::manager::account::get_students()) {
+                    const auto &rating = aaims::manager::rating::get_ratings()[student->uuid];
+                    long long credits = 0;
+                    long long failCount = 0;
+                    QStringList failCourses;
+                    if (rating.get()) {
+                        for (const auto &[key, r]: rating->ratings.asKeyValueRange()) {
+                            const auto &course = aaims::manager::course::get_courses()[key];
+                            if (r.finalScore >= 60 && r.score >= 60) {
+                                credits += course->credit;
+                            } else {
+                                failCount++;
+                                failCourses.append(course->name);
+                            }
+                        }
+                    }
+                    lines.append(QString("%1,%2,%3,%4,%5").arg(student->username, student->name,
+                                                               QString::number(credits), QString::number(failCount),
+                                                               failCourses.join(";")));
+                }
+                if (!lines.isEmpty()) {
+                    constexpr auto h = "学号,姓名,已修学分,不及格课程数,不及格课程";
+                    aaims::io::saveCsv(
+                        QString("%1/%2-学生已修学分及不及格课程.csv").arg(path, QDate::currentDate().toString("yyyy-MM-dd")),
+                        lines, h);
+                }
+            });
+            const auto watcher = new QFutureWatcher<void>(this); // NOLINT
+            connect(watcher, &QFutureWatcher<void>::finished, [this, pd, watcher] {
+                pd->close();
+                pd->deleteLater();
+                watcher->deleteLater();
+                QMessageBox::information(this, "成功", "导出完成！");
+            });
+            watcher->setFuture(future);
+        }
     });
 
     connect(btnAddStudent, &QPushButton::clicked, [this] {

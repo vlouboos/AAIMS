@@ -32,6 +32,7 @@ private:
     QLabel *titleLabel;
     QLabel *subtitleLabel;
     QLineEdit *searchEdit;
+    QPushButton *btnStat;
     QPushButton *btnAddStudent;
     QTableView *tableView;
     StudentTableModel *tableModel;
