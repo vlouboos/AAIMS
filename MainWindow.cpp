@@ -204,6 +204,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         connect(btnTeachers, &QPushButton::clicked, [this] {
             contentStack->setCurrentIndex(1);
             pageTitleLabel->setText("教师");
+            adminTeacherPage->reloadData();
             btnDashboard->setChecked(false);
             btnTeachers->setChecked(true);
             btnStudents->setChecked(false);
@@ -214,6 +215,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         connect(btnStudents, &QPushButton::clicked, [this] {
             contentStack->setCurrentIndex(2);
             pageTitleLabel->setText("学生");
+            adminStudentPage->reloadData();
             btnDashboard->setChecked(false);
             btnTeachers->setChecked(false);
             btnStudents->setChecked(true);
@@ -224,6 +226,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         connect(btnClasses, &QPushButton::clicked, [this] {
             contentStack->setCurrentIndex(3);
             pageTitleLabel->setText("班级");
+            adminClassPage->reloadData();
             btnDashboard->setChecked(false);
             btnTeachers->setChecked(false);
             btnStudents->setChecked(false);
@@ -234,6 +237,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         connect(btnCourses, &QPushButton::clicked, [this] {
             contentStack->setCurrentIndex(4);
             pageTitleLabel->setText("课程");
+            adminCoursePage->reloadData();
             btnDashboard->setChecked(false);
             btnTeachers->setChecked(false);
             btnStudents->setChecked(false);
@@ -278,7 +282,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         connect(btnGrades, &QPushButton::clicked, [this, loggedAccount] {
             contentStack->setCurrentIndex(2);
             pageTitleLabel->setText("成绩");
-            teacherCoursePage->reload();
+            teacherGradePage->reloadData();
             btnDashboard->setChecked(false);
             btnCourses->setChecked(false);
             btnGrades->setChecked(true);

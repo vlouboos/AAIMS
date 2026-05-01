@@ -94,7 +94,9 @@ TeacherGradePage::TeacherGradePage(QWidget *parent) : QWidget(parent) {
             GradeEditDialog(course->uuid, this).exec();
         }
     });
+}
 
+void TeacherGradePage::reloadData() const {
     tableModel->setCourses(aaims::manager::account::get_teachers()[aaims::manager::account::logged->uuid]->courses);
     proxyModel->sort(0);
     subtitleLabel->setText(QString("管理系统内共 %1 个您的课程").arg(tableModel->rowCount(QModelIndex())));

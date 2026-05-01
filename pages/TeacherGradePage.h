@@ -20,6 +20,9 @@ class TeacherGradePage : public QWidget {
 public:
     explicit TeacherGradePage(QWidget *parent = nullptr);
 
+    void reloadData() const;
+
+private:
     QVBoxLayout *mainLayout;
     QHBoxLayout *headerLayout;
     QVBoxLayout *titleContainer;

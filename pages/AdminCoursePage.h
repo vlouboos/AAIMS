@@ -21,6 +21,7 @@ class AdminCoursePage : public QWidget {
 public:
     explicit AdminCoursePage(QWidget *parent = nullptr);
 
+    void reloadData() const;
 private:
     QVBoxLayout *mainLayout;
     QHBoxLayout *headerLayout;
@@ -33,7 +34,6 @@ private:
     CourseTableModel *tableModel;
     QSortFilterProxyModel *proxyModel;
 
-    void reloadData() const;
 };
 
 #endif //AAIMS_ADMINCOURSEPAGE_H
