@@ -37,9 +37,18 @@ private:
     QTableView *tableView;
     SingleGradeTableModel *tableModel;
     QSortFilterProxyModel *proxyModel;
+    QWidget *batchImportPage;
+    QVBoxLayout *batchLayout;
+    QLabel *tipLabel;
+    QLabel *fileStatusLabel;
+    QPushButton *btnSelectFile;
+    QPushButton *btnConfirmBatch;
+    QString selectedFilePath;
 
     QUuid courseUuid;
     QList<QUuid> studentUuids; // List of students in this course
+
+    [[nodiscard]] QPair<unsigned long long, unsigned long long> importFromCsv() const;
 };
 
 #endif //AAIMS_GRADEEDITDIALOG_H
