@@ -269,6 +269,9 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
         }
     });
 
+    connect(onlineCheck, &QPushButton::clicked, this, [this] {
+        if (!onlineCheck->isChecked() && slotWidgets.empty()) onAddSlotClicked();
+    });
 
     onAddSlotClicked(); // Don't forget
 }
