@@ -301,9 +301,6 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
                 for (const auto &cls = aaims::manager::classes::get_classes()[classUuid]; const auto &studentUuid: cls->
                      students) {
                     const auto &student = aaims::manager::account::get_students()[studentUuid];
-                    const auto &status = std::ranges::find_if(student->lessons, [course](const auto &x) {
-                        return x.uuid == course->uuid;
-                    });
                     const auto &rating = aaims::manager::rating::get_ratings()[studentUuid];
                     double performance = 0.0, score = 0.0, finalScore = 0.0;
                     if (rating.get()) {
@@ -314,7 +311,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
                     const QString line = QString("%1,%2,%3,%4,%5,%6,%7")
                             .arg(student->username, student->name, QString::number(performance),
                                  QString::number(score), QString::number(finalScore),
-                                 score >= 60 && finalScore >= 60 ? "是" : "否", QString::number(status->retake));
+                                 score >= 60 && finalScore >= 60 ? "是" : "否", "0");
                     lines.append(line);
                 }
             }
