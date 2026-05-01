@@ -23,6 +23,7 @@ public:
 
 private slots:
     void onExportGrades();
+    void onStatGrades();
 
 private:
     QVBoxLayout *mainLayout;
@@ -30,6 +31,7 @@ private:
     QVBoxLayout *titleContainer;
     QLabel *titleLabel;
     QLabel *subtitleLabel;
+    QPushButton *btnStat;
     QPushButton *btnExportGrades;
     QTableView *tableView;
     ClassMemberTableModel *tableModel;

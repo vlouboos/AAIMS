@@ -44,13 +44,16 @@ void TeacherClassPage::setupUI() {
     titleContainer->addWidget(titleLabel);
     titleContainer->addWidget(subtitleLabel);
 
+    btnStat = new QPushButton("统计已修学分及不及格课程", this);
+    btnStat->setObjectName("AddElement");
+
     btnExportGrades = new QPushButton("导出成绩", this);
     btnExportGrades->setObjectName("AddElement");
     btnExportGrades->setFixedWidth(120);
-    connect(btnExportGrades, &QPushButton::clicked, this, &TeacherClassPage::onExportGrades);
 
     headerLayout->addLayout(titleContainer);
     headerLayout->addStretch();
+    headerLayout->addWidget(btnStat);
     headerLayout->addWidget(btnExportGrades);
 
     mainLayout->addLayout(headerLayout);
@@ -77,14 +80,14 @@ void TeacherClassPage::setupUI() {
     header->setSectionResizeMode(4, QHeaderView::ResizeToContents);
 
     mainLayout->addWidget(tableView);
+
+    connect(btnStat, &QPushButton::clicked, this, &TeacherClassPage::onStatGrades);
+    connect(btnExportGrades, &QPushButton::clicked, this, &TeacherClassPage::onExportGrades);
 }
 
 void TeacherClassPage::loadClassData() const {
-    const auto &teacher = aaims::manager::account::get_teachers()[aaims::manager::account::logged->uuid];
-    
-    if (teacher->is_class_master()) {
-        const auto &allClasses = aaims::manager::classes::get_classes();
-        for (const auto &[classUuid, cls] : allClasses.asKeyValueRange()) {
+    if (const auto &teacher = aaims::manager::account::get_teachers()[aaims::manager::account::logged->uuid]; teacher->is_class_master()) {
+        for (const auto &allClasses = aaims::manager::classes::get_classes(); const auto &[classUuid, cls] : allClasses.asKeyValueRange()) {
             if (cls->master == teacher->uuid) {
                 tableModel->setClasses(cls->students);
                 subtitleLabel->setText(QString("班级 %1%2 共 %3 名学生").arg(cls->grade).arg(cls->name).arg(cls->students.size()));
@@ -191,6 +194,86 @@ void TeacherClassPage::onExportGrades() {
         pd->deleteLater();
         watcher->deleteLater();
         QMessageBox::information(this, "成功", "成绩导出完成！", QMessageBox::Ok);
+    });
+    watcher->setFuture(future);
+}
+
+void TeacherClassPage::onStatGrades() {
+    const auto &teacher = aaims::manager::account::get_teachers()[aaims::manager::account::logged->uuid];
+    
+    if (!teacher->is_class_master()) {
+        QMessageBox::warning(this, "提示", "您不是任何班级的班主任，无法统计成绩");
+        return;
+    }
+    
+    const auto &allClasses = aaims::manager::classes::get_classes();
+    Class *cls = nullptr;
+    
+    for (const auto &[classUuid, classPtr] : allClasses.asKeyValueRange()) {
+        if (classPtr->master == teacher->uuid) {
+            cls = classPtr.get();
+            break;
+        }
+    }
+    
+    if (!cls) {
+        QMessageBox::warning(this, "错误", "未找到您管理的班级");
+        return;
+    }
+    
+    const QString path = QFileDialog::getExistingDirectory(this, "选择目标文件夹", QCoreApplication::applicationDirPath(),
+                                                           QFileDialog::ShowDirsOnly);
+    if (path.isEmpty()) {
+        return;
+    }
+    
+    if (const QFileInfo info(path); !info.isWritable()) {
+        QMessageBox::warning(this, "错误", "选定的目录没有写入权限！");
+        return;
+    }
+    
+    auto *pd = new QProgressDialog("正在统计...", nullptr, 0, 0, this); // NOLINT
+    pd->setWindowModality(Qt::WindowModal);
+    pd->show();
+    
+    const auto future = QtConcurrent::run([cls, path] {
+        QStringList lines;
+        for (const auto &studentUuid: cls->students) {
+            const auto &student = aaims::manager::account::get_students()[studentUuid];
+            const auto &rating = aaims::manager::rating::get_ratings()[studentUuid];
+            long long credits = 0;
+            long long failCount = 0;
+            QStringList failCourses;
+            if (rating.get()) {
+                for (const auto &[key, r]: rating->ratings.asKeyValueRange()) {
+                    const auto &course = aaims::manager::course::get_courses()[key];
+                    if (r.finalScore >= 60 && r.score >= 60) {
+                        credits += course->credit;
+                    } else {
+                        failCount++;
+                        failCourses.append(course->name);
+                    }
+                }
+            }
+            lines.append(QString("%1,%2,%3,%4,%5").arg(student->username, student->name,
+                                                           QString::number(credits), QString::number(failCount),
+                                                           failCourses.join(";")));
+        }
+        if (!lines.isEmpty()) {
+            constexpr auto h = "学号,姓名,已修学分,不及格课程数,不及格课程";
+            aaims::io::saveCsv(
+                QString("%1/%2%3-%4-学生已修学分及不及格课程.csv").arg(path, cls->grade, cls->name,
+                                                                                   QDate::currentDate().toString("yyyy-MM-dd")),
+                lines, h);
+        }
+    });
+    
+    const auto watcher = new QFutureWatcher<void>(this); // NOLINT
+    connect(watcher, &QFutureWatcher<void>::finished, this, [this, watcher, pd] {
+        pd->close();
+        pd->deleteLater();
+        watcher->deleteLater();
+        QMessageBox::information(this, "成功", "统计完成！");
     });
     watcher->setFuture(future);
 }
