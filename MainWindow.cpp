@@ -244,6 +244,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         connect(btnAuth, &QPushButton::clicked, [this] {
             contentStack->setCurrentIndex(5);
             pageTitleLabel->setText("凭证");
+            adminAuthPage->reloadData();
             btnDashboard->setChecked(false);
             btnTeachers->setChecked(false);
             btnStudents->setChecked(false);
