@@ -323,7 +323,7 @@ void AssignmentRuleDialog::onOkClicked() {
     
     // Grade selections
     bool hasGradeSelection = false;
-    for (auto *item : allGradeItems) {
+    for (const auto *item : allGradeItems) {
         if (item->checkState() == Qt::Checked) {
             hasGradeSelection = true;
             currentRule.targetGrades.append(item->text());
@@ -332,11 +332,10 @@ void AssignmentRuleDialog::onOkClicked() {
     
     // Major selections
     bool hasMajorSelection = false;
-    for (auto *item : allMajorItems) {
+    for (const auto *item : allMajorItems) {
         if (item->checkState() == Qt::Checked) {
             hasMajorSelection = true;
-            QUuid majorUuid = QUuid::fromString(item->data(Qt::UserRole).toString());
-            if (majorUuid != aaims::model::EMPTY_UUID) {
+            if (QUuid majorUuid = QUuid::fromString(item->data(Qt::UserRole).toString()); majorUuid != EMPTY_UUID) {
                 currentRule.targetMajors.append(majorUuid);
             }
         }
@@ -344,16 +343,15 @@ void AssignmentRuleDialog::onOkClicked() {
     
     // Student selections
     bool hasStudentSelection = false;
-    for (auto *item : allStudentItems) {
+    for (const auto *item : allStudentItems) {
         if (item->checkState() == Qt::Checked) {
             hasStudentSelection = true;
-            QUuid studentUuid = QUuid::fromString(item->data(Qt::UserRole).toString());
-            if (studentUuid != EMPTY_UUID) {
+            if (QUuid studentUuid = QUuid::fromString(item->data(Qt::UserRole).toString()); studentUuid != EMPTY_UUID) {
                 currentRule.specificStudents.append(studentUuid);
             }
         }
     }
-    
+
     // Set the status bits for each rule type that has at least one selection
     if (hasDepartmentSelection) {
         currentRule.status |= Course::AssignmentRule::DEPARTMENT;

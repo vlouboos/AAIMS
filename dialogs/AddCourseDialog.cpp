@@ -203,7 +203,7 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
             for (const auto &x: slotWidgets) {
                 courses.append(x->toData());
             }
-            if (teacher->is_occupied(comboSemester->currentData().value<QString>(), courses)) {
+            if (teacher->is_occupied(comboSemester->currentData().value<QString>(), courses, QList<Course::LessonTime>())) {
                 pd->close();
                 pd->deleteLater();
                 QMessageBox::warning(this, "输入错误", "该教师已有课程时间与当前课程冲突！");
@@ -328,7 +328,7 @@ QPair<unsigned long long, unsigned long long> AddCourseDialog::importFromCsv() c
                     location
                 });
             }
-            if ((*it)->is_occupied(semester, timeList)) {
+            if ((*it)->is_occupied(semester, timeList, QList<Course::LessonTime>())) {
                 failed++;
                 continue;
             }

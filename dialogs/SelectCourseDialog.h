@@ -33,7 +33,7 @@ private:
     QPushButton *cancelBtn;
     QHBoxLayout *btnLayout;
     QList<QUuid> availableCourses;
-    QHash<QUuid, QCheckBox *> courseCheckBoxes;
+    QHash<QUuid, QPushButton *> courseCheckBoxes;
 
     void populateCourses();
 };

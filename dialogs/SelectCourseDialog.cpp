@@ -4,8 +4,11 @@
 
 #include "SelectCourseDialog.h"
 
+#include <QFutureWatcher>
 #include <QMessageBox>
 #include <QHeaderView>
+#include <QProgressDialog>
+#include <qtconcurrentrun.h>
 
 #include "../managements/AccountManager.h"
 #include "../managements/CourseManager.h"
@@ -63,13 +66,7 @@ void SelectCourseDialog::populateCourses() {
         }
         delete child;
     }
-
-    // Get the current student
-    auto *student = dynamic_cast<StudentAccount *>(aaims::manager::account::logged);
-    if (!student) {
-        QMessageBox::warning(this, "错误", "无法获取当前登录的学生信息");
-        return;
-    }
+    const auto *student = dynamic_cast<StudentAccount *>(aaims::manager::account::logged);
 
     const auto &allCourses = aaims::manager::course::get_courses();
 
@@ -81,9 +78,14 @@ void SelectCourseDialog::populateCourses() {
             auto *courseLayout = new QHBoxLayout; // NOLINT
 
             // Create checkbox for course selection
-            auto *checkBox = new QCheckBox();
+            auto *checkBox = new QPushButton; // NOLINT
+            checkBox->setCheckable(true);
             // Check if student is already enrolled in this course
-            bool isEnrolled = course->students.contains(student->uuid);
+            const bool isEnrolled = course->students.contains(student->uuid);
+            checkBox->setFixedSize(24, 24);
+            checkBox->setObjectName("CheckBox");
+            checkBox->setStyleSheet(
+                "QPushButton#CheckBox {\nborder-radius: 6px;\nborder: 1px solid #e2e8f0;\n}\nQPushButton#CheckBox:checked {\nbackground-color: #2563eb;\ncolor: white;\n}");
             checkBox->setChecked(isEnrolled);
 
             // Create label with course info
@@ -102,7 +104,6 @@ void SelectCourseDialog::populateCourses() {
             container->setLayout(courseLayout);
             container->setStyleSheet(
                 "background-color: white; border: 1px solid #e2e8f0; border-radius: 4px; margin: 2px;");
-
             coursesLayout->addWidget(container);
         }
     }
@@ -112,31 +113,42 @@ void SelectCourseDialog::populateCourses() {
 }
 
 void SelectCourseDialog::onConfirmClicked() {
-    const auto *student = dynamic_cast<StudentAccount *>(aaims::manager::account::logged);
-    const auto &allCourses = aaims::manager::course::get_courses();
+    auto *pd = new QProgressDialog("正在选课...", nullptr, 0, 0, this); // NOLINT
+    pd->setWindowModality(Qt::WindowModal);
+    pd->show();
+    const auto future = QtConcurrent::run([this] {
+        const auto *student = dynamic_cast<StudentAccount *>(aaims::manager::account::logged);
+        const auto &allCourses = aaims::manager::course::get_courses();
 
-    // Process all course selections
-    for (auto it = courseCheckBoxes.constBegin(); it != courseCheckBoxes.constEnd(); ++it) {
-        const QUuid &courseUuid = it.key();
-        const QCheckBox *checkBox = it.value();
+        // Process all course selections
+        for (auto it = courseCheckBoxes.constBegin(); it != courseCheckBoxes.constEnd(); ++it) {
+            const QUuid &courseUuid = it.key();
+            const QPushButton *checkBox = it.value();
 
-        if (allCourses.contains(courseUuid)) {
-            auto &course = allCourses[courseUuid];
+            if (allCourses.contains(courseUuid)) {
+                auto &course = allCourses[courseUuid];
 
-            if (checkBox->isChecked()) {
-                // Add student to course if not already enrolled
-                if (!course->students.contains(student->uuid)) {
-                    course->students.append(student->uuid);
+                if (checkBox->isChecked()) {
+                    // Add student to course if not already enrolled
+                    if (!course->students.contains(student->uuid)) {
+                        course->students.append(student->uuid);
+                    }
+                } else {
+                    // Remove student from course if enrolled
+                    course->students.removeAll(student->uuid);
                 }
-            } else {
-                // Remove student from course if enrolled
-                course->students.removeAll(student->uuid);
             }
         }
-    }
 
-    aaims::manager::course::save();
-
-    QMessageBox::information(this, "成功", "选课信息已保存！");
-    accept();
+        return aaims::manager::course::save();
+    });
+    const auto watcher = new QFutureWatcher<bool>(this); // NOLINT
+    connect(watcher, &QFutureWatcher<bool>::finished, this, [this, pd, watcher] {
+        pd->close();
+        pd->deleteLater();
+        watcher->deleteLater();
+        QMessageBox::information(this, "成功", "选课信息已保存！");
+        accept();
+    });
+    watcher->setFuture(future);
 }

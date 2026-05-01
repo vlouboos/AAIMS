@@ -422,11 +422,18 @@ namespace aaims {
 
             [[nodiscard]] bool is_occupied() const { return !courses.isEmpty() || managingClass != EMPTY_UUID; }
 
-            [[nodiscard]] bool is_occupied(const QString &semester, const QList<Course::LessonTime> &times) {
+            [[nodiscard]] bool is_occupied(const QString &semester, const QList<Course::LessonTime> &times, const QList<Course::LessonTime> &existingTimes) {
                 if (!occupied.contains(semester)) {
                     return false;
                 }
-                return std::ranges::all_of(times, [this, semester](const auto &data) {
+                for (const auto &data : existingTimes) {
+                    int mask = 0;
+                    for (int i = data.weekStart; i <= data.weekEnd; ++i) {
+                        mask |= 1 << (i - 1);
+                    }
+                    occupied[semester][data.dayOfWeek][data.startTime] &= ~mask;
+                }
+                const bool res =  std::ranges::any_of(times, [this, semester](const auto &data) {
                     int mask = 0;
                     for (int i = data.weekStart; i <= data.weekEnd; ++i) {
                         mask |= 1 << (i - 1);
@@ -438,6 +445,14 @@ namespace aaims {
                     }
                     return false;
                 });
+                for (const auto &data : existingTimes) {
+                    int mask = 0;
+                    for (int i = data.weekStart; i <= data.weekEnd; ++i) {
+                        mask |= 1 << (i - 1);
+                    }
+                    occupied[semester][data.dayOfWeek][data.startTime] |= mask;
+                }
+                return res;
             }
 
             void addCourse(const Course *course) {

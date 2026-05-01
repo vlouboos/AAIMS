@@ -196,7 +196,7 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
             for (const auto &x: slotWidgets) {
                 times.append(x->toData());
             }
-            if (teacher->is_occupied(comboSemester->currentData().value<QString>(), times)) {
+            if (teacher->is_occupied(comboSemester->currentData().value<QString>(), times, course->times)) {
                 pd->close();
                 pd->deleteLater();
                 QMessageBox::warning(this, "输入错误", "该教师已有课程时间与当前课程冲突！");
@@ -207,12 +207,12 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
             TeacherAccount *old = aaims::manager::account::get_teachers()[course->teacher];
             old->removeCourse(course);
             course->teacher = teacher->uuid;
-            teacher->addCourse(course);
             course->credit = comboCredits->currentData().value<int>();
             course->semester = comboSemester->currentData().value<QString>();
             course->status = comboStatus->currentData().value<int>();
             course->times.clear();
             course->times.append(times);
+            teacher->addCourse(course);
             course->assignmentRule = assignmentRule;
 
             const auto future = QtConcurrent::run([] {
