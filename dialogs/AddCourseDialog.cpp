@@ -11,7 +11,6 @@
 #include <QLabel>
 #include <QGroupBox>
 #include <QProgressDialog>
-#include <qtconcurrentrun.h>
 
 #include "AddTeacherDialog.h"
 #include "../managements/AccountManager.h"
@@ -180,14 +179,14 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
     applyStyles();
 
     connect(btnAddSlot, &QPushButton::clicked, this, &AddCourseDialog::onAddSlotClicked);
-    
+
     connect(btnSetAssignmentRule, &QPushButton::clicked, this, [this] {
         AssignmentRuleDialog dialog(currentAssignmentRule, this);
         if (dialog.exec() == QDialog::Accepted) {
             currentAssignmentRule = dialog.getRule();
         }
     });
-    
+
     connect(btnSave, &QPushButton::clicked, this, [this] {
         if (validateForm()) {
             auto *pd = new QProgressDialog("正在添加...", nullptr, 0, 0, this); // NOLINT
@@ -203,7 +202,8 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
             for (const auto &x: slotWidgets) {
                 courses.append(x->toData());
             }
-            if (teacher->is_occupied(comboSemester->currentData().value<QString>(), courses, QList<Course::LessonTime>())) {
+            if (teacher->is_occupied(comboSemester->currentData().value<QString>(), courses,
+                                     QList<Course::LessonTime>())) {
                 pd->close();
                 pd->deleteLater();
                 QMessageBox::warning(this, "输入错误", "该教师已有课程时间与当前课程冲突！");
@@ -216,13 +216,15 @@ AddCourseDialog::AddCourseDialog(QWidget *parent) : StyledDialog(parent) {
             course->semester = comboSemester->currentData().value<QString>();
             course->status = Course::ACCEPTING;
             course->times.append(courses);
-            
+
             // Apply assignment rule
             course->assignmentRule = currentAssignmentRule;
-            
+
             aaims::manager::course::add(course);
             teacher->addCourse(course.get());
-            const auto future = QtConcurrent::run([] { return aaims::manager::course::save() && aaims::manager::account::save(); });
+            const auto future = QtConcurrent::run([] {
+                return aaims::manager::course::save() && aaims::manager::account::save();
+            });
             const auto watcher = new QFutureWatcher<bool>(this); // NOLINT
             connect(watcher, &QFutureWatcher<bool>::finished, this, [this, pd, watcher] {
                 pd->close();

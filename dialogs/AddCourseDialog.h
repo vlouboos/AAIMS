@@ -6,22 +6,18 @@
 #define AAIMS_ADDCOURSEDIALOG_H
 
 #pragma once
-#include <qformlayout.h>
-#include <qgroupbox.h>
+#include <QGroupBox>
 
 #include "AddClassDialog.h"
+#include "AssignmentRuleDialog.h"
 #include "StyledDialog.h"
 #include "../pages/components/TimeSlot.h"
-#include "AssignmentRuleDialog.h"
 
 class AddCourseDialog : public StyledDialog {
     Q_OBJECT
 
 public:
     explicit AddCourseDialog(QWidget *parent = nullptr);
-
-private:
-    [[nodiscard]] QPair<unsigned long long, unsigned long long> importFromCsv() const;
 
 private slots:
     void onAddSlotClicked();
@@ -62,6 +58,8 @@ private:
     bool validateForm();
 
     void removeSlot(TimeSlot *slot);
+
+    [[nodiscard]] QPair<unsigned long long, unsigned long long> importFromCsv() const;
 };
 
 #endif //AAIMS_ADDCOURSEDIALOG_H

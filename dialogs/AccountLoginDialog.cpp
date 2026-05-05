@@ -4,7 +4,7 @@
 
 #include "AccountLoginDialog.h"
 
-#include <qcoreevent.h>
+#include <QEvent>
 #include <QGraphicsDropShadowEffect>
 #include <QMessageBox>
 #include <QPushButton>
@@ -164,7 +164,7 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
         helpDialog.setWindowTitle("帮助中心");
         helpDialog.setModal(true);
         helpDialog.resize(500, 600);
-        
+
         auto *layout = new QVBoxLayout(&helpDialog);
 
         auto *imageLabel = new QLabel(&helpDialog);
@@ -173,10 +173,10 @@ AccountLoginDialog::AccountLoginDialog(QWidget *parent) : StyledDialog(parent) {
         if (const QPixmap pixmap(":/assets/payment-code.png"); !pixmap.isNull()) {
             imageLabel->setPixmap(pixmap.scaled(400, 200, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         }
-        
+
         layout->addWidget(new QLabel("AAIMS - 教务信息管理系统\n作者: vlouboos\n版本: 1.0.0\n"
-                                    "联系邮箱: vlouyearlinjinhua@outlook.com\n\n"
-                                    "什么帮助？哦，帮助啊，看到下面那个二维码了吗？扫它！\n\n", &helpDialog));
+                                     "联系邮箱: vlouyearlinjinhua@outlook.com\n\n"
+                                     "什么帮助？哦，帮助啊，看到下面那个二维码了吗？扫它！\n\n", &helpDialog));
         layout->addWidget(imageLabel);
         layout->addWidget(new QLabel("\n\n版权所有: Copyright (c) 2026, vlouboos\nAll rights reserved.", &helpDialog));
         helpDialog.exec();

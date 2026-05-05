@@ -5,13 +5,13 @@
 #ifndef AAIMS_ADDMAJORDIALOG_H
 #define AAIMS_ADDMAJORDIALOG_H
 
+#pragma once
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QComboBox>
 #include <QLabel>
 
 #include "StyledDialog.h"
-
 
 class AddMajorDialog : public StyledDialog {
     Q_OBJECT
@@ -40,6 +40,5 @@ private:
     QPushButton *btnConfirmBatch;
     QString selectedFilePath;
 };
-
 
 #endif //AAIMS_ADDMAJORDIALOG_H

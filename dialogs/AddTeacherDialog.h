@@ -5,12 +5,12 @@
 #ifndef AAIMS_ADDTEACHERDIALOG_H
 #define AAIMS_ADDTEACHERDIALOG_H
 
-#include <QLineEdit>
+#include <QComboBox>
+#include <QFileDialog>
 #include <QFormLayout>
 #include <QLabel>
-#include <QFileDialog>
+#include <QLineEdit>
 #include <QMessageBox>
-#include <QComboBox>
 
 #include "StyledDialog.h"
 
@@ -19,8 +19,6 @@ class AddTeacherDialog : public StyledDialog {
 
 public:
     explicit AddTeacherDialog(QWidget *parent = nullptr);
-
-    ~AddTeacherDialog() override = default;
 
 private:
     QVBoxLayout *mainLayout;

@@ -5,12 +5,13 @@
 #ifndef AAIMS_ADDCLASSDIALOG_H
 #define AAIMS_ADDCLASSDIALOG_H
 
-#include <QLineEdit>
+#pragma once
+#include <QComboBox>
+#include <QFileDialog>
 #include <QFormLayout>
 #include <QLabel>
-#include <QFileDialog>
+#include <QLineEdit>
 #include <QMessageBox>
-#include <QComboBox>
 
 #include "StyledDialog.h"
 
@@ -19,8 +20,6 @@ class AddClassDialog : public StyledDialog {
 
 public:
     explicit AddClassDialog(QWidget *parent = nullptr);
-
-    ~AddClassDialog() override = default;
 
 private:
     QVBoxLayout *mainLayout;
@@ -48,4 +47,5 @@ private:
 
     [[nodiscard]] QPair<unsigned long long, unsigned long long> importFromCsv() const;
 };
+
 #endif //AAIMS_ADDCLASSDIALOG_H

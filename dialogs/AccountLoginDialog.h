@@ -5,11 +5,10 @@
 #ifndef AAIMS_ACCOUNTLOGINDIALOG_H
 #define AAIMS_ACCOUNTLOGINDIALOG_H
 
-#include <QLineEdit>
+#pragma once
+#include <QGraphicsDropShadowEffect>
 #include <QLabel>
-#include <QFrame>
-#include <QPixmap>
-#include <qgraphicseffect.h>
+#include <QLineEdit>
 
 #include "StyledDialog.h"
 

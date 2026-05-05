@@ -8,7 +8,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <qtconcurrentrun.h>
+#include <QtConcurrentRun>
 
 #include "../managements/ClassManager.h"
 

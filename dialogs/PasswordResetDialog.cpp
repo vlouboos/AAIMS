@@ -140,9 +140,9 @@ void PasswordResetDialog::updateButtonState() const {
 }
 
 void PasswordResetDialog::onResetPasswordClicked() {
-    QString currentPassword = currentPasswordEdit->text();
-    QString newPassword = newPasswordEdit->text();
-    QString confirmPassword = confirmPasswordEdit->text();
+    const QString currentPassword = currentPasswordEdit->text();
+    const QString newPassword = newPasswordEdit->text();
+    const QString confirmPassword = confirmPasswordEdit->text();
 
     // Validation is already handled by updateButtonState(), but let's double-check
     if (currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {

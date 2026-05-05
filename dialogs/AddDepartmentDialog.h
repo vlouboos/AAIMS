@@ -5,9 +5,11 @@
 #ifndef AAIMS_ADDDEPARTMENTDIALOG_H
 #define AAIMS_ADDDEPARTMENTDIALOG_H
 
-#include <QPushButton>
+#pragma once
 #include <QLabel>
 #include <QPlainTextEdit>
+#include <QPushButton>
+
 #include "StyledDialog.h"
 
 class AddDepartmentDialog : public StyledDialog {
@@ -15,8 +17,6 @@ class AddDepartmentDialog : public StyledDialog {
 
 public:
     explicit AddDepartmentDialog(QWidget *parent = nullptr);
-
-    ~AddDepartmentDialog() override = default;
 
 private:
     QVBoxLayout *mainLayout;
