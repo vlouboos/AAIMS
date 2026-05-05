@@ -365,7 +365,7 @@ bool CourseDetailDialog::validateForm() {
         return false;
     }
     // [0-6][0-14]
-    int occupied[7][15];
+    int occupied[7][15] = {};
     return std::ranges::all_of(slotWidgets, [this, &occupied](const auto w) {
         const auto data = w->toData();
         if (data.weekEnd < data.weekStart) {
