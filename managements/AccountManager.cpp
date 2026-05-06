@@ -25,6 +25,7 @@ namespace {
     QHash<QUuid, StudentAccount *> workingStudents;
     QHash<QUuid, StudentAccount *> graduatedStudents;
     QHash<QUuid, StudentAccount *> suspendedStudents;
+    QSet<QString> usernames;
     bool loading = true;
 }
 
@@ -54,6 +55,7 @@ namespace aaims::manager::account {
                 accounts[uuid] = acc;
                 accounts_by_username[acc->username.toLower()] = uuid;
                 accounts_by_name[acc->name] = uuid;
+                usernames.insert(acc->username.toLower());
                 if (acc->is_master()) {
                     master = uuid;
                 }
@@ -111,9 +113,7 @@ namespace aaims::manager::account {
 
     [[nodiscard]] QString add(const std::shared_ptr<Account> &account) {
         if (!account.get()) return "内部错误";
-        if (std::ranges::any_of(accounts.values(), [account](const std::shared_ptr<Account> &a) {
-            return account->username.toLower() == a->username.toLower();
-        })) {
+        if (usernames.contains(account->username.toLower())) {
             return "用户名已存在！";
         }
         QUuid uuid;
@@ -142,6 +142,7 @@ namespace aaims::manager::account {
         accounts[uuid] = account;
         accounts_by_username[account->username.toLower()] = uuid;
         accounts_by_name[account->name] = uuid;
+        usernames.insert(account->username.toLower());
         return "";
     }
 
