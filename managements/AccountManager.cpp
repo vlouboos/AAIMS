@@ -111,6 +111,11 @@ namespace aaims::manager::account {
 
     [[nodiscard]] QString add(const std::shared_ptr<Account> &account) {
         if (!account.get()) return "内部错误";
+        if (std::ranges::any_of(accounts.values(), [account](const std::shared_ptr<Account> &a) {
+            return account->username.toLower() == a->username.toLower();
+        })) {
+            return "用户名已存在！";
+        }
         QUuid uuid;
         do {
             uuid = QUuid::createUuid();
@@ -120,22 +125,10 @@ namespace aaims::manager::account {
         if (account->is_master()) {
             master = uuid;
         } else if (account->is_admin()) {
-            if (std::ranges::any_of(admins.values(), [account](const Account *a) {
-                return account->username.toLower() == a->username.toLower();
-            }))
-                return "工号已存在！";
             admins[uuid] = account.get();
         } else if (account->is_teacher()) {
-            if (std::ranges::any_of(teachers.values(), [account](const TeacherAccount *a) {
-                return account->username.toLower() == a->username.toLower();
-            }))
-                return "工号已存在！";
             teachers[uuid] = dynamic_cast<TeacherAccount *>(account.get());
         } else {
-            if (std::ranges::any_of(students.values(), [account](const StudentAccount *a) {
-                return account->username.toLower() == a->username.toLower();
-            }))
-                return "学号已存在！";
             students[uuid] = dynamic_cast<StudentAccount *>(account.get());
             if (account->is_graduated()) {
                 graduatedStudents[uuid] = students[uuid];
