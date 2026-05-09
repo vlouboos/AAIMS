@@ -139,8 +139,8 @@ void DistributionRing::mouseMoveEvent(QMouseEvent *event) {
             const QString tooltipStr = QString(
                 "<div style='margin: 4px;'>"
                 "<b style='font-size: 14px; color: %1;'>%2</b><br/>"
-                "<span style='color: #cbd5e1;'>人数:</span> <b style='color: white;'>%3</b><br/>"
-                "<span style='color: #cbd5e1;'>占比:</span> <b style='color: white;'>%4%</b>"
+                "<span style='color: #cbd5e1;'>人数:</span> <b style='color: black;'>%3</b><br/>"
+                "<span style='color: #cbd5e1;'>占比:</span> <b style='color: black;'>%4%</b>"
                 "</div>"
             ).arg(color.name(), label, QString::number(count), QString::number(percent, 'f', 1));
             QToolTip::showText(event->globalPosition().toPoint(), tooltipStr, this);
