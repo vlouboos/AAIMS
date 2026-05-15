@@ -16,6 +16,7 @@
 int main(int argc, char *argv[]) {
     const QApplication a(argc, argv);
     QApplication::setApplicationName("AAIMS");
+    QApplication::setApplicationVersion("1.0");
 
     qInfo() << "Loading courses...";
     aaims::manager::course::init();
