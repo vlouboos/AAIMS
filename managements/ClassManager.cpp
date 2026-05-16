@@ -67,7 +67,7 @@ namespace aaims::manager::classes {
                 majors[uuid] = std::make_shared<Major>(Major::fromJson(uuid, json.value(key).toObject()));
             }
         });
-        qInfo() << "Loaded" << all_classes.size() << "majors.";
+        qInfo() << "Loaded" << majors.size() << "majors.";
         path = QCoreApplication::applicationDirPath() + "/data/classes.json";
         io::load(path, [](const QJsonObject &json) {
             for (const auto &key: json.keys()) {
