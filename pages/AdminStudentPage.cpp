@@ -130,7 +130,7 @@ AdminStudentPage::AdminStudentPage(QWidget *parent) : QWidget(parent) {
                     }
                     lines.append(QString("%1,%2,%3,%4,%5").arg(student->username, student->name,
                                                                QString::number(credits), QString::number(failCount),
-                                                               failCourses.join(";")));
+                                                               failCourses.join("，")));
                 }
                 if (!lines.isEmpty()) {
                     constexpr auto h = "学号,姓名,已修学分,不及格课程数,不及格课程";

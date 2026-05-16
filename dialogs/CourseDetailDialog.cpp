@@ -52,11 +52,11 @@ CourseDetailDialog::CourseDetailDialog(Course *course, QWidget *parent) : Styled
         for (int y = currentYear; y <= currentYear + 2; ++y) {
             if (y != currentYear) {
                 const QString textAutumn = QString("%1-%2学年 秋季学期").arg(y - 1).arg(y);
-                const QString dataAutumn = QString("%1-1").arg(y);
+                const QString dataAutumn = QString("%1-1").arg(y - 1);
                 comboSemester->addItem(textAutumn, dataAutumn);
             }
             const QString textSpring = QString("%1-%2学年 春季学期").arg(y - 1).arg(y);
-            const QString dataSpring = QString("%1-2").arg(y);
+            const QString dataSpring = QString("%1-2").arg(y - 1);
             comboSemester->addItem(textSpring, dataSpring);
         }
     }

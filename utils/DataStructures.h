@@ -441,33 +441,26 @@ namespace aaims {
                 if (!occupied.contains(semester)) {
                     return false;
                 }
+                QVector<QVector<int> > currentOccupied = occupied[semester];
                 for (const auto &data: existingTimes) {
                     int mask = 0;
                     for (int i = data.weekStart; i <= data.weekEnd; ++i) {
                         mask |= 1 << (i - 1);
                     }
-                    occupied[semester][data.dayOfWeek][data.startTime] &= ~mask;
+                    currentOccupied[data.dayOfWeek][data.startTime] &= ~mask;
                 }
-                const bool res = std::ranges::any_of(times, [this, semester](const auto &data) {
+                return std::ranges::any_of(times, [currentOccupied](const auto &data) {
                     int mask = 0;
                     for (int i = data.weekStart; i <= data.weekEnd; ++i) {
                         mask |= 1 << (i - 1);
                     }
                     for (int i = 0; i < data.duration; i++) {
-                        if (occupied[semester][data.dayOfWeek][data.startTime + i] & mask) {
+                        if (currentOccupied[data.dayOfWeek][data.startTime + i] & mask) {
                             return true;
                         }
                     }
                     return false;
                 });
-                for (const auto &data: existingTimes) {
-                    int mask = 0;
-                    for (int i = data.weekStart; i <= data.weekEnd; ++i) {
-                        mask |= 1 << (i - 1);
-                    }
-                    occupied[semester][data.dayOfWeek][data.startTime] |= mask;
-                }
-                return res;
             }
 
             void addCourse(const Course *course) {

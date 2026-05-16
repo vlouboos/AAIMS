@@ -64,7 +64,7 @@ public:
                 case Number: return course->id;
                 case Name: return course->name;
                 case Teacher: return QString("%1(%2)").arg(t->name, t->department);
-                case Size: return course->is_started() ? (course->students.size() == size ? QString("%1自选").arg(size) : QString("%1(%2名重修+%3个班级)").arg(size).arg(course->students.size())
+                case Size: return (course->is_started() || course->is_ended()) ? (course->students.size() == size ? QString("%1自选").arg(size) : QString("%1(%2名重修+%3个班级)").arg(size).arg(course->students.size())
                             .arg(course->classes.size())) : QString("%1参选").arg(course->students.size());
                 case Credit: return course->credit;
                 case Status: return course->is_accepting()
@@ -73,7 +73,7 @@ public:
                                               ? "筛选中"
                                               : course->is_started()
                                                     ? "上课中"
-                                                    : "结课";
+                                                    : "已结课";
                 default: return {};
             }
         }

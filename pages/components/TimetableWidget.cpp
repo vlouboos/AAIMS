@@ -174,10 +174,10 @@ TimetableWidget::TimetableWidget(QWidget *parent) : QWidget(parent), userType(TE
     if (currentMonth > 8) currentYear++;
     if (currentMonth > 8 || currentMonth < 2) {
         labelSemester = new QLabel(QString("%1-%2 秋季学期").arg(currentYear - 1).arg(currentYear), this);
-        semester = QString("%1-%2").arg(currentYear).arg("1");
+        semester = QString("%1-%2").arg(currentYear - 1).arg("1");
     } else {
         labelSemester = new QLabel(QString("%1-%2 春季学期").arg(currentYear - 1).arg(currentYear), this);
-        semester = QString("%1-%2").arg(currentYear).arg("2");
+        semester = QString("%1-%2").arg(currentYear - 1).arg("2");
     }
 
     btnPrev = new QPushButton("<", this);
