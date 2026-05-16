@@ -32,10 +32,6 @@ AAIMS is a robust, high-performance C++ solution designed for academic administr
 * **Course-Centric Analytics**: Generates student rosters and grade distribution reports for specific subjects.
 * **Academic Progress Audit**: Automated calculation of earned credits and identification of failed courses.
 
-### 5. Architecture
-* **High-Precision Querying**: Rapid retrieval of complete student dossiers via unique identifiers.
-* **Multi-Terminal Connectivity**: Engineered for distributed environments, supporting concurrent data access.
-
 ---
 
 ## Build Instructions
